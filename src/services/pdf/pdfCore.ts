@@ -6,19 +6,19 @@
 
 import jsPDF, { jsPDFOptions } from "jspdf";
 import autoTable, { CellHookData as AutoTableCellHookData } from "jspdf-autotable";
-import { REV_LOGO_DATA_URI } from "@/assets/rev-logo-base64";
+import { TURKUAST_LOGO_BASE64 } from "@/assets/turkuast-logo-base64";
 
 // Company info
 // Company info
 export const COMPANY_INFO = {
-    name: "Revium Tech",
+    name: "Turkuast ERP",
     address: "Fevzi Cakmak Mah. Milenyum Cad. No:81",
     city: "Karatay/KONYA",
-    email: "info@reviumtech.com",
-    website: "www.reviumtech.com",
+    email: "info@turkuast.com",
+    website: "www.turkuast.com",
     phone: "+90 (551) 829-1613",
     fullAddress: "Fevzi Cakmak Mah. Milenyum Cad. No:81, Karatay/KONYA",
-    contactInfo: "info@reviumtech.com | www.reviumtech.com | +90 (551) 829-1613",
+    contactInfo: "info@turkuast.com | www.turkuast.com | +90 (551) 829-1613",
     headerAddress: "Fevzi Cakmak Mah. Milenyum Cad. No:81",
 } as const;
 
@@ -390,7 +390,7 @@ export function ensureTableFitsPage(
 }
 
 // Re-export for convenience
-export { REV_LOGO_DATA_URI };
+export { TURKUAST_LOGO_BASE64 };
 
 import { ROBOTO_REGULAR_BASE64, ROBOTO_BOLD_BASE64 } from "@/assets/fonts/roboto-base64";
 

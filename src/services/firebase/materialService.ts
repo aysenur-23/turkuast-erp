@@ -85,11 +85,11 @@ export const getRawMaterials = async (includeDeleted: boolean = false): Promise<
     }
     const snapshot = await getDocs(q);
     const materials: RawMaterial[] = [];
-    
+
     for (const docSnapshot of snapshot.docs) {
-      const data = docSnapshot.data();
-      if (!data || typeof data !== 'object') continue;
-      
+      const data = docSnapshot.data() as any;
+      if (!data) continue;
+
       // Silinmiş hammaddeleri atla (eğer includeDeleted false ise)
       if (!includeDeleted) {
         const deleted = data.deleted === true || data.isDeleted === true;
@@ -97,7 +97,7 @@ export const getRawMaterials = async (includeDeleted: boolean = false): Promise<
           continue;
         }
       }
-      
+
       const material: RawMaterial = {
         id: docSnapshot.id,
         name: data.name || "",
@@ -128,7 +128,7 @@ export const getRawMaterials = async (includeDeleted: boolean = false): Promise<
       };
       materials.push(material);
     }
-    
+
     return materials;
   } catch (error: unknown) {
     if (import.meta.env.DEV) {
@@ -153,7 +153,7 @@ export const getRawMaterials = async (includeDeleted: boolean = false): Promise<
 export const getRawMaterialById = async (materialId: string): Promise<RawMaterial | null> => {
   try {
     const materialDoc = await getDoc(doc(firestore, "rawMaterials", materialId));
-    
+
     if (!materialDoc.exists()) {
       return null;
     }
@@ -213,7 +213,7 @@ export const createRawMaterial = async (
 ): Promise<RawMaterial> => {
   try {
     const userId = auth?.currentUser?.uid;
-    
+
     const docRef = await addDoc(collection(firestore, "rawMaterials"), {
       ...materialData,
       createdBy: userId || materialData.createdBy || null,
@@ -239,7 +239,7 @@ export const createRawMaterial = async (
         const userProfile = await getUserProfile(finalUserId);
         const userName = userProfile?.fullName || userProfile?.displayName || userProfile?.email;
         const userEmail = userProfile?.email;
-        
+
         await addMaterialActivity(
           docRef.id,
           finalUserId,
@@ -286,15 +286,15 @@ export const updateRawMaterial = async (
   try {
     // Eski veriyi al
     const oldMaterial = await getRawMaterialById(materialId);
-    
+
     await updateDoc(doc(firestore, "rawMaterials", materialId), {
       ...updates,
       updatedAt: serverTimestamp(),
     });
-    
+
     // Yeni veriyi al
     const newMaterial = await getRawMaterialById(materialId);
-    
+
     // Audit log
     if (userId) {
       await logAudit("UPDATE", "raw_materials", materialId, userId, oldMaterial, newMaterial);
@@ -310,11 +310,11 @@ export const updateRawMaterial = async (
         const userEmail = userProfile?.email;
 
         const changedFields = Object.keys(updates).filter(key => {
-          const oldValue = (oldMaterial as Record<string, unknown>)[key];
-          const newValue = (updates as Record<string, unknown>)[key];
+          const oldValue = (oldMaterial as unknown as Record<string, unknown>)[key];
+          const newValue = (updates as unknown as Record<string, unknown>)[key];
           return oldValue !== newValue;
         });
-        
+
         if (changedFields.length > 0) {
           await addMaterialActivity(
             materialId,
@@ -358,7 +358,7 @@ export const deleteRawMaterial = async (materialId: string, userId?: string): Pr
   try {
     // Eski veriyi al
     const oldMaterial = await getRawMaterialById(materialId);
-    
+
     // Aktivite log ekle (silmeden önce)
     const finalUserId = userId || auth?.currentUser?.uid;
     if (finalUserId && oldMaterial) {
@@ -367,7 +367,7 @@ export const deleteRawMaterial = async (materialId: string, userId?: string): Pr
         const userProfile = await getUserProfile(finalUserId);
         const userName = userProfile?.fullName || userProfile?.displayName || userProfile?.email;
         const userEmail = userProfile?.email;
-        
+
         await addMaterialActivity(
           materialId,
           finalUserId,
@@ -383,9 +383,9 @@ export const deleteRawMaterial = async (materialId: string, userId?: string): Pr
         }
       }
     }
-    
+
     await deleteDoc(doc(firestore, "rawMaterials", materialId));
-    
+
     // Audit log
     if (userId) {
       await logAudit("DELETE", "raw_materials", materialId, userId, oldMaterial, null);
@@ -417,7 +417,7 @@ export const addMaterialTransaction = async (
 ): Promise<MaterialTransaction> => {
   try {
     const materialId = transactionData.materialId;
-    
+
     // Stok hareketini ekle
     const docRef = await addDoc(
       collection(firestore, "rawMaterials", materialId, "transactions"),

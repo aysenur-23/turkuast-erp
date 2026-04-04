@@ -26,14 +26,14 @@ const lazyWithRetry = (componentImport: () => Promise<{ default: React.Component
       return await componentImport();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      
+
       // Sadece network hatalarında retry yap
-      const isNetworkError = errorMessage.includes('ERR_CONNECTION_REFUSED') || 
-                             errorMessage.includes('ERR_NETWORK_CHANGED') ||
-                             errorMessage.includes('Failed to fetch') ||
-                             errorMessage.includes('NetworkError') ||
-                             errorMessage.includes('network');
-      
+      const isNetworkError = errorMessage.includes('ERR_CONNECTION_REFUSED') ||
+        errorMessage.includes('ERR_NETWORK_CHANGED') ||
+        errorMessage.includes('Failed to fetch') ||
+        errorMessage.includes('NetworkError') ||
+        errorMessage.includes('network');
+
       if (isNetworkError) {
         // Network hatası: 1 retry, 50ms delay
         if (import.meta.env.DEV) {
@@ -49,7 +49,7 @@ const lazyWithRetry = (componentImport: () => Promise<{ default: React.Component
           throw retryError;
         }
       }
-      
+
       // Network hatası değilse hemen fırlat (syntax error, module not found, vb.)
       if (import.meta.env.DEV) {
         console.error('Lazy loading error (non-network):', error);
@@ -60,21 +60,15 @@ const lazyWithRetry = (componentImport: () => Promise<{ default: React.Component
 };
 
 // Preload critical pages on app start
-<<<<<<< HEAD
 // Optimized: requestIdleCallback kullan ve daha geç başlat (non-blocking)
 const preloadCriticalPages = () => {
   // Critical pages'i arka planda preload et (sadece gerçekten kritik olanlar)
-=======
-const preloadCriticalPages = () => {
-  // Critical pages'i arka planda preload et
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-  import("./pages/Dashboard").catch(() => {});
-  import("./pages/Tasks").catch(() => {});
+  import("./pages/Dashboard").catch(() => { });
+  import("./pages/Tasks").catch(() => { });
 };
 
 // App başladığında critical sayfaları preload et
 if (typeof window !== 'undefined') {
-<<<<<<< HEAD
   // requestIdleCallback kullan (tarayıcı müsait olduğunda)
   // Fallback: setTimeout ile 2000ms sonra (100ms → 2000ms)
   if ('requestIdleCallback' in window) {
@@ -89,10 +83,6 @@ if (typeof window !== 'undefined') {
     // Fallback: setTimeout ile 2000ms sonra preload et (non-blocking)
     setTimeout(preloadCriticalPages, 2000);
   }
-=======
-  // Sayfa yüklendikten sonra preload et (non-blocking)
-  setTimeout(preloadCriticalPages, 100);
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
 }
 
 const Dashboard = lazyWithRetry(() => import("./pages/Dashboard"));
@@ -124,10 +114,17 @@ import ResetPassword from "./pages/ResetPassword";
 
 // Loading component - MainLayout kullanmıyor çünkü Header/Sidebar useAuth gerektiriyor
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <div className="flex flex-col items-center gap-4">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      <p className="text-sm text-muted-foreground">Sayfa yükleniyor...</p>
+  <div className="fixed inset-0 w-full h-full flex flex-col items-center justify-center z-[9999]"
+    style={{ background: 'radial-gradient(circle at center, #ffffff 0%, #f1f5f9 100%)' }}>
+    <img
+      src="/turkuast-logo.png"
+      alt="Turkuast Logo"
+      className="w-[200px] h-auto mb-[36px] drop-shadow-[0_10px_15px_rgba(37,99,235,0.15)]"
+      loading="eager"
+    />
+    <div className="w-[50px] h-[50px] border-[3px] border-[#2563eb1a] border-t-[#2563eb] rounded-full animate-spin mb-[24px]" />
+    <div className="text-[#475569] font-medium text-base tracking-[0.5px] mt-[10px]">
+      Turkuast ERP Yükleniyor...
     </div>
   </div>
 );
@@ -137,13 +134,8 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false, // Window focus'ta otomatik refetch'i kapat (performans için)
       retry: 1, // Retry sayısını 1'e indir (hata durumunda 1 kez dene)
-<<<<<<< HEAD
       staleTime: 10 * 60 * 1000, // 10 dakika stale time (5 dakika → 10 dakika, daha agresif cache)
       gcTime: 15 * 60 * 1000, // 15 dakika cache time (10 dakika → 15 dakika, daha uzun cache)
-=======
-      staleTime: 5 * 60 * 1000, // 5 dakika stale time (daha agresif cache)
-      gcTime: 10 * 60 * 1000, // 10 dakika cache time (daha uzun cache)
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
       // İlk yüklemede daha hızlı render için
       refetchOnMount: false, // Mount'ta refetch yapma (cache'den göster - performans için)
       refetchOnReconnect: false, // Reconnect'te refetch yapma
@@ -169,12 +161,6 @@ const router = createBrowserRouter(
     {
       element: <AppProviders />,
       errorElement: <ErrorPage />,
-<<<<<<< HEAD
-      future: {
-        v7_startTransition: true, // React Router v7 uyumluluğu için
-      },
-=======
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
       children: [
         { path: "/verify-email", element: <VerifyEmail />, errorElement: <ErrorPage /> },
         { path: "/verify-email-prompt", element: <VerifyEmailPrompt />, errorElement: <ErrorPage /> },
@@ -187,14 +173,14 @@ const router = createBrowserRouter(
         { path: "/tasks/archive", element: <ProtectedRoute><Navigate to="/tasks?filter=archive" replace /></ProtectedRoute>, errorElement: <ErrorPage /> },
         { path: "/task-pool", element: <ProtectedRoute><Navigate to="/tasks?filter=pool" replace /></ProtectedRoute>, errorElement: <ErrorPage /> },
         { path: "/projects", element: <ProtectedRoute><Suspense fallback={<PageLoader />}><Projects /></Suspense></ProtectedRoute>, errorElement: <ErrorPage /> },
-        { 
-          path: "/projects/:projectId/tasks", 
+        {
+          path: "/projects/:projectId/tasks",
           element: <ProtectedRoute>
             <Suspense fallback={<PageLoader />}>
               <ProjectTasksRedirect />
             </Suspense>
-          </ProtectedRoute>, 
-          errorElement: <ErrorPage /> 
+          </ProtectedRoute>,
+          errorElement: <ErrorPage />
         },
         { path: "/customers", element: <ProtectedRoute><Suspense fallback={<PageLoader />}><Customers /></Suspense></ProtectedRoute>, errorElement: <ErrorPage /> },
         { path: "/products", element: <ProtectedRoute><Suspense fallback={<PageLoader />}><Products /></Suspense></ProtectedRoute>, errorElement: <ErrorPage /> },

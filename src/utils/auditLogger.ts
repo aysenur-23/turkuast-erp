@@ -1,5 +1,4 @@
 /**
-<<<<<<< HEAD
  * Professional Audit Logger Utility
  * Tüm önemli işlemler için kapsamlı denetim kaydı
  * - Detaylı kullanıcı bilgileri
@@ -230,16 +229,6 @@ const processLogQueue = async (): Promise<void> => {
 /**
  * Ana audit log fonksiyonu
  * Profesyonel, detaylı ve performanslı
-=======
- * Audit Logger Utility
- * Tüm önemli işlemler için otomatik audit log kaydı
- */
-
-import { createAuditLog } from "@/services/firebase/auditLogsService";
-
-/**
- * Audit log oluştur (async, hata durumunda sessizce devam et)
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
  */
 export const logAudit = async (
   action: "CREATE" | "UPDATE" | "DELETE",
@@ -251,7 +240,6 @@ export const logAudit = async (
   metadata?: Record<string, unknown>
 ): Promise<void> => {
   try {
-<<<<<<< HEAD
     // Enhanced metadata oluştur
     const enhancedMetadata = createEnhancedMetadata(
       action,
@@ -283,9 +271,6 @@ export const logAudit = async (
       // Aksi halde delayed batch işleme
       setTimeout(processLogQueue, BATCH_DELAY);
     }
-=======
-    await createAuditLog(action, tableName, recordId, oldData, newData, userId, metadata);
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
   } catch (error: unknown) {
     // Audit log hataları ana işlemi etkilememeli
     if (import.meta.env.DEV) {
@@ -294,7 +279,6 @@ export const logAudit = async (
   }
 };
 
-<<<<<<< HEAD
 /**
  * Kritik işlemler için anında log (queue kullanmadan)
  */
@@ -412,5 +396,3 @@ if (typeof window !== "undefined") {
     }
   });
 }
-=======
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1

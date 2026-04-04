@@ -28,8 +28,8 @@ const testEmail = async () => {
 
     const info = await transporter.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@reviumtech.com',
-      to: process.env.SMTP_USER || 'mail@revpad.net', // Kendi e-postanıza gönder
-      subject: 'Test E-posta - Revium ERP',
+      to: process.env.SMTP_USER || 'mail@turkuast.com', // Kendi e-postanıza gönder
+      subject: 'Test E-posta - Turkuast ERP',
       html: `
         <h1>Test E-postası</h1>
         <p>Bu bir test e-postasıdır.</p>
@@ -40,7 +40,7 @@ const testEmail = async () => {
 
     console.log('✅ E-posta başarıyla gönderildi!');
     console.log('Message ID:', info.messageId);
-    console.log('Alıcı:', process.env.SMTP_USER || 'mail@revpad.net');
+    console.log('Alıcı:', process.env.SMTP_USER || 'mail@turkuast.com');
   } catch (error) {
     console.error('❌ E-posta gönderme hatası:', error.message);
     console.error('Detay:', error);

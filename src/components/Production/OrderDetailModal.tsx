@@ -9,15 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Calendar, 
-  Package, 
-  User, 
-  Clock, 
-  ListChecks, 
-  ShoppingCart, 
-  Edit, 
-  Trash2, 
+import {
+  Calendar,
+  Package,
+  User,
+  Clock,
+  ListChecks,
+  ShoppingCart,
+  Edit,
+  Trash2,
   Building2,
   Phone,
   Mail,
@@ -43,6 +43,10 @@ import { getProducts, Product } from "@/services/firebase/productService";
 import { Timestamp } from "firebase/firestore";
 import { ActivityCommentsPanel } from "@/components/shared/ActivityCommentsPanel";
 import { PRIORITY_OPTIONS } from "@/utils/priority";
+import { uploadFile } from "@/services/firebase/storageService";
+import { Switch } from "@/components/ui/switch";
+import { FileDown, FileUp, CreditCard, Receipt, Wallet, Banknote } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Helper functions
 const resolveDateValue = (value?: unknown): Date | null => {
@@ -80,7 +84,7 @@ const resolveDateValue = (value?: unknown): Date | null => {
 const formatDateSafe = (dateInput?: string | Date | null | Timestamp | unknown) => {
   if (!dateInput) return "-";
   let date: Date | null = null;
-  
+
   if (dateInput instanceof Date) {
     date = dateInput;
   } else if (dateInput instanceof Timestamp) {
@@ -100,14 +104,14 @@ const formatDateSafe = (dateInput?: string | Date | null | Timestamp | unknown) 
       date = new Date((dateInput as { _seconds: number })._seconds * 1000);
     }
   }
-  
+
   if (!date || isNaN(date.getTime())) return "-";
-  
+
   try {
-    return date.toLocaleDateString("tr-TR", { 
-      day: "2-digit", 
-      month: "short", 
-      year: "numeric" 
+    return date.toLocaleDateString("tr-TR", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
     });
   } catch {
     return "-";
@@ -145,10 +149,7 @@ interface OrderDetailModalProps {
 }
 
 export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, onUpdate }: OrderDetailModalProps) => {
-<<<<<<< HEAD
-=======
-  if (!order) return null;
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
+
   const { user, isAdmin, isTeamLeader } = useAuth();
   const [tasks, setTasks] = useState<Awaited<ReturnType<typeof getTasks>>>([]);
   const [tasksLoading, setTasksLoading] = useState(false);
@@ -164,11 +165,8 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [canUpdate, setCanUpdate] = useState(false);
   const [canDelete, setCanDelete] = useState(false);
-<<<<<<< HEAD
-  
+
   if (!order) return null;
-=======
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
   const [formData, setFormData] = useState({
     order_number: "",
     product_name: "",
@@ -183,15 +181,20 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
     notes: "",
     shipping_address: "",
     shipping_notes: "",
+    total_amount: "0",
+    payment_status: "unpaid" as "paid" | "unpaid",
+    payment_method: "",
+    invoice_issued: false,
+    invoice_url: "",
   });
-  
+
   // Personel kontrolü - Personel üretim siparişi detayını görebilir ama düzenleyemez
   // Bu değişkeni en üste taşıyoruz çünkü diğer değişkenlerde kullanılıyor
   const isPersonnel = Boolean(user?.roles?.includes("personnel"));
   const isManager = Boolean(user?.roles?.includes('manager')) || isAdmin;
   const isCreator = user?.id === order?.createdBy;
   const canUpdateStatus = !isPersonnel && (isManager || isAdmin || isTeamLeader || isCreator);
-  
+
   const orderNumber = order?.order_number || order?.orderNumber || order?.id || "-";
   const dueDateValue = resolveDateValue(order?.due_date || order?.dueDate);
   const createdAtValue = resolveDateValue(order?.created_at || order?.createdAt);
@@ -264,18 +267,18 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
       const firstItem = orderItems[0];
       const productId = firstItem?.productId || "";
       const productName = firstItem?.productName || "";
-      const dueDate = order.due_date 
+      const dueDate = order.due_date
         ? (typeof order.due_date === 'string'
-            ? new Date(order.due_date).toISOString().split("T")[0]
-            : order.dueDate
+          ? new Date(order.due_date).toISOString().split("T")[0]
+          : order.dueDate
             ? (order.dueDate instanceof Date
-                ? order.dueDate.toISOString().split("T")[0]
-                : typeof order.dueDate === 'string'
+              ? order.dueDate.toISOString().split("T")[0]
+              : typeof order.dueDate === 'string'
                 ? new Date(order.dueDate).toISOString().split("T")[0]
                 : "")
             : "")
         : "";
-      
+
       setFormData({
         order_number: order.order_number || order.orderNumber || "",
         product_name: productName,
@@ -290,6 +293,11 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
         notes: order.notes || "",
         shipping_address: order.delivery_address || order.shippingAddress || order.shipping_address || "",
         shipping_notes: order.delivery_notes || order.shippingNotes || order.shipping_notes || "",
+        total_amount: (order.total_amount || order.totalAmount || 0).toString(),
+        payment_status: (order.payment_status || order.paymentStatus || "unpaid") as "paid" | "unpaid",
+        payment_method: order.payment_method || order.paymentMethod || "",
+        invoice_issued: !!(order.invoice_issued || order.invoiceIssued),
+        invoice_url: order.invoice_url || order.invoiceUrl || "",
       });
     }
   }, [order, open, isEditing, orderItems]);
@@ -326,7 +334,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
           // Customer fetch hatası kritik değil, devam et
         }
       }
-      
+
       // Fetch order items
       try {
         const items = await getOrderItems(order.id);
@@ -334,7 +342,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
       } catch (error: unknown) {
         if (import.meta.env.DEV) console.error("Fetch order items error:", error);
       }
-      
+
       // Fetch tasks
       setTasksLoading(true);
       try {
@@ -353,6 +361,29 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
       toast.error("Detaylar yüklenirken hata: " + errorMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !order?.id) return;
+
+    // Dosya boyutu kontrolü (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Dosya boyutu 10MB'dan küçük olmalıdır.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const path = `invoices/${order.id}/${Date.now()}_${file.name}`;
+      const url = await uploadFile(file, path);
+      setFormData(prev => ({ ...prev, invoice_url: url }));
+      toast.success("Dosya başarıyla yüklendi.");
+    } catch (error: any) {
+      toast.error("Dosya yüklenemedi: " + error.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -493,7 +524,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
     setFormData((prev) => {
       const selectedProduct = products.find((p) => p.id === prev.product_id);
       const newProductId = selectedProduct && selectedProduct.name === value ? prev.product_id : "";
-      
+
       return {
         ...prev,
         product_name: value,
@@ -505,7 +536,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!order?.id) return;
-    
+
     setSaving(true);
     try {
       const dueDate = formData.due_date ? Timestamp.fromDate(new Date(formData.due_date)) : null;
@@ -535,6 +566,16 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
         total_quantity: quantityValue,
         itemsCount: 1,
         items_count: 1,
+        totalAmount: Number(formData.total_amount),
+        total_amount: Number(formData.total_amount),
+        paymentMethod: formData.payment_method,
+        payment_method: formData.payment_method,
+        paymentStatus: formData.payment_status,
+        payment_status: formData.payment_status,
+        invoiceUrl: formData.invoice_url,
+        invoice_url: formData.invoice_url,
+        invoiceIssued: formData.invoice_issued,
+        invoice_issued: formData.invoice_issued,
       }, user?.id);
 
       // Items'ı güncelle
@@ -585,448 +626,462 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
     { label: "Termin Tarihi", value: formatDateSafe(dueDateValue as Date | string | Timestamp | null) },
     { label: "Öncelik", value: `${order.priority || 0} / 5` },
     { label: "Durum", value: getStatusLabel(order.status) },
-    { label: "Oluşturan", value: order?.createdBy 
-      ? (usersMap[order.createdBy] || "-")
-      : "-" },
+    {
+      label: "Oluşturan", value: order?.createdBy
+        ? (usersMap[order.createdBy] || "-")
+        : "-"
+    },
     { label: "Oluşturma Tarihi", value: formatDateSafe(createdAtValue as Date | string | Timestamp | null) },
     { label: "Son Güncelleme", value: formatDateSafe(updatedAtValue as Date | string | Timestamp | null) },
   ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-<<<<<<< HEAD
-      <DialogContent className="!max-w-[100vw] sm:!max-w-[95vw] md:!max-w-[85vw] !w-[100vw] sm:!w-[95vw] md:!w-[85vw] !h-[100vh] sm:!h-[90vh] md:!h-[85vh] !max-h-[100vh] sm:!max-h-[90vh] md:!max-h-[85vh] !left-0 sm:!left-[2.5vw] md:!left-[7.5vw] !top-0 sm:!top-[5vh] md:!top-[7.5vh] !right-0 sm:!right-auto !bottom-0 sm:!bottom-auto !translate-x-0 !translate-y-0 overflow-hidden !p-0 gap-0 bg-white flex flex-col !m-0 !rounded-none sm:!rounded-lg !border-0 sm:!border">
-=======
-      <DialogContent className="!max-w-[100vw] sm:!max-w-[85vw] !w-[100vw] sm:!w-[85vw] !h-[100vh] sm:!h-[80vh] !max-h-[100vh] sm:!max-h-[80vh] !left-0 sm:!left-[7.5vw] !top-0 sm:!top-[10vh] !right-0 sm:!right-auto !bottom-0 sm:!bottom-auto !translate-x-0 !translate-y-0 overflow-hidden !p-0 gap-0 bg-white flex flex-col !m-0 !rounded-none sm:!rounded-lg !border-0 sm:!border">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-        {/* DialogTitle ve DialogDescription DialogContent'in direkt child'ı olmalı (Radix UI gereksinimi) */}
+      <DialogContent className="app-dialog-shell">
         <DialogTitle className="sr-only">
           Üretim Siparişi - {orderNumber}
         </DialogTitle>
         <DialogDescription className="sr-only">
           {firstItem?.productName ? `${firstItem.productName} - Üretim siparişi detayları` : "Üretim siparişi detayları"}
         </DialogDescription>
-        
-        <div className="flex flex-col h-full min-h-0">
-<<<<<<< HEAD
-          <DialogHeader className="p-2 sm:p-3 md:p-4 border-b bg-white flex-shrink-0 relative pr-10 sm:pr-12">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
-              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 w-full sm:w-auto">
-=======
-          <DialogHeader className="p-3 sm:p-4 border-b bg-white flex-shrink-0">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 flex-shrink-0">
-                  <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-<<<<<<< HEAD
-                  <h2 className="text-[14px] sm:text-[16px] md:text-[18px] font-semibold text-foreground truncate">
-                    Üretim Siparişi - {orderNumber}
-                  </h2>
-                  {firstItem?.productName && (
-                    <p className="text-[10px] sm:text-[11px] md:text-xs text-muted-foreground truncate mt-0.5">
-=======
-                  <h2 className="text-[16px] sm:text-[18px] font-semibold text-foreground truncate">
-                    Üretim Siparişi - {orderNumber}
-                  </h2>
-                  {firstItem?.productName && (
-                    <p className="text-[11px] sm:text-xs text-muted-foreground truncate mt-0.5">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                      {firstItem.productName}
-                    </p>
-                  )}
-                </div>
+
+        <DialogHeader className="p-2 sm:p-3 md:p-4 border-b bg-white flex-shrink-0 relative">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 w-full sm:w-auto">
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 flex-shrink-0">
+                <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               </div>
-<<<<<<< HEAD
-              <div className="flex flex-wrap items-center gap-2 flex-shrink-0 relative z-10 w-full sm:w-auto justify-start sm:justify-end">
-                <Badge variant={getStatusVariant(currentStatus)} className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 relative z-10 w-full sm:w-auto justify-center sm:justify-start">
-=======
-              <div className="flex flex-wrap items-center gap-2 flex-shrink-0 relative z-10 pr-10 sm:pr-12">
-                <Badge variant={getStatusVariant(currentStatus)} className="text-xs px-2 sm:px-3 py-1 relative z-10">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                  {getStatusLabel(currentStatus)}
-                </Badge>
-                {!isEditing ? (
-                  <>
-                    {!isPersonnel && (canUpdate || order.createdBy === user?.id) && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsEditing(true)}
-<<<<<<< HEAD
-                        className="text-[11px] sm:text-xs h-10 sm:h-8 min-h-[44px] sm:min-h-0 w-full sm:w-auto"
-=======
-                        className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Düzenle
-                      </Button>
-                    )}
-                    {!isPersonnel && canDelete && onDelete && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={onDelete}
-<<<<<<< HEAD
-                        className="text-[11px] sm:text-xs h-10 sm:h-8 min-h-[44px] sm:min-h-0 text-destructive hover:text-destructive w-full sm:w-auto"
-=======
-                        className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0 text-destructive hover:text-destructive"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Sil
-                      </Button>
-                    )}
-                  </>
-                ) : (
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setIsEditing(false);
-                        // Form verilerini sıfırla
-                        if (order && orderItems.length > 0) {
-                          const firstItem = orderItems[0];
-                          const productId = firstItem?.productId || "";
-                          const productName = firstItem?.productName || "";
-                          const dueDate = order.due_date 
-                            ? (typeof order.due_date === 'string'
-                                ? new Date(order.due_date).toISOString().split("T")[0]
-                                : "")
-                            : "";
-                          setFormData({
-                            order_number: order.order_number || order.orderNumber || "",
-                            product_name: productName,
-                            product_id: productId,
-                            quantity: firstItem?.quantity?.toString() || "",
-                            unit: "Adet",
-                            customer_id: order.customer_id || order.customerId || "",
-                            customer_name: order.customer_name || order.customerName || "",
-                            due_date: dueDate,
-                            priority: order.priority?.toString() || "0",
-                            status: order.status || "planned",
-                            notes: order.notes || "",
-                            shipping_address: order.delivery_address || order.shippingAddress || order.shipping_address || "",
-                            shipping_notes: order.delivery_notes || order.shippingNotes || order.shipping_notes || "",
-                          });
-                        }
-                      }}
-                      disabled={saving}
-<<<<<<< HEAD
-                      className="text-[11px] sm:text-xs h-10 sm:h-8 min-h-[44px] sm:min-h-0 w-full sm:w-auto"
-=======
-                      className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      İptal
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        const form = document.getElementById("production-order-edit-form") as HTMLFormElement;
-                        if (form) {
-                          form.requestSubmit();
-                        } else {
-                          handleSubmit(e);
-                        }
-                      }}
-                      disabled={saving}
-<<<<<<< HEAD
-                      className="text-[11px] sm:text-xs h-10 sm:h-8 min-h-[44px] sm:min-h-0 w-full sm:w-auto"
-=======
-                      className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                    >
-                      {saving ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Kaydediliyor...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Kaydet
-                        </>
-                      )}
-                    </Button>
-                  </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-[14px] sm:text-[16px] md:text-[18px] font-semibold text-foreground truncate">
+                  Üretim Siparişi - {orderNumber}
+                </h2>
+                {firstItem?.productName && (
+                  <p className="text-[10px] sm:text-[11px] md:text-xs text-muted-foreground truncate mt-0.5">
+                    {firstItem.productName}
+                  </p>
                 )}
               </div>
             </div>
-          </DialogHeader>
-
-<<<<<<< HEAD
-          <div className="flex-1 overflow-hidden bg-gray-50/50 p-2 sm:p-3 md:p-4 min-h-0">
-            <div className="max-w-full mx-auto h-full overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
-=======
-          <div className="flex-1 overflow-hidden bg-gray-50/50 p-3 sm:p-4 min-h-0">
-            <div className="max-w-full mx-auto h-full overflow-y-auto">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : isEditing ? (
-                <form id="production-order-edit-form" onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-[14px] sm:text-[15px] font-semibold">Sipariş Bilgileri</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3 sm:space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <div className="space-y-1.5 sm:space-y-2">
-                          <Label htmlFor="order_number" showRequired className="text-[11px] sm:text-xs">Sipariş No</Label>
-                          <Input
-                            id="order_number"
-                            value={formData.order_number}
-                            onChange={(e) => setFormData({ ...formData, order_number: e.target.value })}
-                            required
-<<<<<<< HEAD
-                            className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0"
-=======
-                            className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                          />
-                        </div>
-                        <div className="space-y-1.5 sm:space-y-2">
-                          <Label htmlFor="status" className="text-[11px] sm:text-xs">Durum</Label>
-                          <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-<<<<<<< HEAD
-                            <SelectTrigger className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0">
-=======
-                            <SelectTrigger className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="text-[11px] sm:text-xs">
-                              {(() => {
-                                const currentStatus = order?.status || "planned";
-                                const validTransitions = getValidStatusTransitions(currentStatus);
-                                const statusLabels: Record<string, string> = {
-                                  planned: "Planlanan",
-                                  in_production: "Üretimde",
-                                  quality_check: "Kalite Kontrol",
-                                  completed: "Tamamlandı",
-                                  on_hold: "Beklemede",
-                                  pending: "Beklemede",
-                                  cancelled: "İptal Edildi",
-                                };
-                                
-                                // Mevcut durumu da göster
-                                const allOptions = [...new Set([currentStatus, ...validTransitions])];
-                                
-                                return allOptions.map((status) => (
-                                  <SelectItem key={status} value={status} className="text-[11px] sm:text-xs">
-                                    {statusLabels[status] || status}
-                                  </SelectItem>
-                                ));
-                              })()}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="customer_name" className="text-[11px] sm:text-xs">Müşteri Adı</Label>
-                        <Input
-                          id="customer_name"
-                          value={formData.customer_name}
-                          onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
-<<<<<<< HEAD
-                          className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0"
-=======
-                          className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="product_name" showRequired className="text-[11px] sm:text-xs">Ürün Adı</Label>
-                        <div className="space-y-1.5 sm:space-y-2">
-                          <Select
-                            value={formData.product_id || "none"}
-                            onValueChange={handleProductSelect}
-                            disabled={productsLoading}
-                          >
-<<<<<<< HEAD
-                            <SelectTrigger className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0">
-=======
-                            <SelectTrigger className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                              <SelectValue placeholder={productsLoading ? "Ürünler yükleniyor..." : "Ürün seçin (Opsiyonel)"} />
-                            </SelectTrigger>
-                            <SelectContent className="text-[11px] sm:text-xs">
-                              <SelectItem value="none" className="text-[11px] sm:text-xs">Ürün seçmeden devam et</SelectItem>
-                              {products.map((product) => (
-                                <SelectItem key={product.id} value={product.id} className="text-[11px] sm:text-xs">
-                                  {product.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {productsLoading && (
-                            <div className="flex items-center gap-2 text-[11px] sm:text-xs text-muted-foreground">
-                              <Loader2 className="h-4 w-4 animate-spin" /> Ürünler yükleniyor...
-                            </div>
-                          )}
-                          <Input
-                            id="product_name"
-                            placeholder="Ürün adı girin (dropdown'dan seçebilir veya elle yazabilirsiniz)"
-                            value={formData.product_name}
-                            onChange={(e) => handleProductNameChange(e.target.value)}
-                            required
-<<<<<<< HEAD
-                            className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0"
-=======
-                            className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                          />
-                          {formData.product_id && (
-                            <p className="text-[11px] sm:text-xs text-muted-foreground flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                              Dropdown'dan seçili ürün: {products.find(p => p.id === formData.product_id)?.name}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <div className="space-y-1.5 sm:space-y-2">
-                          <Label htmlFor="quantity" showRequired className="text-[11px] sm:text-xs">Miktar</Label>
-                          <Input
-                            id="quantity"
-                            type="number"
-                            value={formData.quantity}
-                            onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                            required
-<<<<<<< HEAD
-                            className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0"
-=======
-                            className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                          />
-                        </div>
-                        <div className="space-y-1.5 sm:space-y-2">
-                          <Label htmlFor="unit" className="text-[11px] sm:text-xs">Birim</Label>
-                          <Select value={formData.unit} onValueChange={(value) => setFormData({ ...formData, unit: value })}>
-<<<<<<< HEAD
-                            <SelectTrigger className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0">
-=======
-                            <SelectTrigger className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="text-[11px] sm:text-xs">
-                              <SelectItem value="Adet" className="text-[11px] sm:text-xs">Adet</SelectItem>
-                              <SelectItem value="Kg" className="text-[11px] sm:text-xs">Kg</SelectItem>
-                              <SelectItem value="Lt" className="text-[11px] sm:text-xs">Lt</SelectItem>
-                              <SelectItem value="Mt" className="text-[11px] sm:text-xs">Mt</SelectItem>
-                              <SelectItem value="M2" className="text-[11px] sm:text-xs">M²</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <div className="space-y-1.5 sm:space-y-2">
-                          <Label htmlFor="due_date" showRequired className="text-[11px] sm:text-xs">Termin Tarihi</Label>
-                          <Input
-                            id="due_date"
-                            type="date"
-                            value={formData.due_date}
-                            onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                            required
-<<<<<<< HEAD
-                            className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0"
-=======
-                            className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                          />
-                        </div>
-                        <div className="space-y-1.5 sm:space-y-2">
-                          <Label htmlFor="priority" className="text-[11px] sm:text-xs">Öncelik</Label>
-                          <Select
-                            value={formData.priority?.toString() || "0"}
-                            onValueChange={(value) => setFormData({ ...formData, priority: value })}
-                          >
-<<<<<<< HEAD
-                            <SelectTrigger className="h-10 sm:h-10 text-[11px] sm:text-xs min-h-[44px] sm:min-h-0">
-=======
-                            <SelectTrigger className="h-10 text-[11px] sm:text-xs min-h-[44px] sm:min-h-0">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {PRIORITY_OPTIONS.map((option) => (
-                                <SelectItem key={option.value} value={option.value.toString()}>
-                                  {option.label} ({option.value})
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="notes" className="text-[11px] sm:text-xs">Notlar</Label>
-                        <Textarea
-                          id="notes"
-                          value={formData.notes}
-                          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                          rows={3}
-<<<<<<< HEAD
-                          className="text-[11px] sm:text-xs min-h-[80px] sm:min-h-0"
-=======
-                          className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                          placeholder="Sipariş ile ilgili notlar..."
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="text-[11px] sm:text-xs">Teslimat Bilgileri</Label>
-                        <div className="space-y-1.5 sm:space-y-2">
-                          <div className="space-y-1.5 sm:space-y-2">
-                            <Label htmlFor="shipping_address" className="text-[11px] sm:text-xs text-muted-foreground">Teslimat Adresi</Label>
-                            <Input
-                              id="shipping_address"
-                              value={formData.shipping_address}
-                              onChange={(e) => setFormData({ ...formData, shipping_address: e.target.value })}
-<<<<<<< HEAD
-                              className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0"
-=======
-                              className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                              placeholder="Teslimat adresi..."
-                            />
-                          </div>
-                          <div className="space-y-1.5 sm:space-y-2">
-                            <Label htmlFor="shipping_notes" className="text-[11px] sm:text-xs text-muted-foreground">Teslimat Notları</Label>
-                            <Textarea
-                              id="shipping_notes"
-                              value={formData.shipping_notes}
-                              onChange={(e) => setFormData({ ...formData, shipping_notes: e.target.value })}
-                              rows={2}
-<<<<<<< HEAD
-                              className="text-[11px] sm:text-xs min-h-[60px] sm:min-h-0"
-=======
-                              className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                              placeholder="Teslimat ile ilgili notlar..."
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </form>
+            <div className="flex flex-wrap items-center gap-2 flex-shrink-0 relative z-10 w-full sm:w-auto justify-start sm:justify-end">
+              <Badge variant={getStatusVariant(currentStatus)} className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 relative z-10 w-full sm:w-auto justify-center sm:justify-start">
+                {getStatusLabel(currentStatus)}
+              </Badge>
+              {!isEditing ? (
+                <>
+                  {!isPersonnel && (canUpdate || order.createdBy === user?.id) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsEditing(true)}
+                      className="text-[11px] sm:text-xs h-10 sm:h-8 min-h-[44px] sm:min-h-0 w-full sm:w-auto"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Düzenle
+                    </Button>
+                  )}
+                  {!isPersonnel && canDelete && onDelete && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={onDelete}
+                      className="text-[11px] sm:text-xs h-10 sm:h-8 min-h-[44px] sm:min-h-0 text-destructive hover:text-destructive w-full sm:w-auto"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Sil
+                    </Button>
+                  )}
+                </>
               ) : (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setIsEditing(false);
+                      // Form verilerini sıfırla
+                      if (order && orderItems.length > 0) {
+                        const firstItem = orderItems[0];
+                        const productId = firstItem?.productId || "";
+                        const productName = firstItem?.productName || "";
+                        const dueDate = order.due_date
+                          ? (typeof order.due_date === 'string'
+                            ? new Date(order.due_date).toISOString().split("T")[0]
+                            : "")
+                          : "";
+                        setFormData({
+                          order_number: order.order_number || order.orderNumber || "",
+                          product_name: productName,
+                          product_id: productId,
+                          quantity: firstItem?.quantity?.toString() || "",
+                          unit: "Adet",
+                          customer_id: order.customer_id || order.customerId || "",
+                          customer_name: order.customer_name || order.customerName || "",
+                          due_date: dueDate,
+                          priority: order.priority?.toString() || "0",
+                          status: order.status || "planned",
+                          notes: order.notes || "",
+                          shipping_address: order.delivery_address || order.shippingAddress || order.shipping_address || "",
+                          shipping_notes: order.delivery_notes || order.shippingNotes || order.shipping_notes || "",
+                          total_amount: (order.total_amount || order.totalAmount || 0).toString(),
+                          payment_status: (order.payment_status || order.paymentStatus || "unpaid") as "paid" | "unpaid",
+                          payment_method: order.payment_method || order.paymentMethod || "",
+                          invoice_issued: !!(order.invoice_issued || order.invoiceIssued),
+                          invoice_url: order.invoice_url || order.invoiceUrl || "",
+                        });
+                      }
+                    }}
+                    disabled={saving}
+                    className="text-[11px] sm:text-xs h-10 sm:h-8 min-h-[44px] sm:min-h-0 w-full sm:w-auto"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    İptal
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const form = document.getElementById("production-order-edit-form") as HTMLFormElement;
+                      if (form) {
+                        form.requestSubmit();
+                      } else {
+                        handleSubmit(e);
+                      }
+                    }}
+                    disabled={saving}
+                    className="text-[11px] sm:text-xs h-10 sm:h-8 min-h-[44px] sm:min-h-0 w-full sm:w-auto"
+                  >
+                    {saving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Kaydediliyor...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Kaydet
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-hidden bg-gray-50/50 p-2 sm:p-3 md:p-4 min-h-0">
+          <div className="max-w-full mx-auto h-full app-dialog-scroll">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : isEditing ? (
+              <form id="production-order-edit-form" onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-[14px] sm:text-[15px] font-semibold">Sipariş Bilgileri</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 sm:space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <Label htmlFor="order_number" showRequired className="text-[11px] sm:text-xs">Sipariş No</Label>
+                        <Input
+                          id="order_number"
+                          value={formData.order_number}
+                          onChange={(e) => setFormData({ ...formData, order_number: e.target.value })}
+                          required
+                          className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0"
+                        />
+                      </div>
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <Label htmlFor="status" className="text-[11px] sm:text-xs">Durum</Label>
+                        <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+                          <SelectTrigger className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="text-[11px] sm:text-xs">
+                            {(() => {
+                              const currentStatus = order?.status || "planned";
+                              const validTransitions = getValidStatusTransitions(currentStatus);
+                              const statusLabels: Record<string, string> = {
+                                planned: "Planlanan",
+                                in_production: "Üretimde",
+                                quality_check: "Kalite Kontrol",
+                                completed: "Tamamlandı",
+                                on_hold: "Beklemede",
+                                pending: "Beklemede",
+                                cancelled: "İptal Edildi",
+                              };
+
+                              // Mevcut durumu da göster
+                              const allOptions = [...new Set([currentStatus, ...validTransitions])];
+
+                              return allOptions.map((status) => (
+                                <SelectItem key={status} value={status} className="text-[11px] sm:text-xs">
+                                  {statusLabels[status] || status}
+                                </SelectItem>
+                              ));
+                            })()}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="customer_name" className="text-[11px] sm:text-xs">Müşteri Adı</Label>
+                      <Input
+                        id="customer_name"
+                        value={formData.customer_name}
+                        onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
+                        className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="product_name" showRequired className="text-[11px] sm:text-xs">Ürün Adı</Label>
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <Select
+                          value={formData.product_id || "none"}
+                          onValueChange={handleProductSelect}
+                          disabled={productsLoading}
+                        >
+                          <SelectTrigger className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0">
+                            <SelectValue placeholder={productsLoading ? "Ürünler yükleniyor..." : "Ürün seçin (Opsiyonel)"} />
+                          </SelectTrigger>
+                          <SelectContent className="text-[11px] sm:text-xs">
+                            <SelectItem value="none" className="text-[11px] sm:text-xs">Ürün seçmeden devam et</SelectItem>
+                            {products.map((product) => (
+                              <SelectItem key={product.id} value={product.id} className="text-[11px] sm:text-xs">
+                                {product.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {productsLoading && (
+                          <div className="flex items-center gap-2 text-[11px] sm:text-xs text-muted-foreground">
+                            <Loader2 className="h-4 w-4 animate-spin" /> Ürünler yükleniyor...
+                          </div>
+                        )}
+                        <Input
+                          id="product_name"
+                          placeholder="Ürün adı girin (dropdown'dan seçebilir veya elle yazabilirsiniz)"
+                          value={formData.product_name}
+                          onChange={(e) => handleProductNameChange(e.target.value)}
+                          required
+                          className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0"
+                        />
+                        {formData.product_id && (
+                          <p className="text-[11px] sm:text-xs text-muted-foreground flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                            Dropdown'dan seçili ürün: {products.find(p => p.id === formData.product_id)?.name}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <Label htmlFor="quantity" showRequired className="text-[11px] sm:text-xs">Miktar</Label>
+                        <Input
+                          id="quantity"
+                          type="number"
+                          value={formData.quantity}
+                          onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                          required
+                          className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0"
+                        />
+                      </div>
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <Label htmlFor="unit" className="text-[11px] sm:text-xs">Birim</Label>
+                        <Select value={formData.unit} onValueChange={(value) => setFormData({ ...formData, unit: value })}>
+                          <SelectTrigger className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="text-[11px] sm:text-xs">
+                            <SelectItem value="Adet" className="text-[11px] sm:text-xs">Adet</SelectItem>
+                            <SelectItem value="Kg" className="text-[11px] sm:text-xs">Kg</SelectItem>
+                            <SelectItem value="Lt" className="text-[11px] sm:text-xs">Lt</SelectItem>
+                            <SelectItem value="Mt" className="text-[11px] sm:text-xs">Mt</SelectItem>
+                            <SelectItem value="M2" className="text-[11px] sm:text-xs">M²</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <Label htmlFor="due_date" showRequired className="text-[11px] sm:text-xs">Termin Tarihi</Label>
+                        <Input
+                          id="due_date"
+                          type="date"
+                          value={formData.due_date}
+                          onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                          required
+                          className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0"
+                        />
+                      </div>
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <Label htmlFor="priority" className="text-[11px] sm:text-xs">Öncelik</Label>
+                        <Select
+                          value={formData.priority?.toString() || "0"}
+                          onValueChange={(value) => setFormData({ ...formData, priority: value })}
+                        >
+                          <SelectTrigger className="h-10 sm:h-10 text-[11px] sm:text-xs min-h-[44px] sm:min-h-0">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PRIORITY_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value.toString()}>
+                                {option.label} ({option.value})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="notes" className="text-[11px] sm:text-xs">Notlar</Label>
+                      <Textarea
+                        id="notes"
+                        value={formData.notes}
+                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                        rows={3}
+                        className="text-[11px] sm:text-xs min-h-[80px] sm:min-h-0"
+                        placeholder="Sipariş ile ilgili notlar..."
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[11px] sm:text-xs">Teslimat Bilgileri</Label>
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <div className="space-y-1.5 sm:space-y-2">
+                          <Label htmlFor="shipping_address" className="text-[11px] sm:text-xs text-muted-foreground">Teslimat Adresi</Label>
+                          <Input
+                            id="shipping_address"
+                            value={formData.shipping_address}
+                            onChange={(e) => setFormData({ ...formData, shipping_address: e.target.value })}
+                            className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0"
+                            placeholder="Teslimat adresi..."
+                          />
+                        </div>
+                        <div className="space-y-1.5 sm:space-y-2">
+                          <Label htmlFor="shipping_notes" className="text-[11px] sm:text-xs text-muted-foreground">Teslimat Notları</Label>
+                          <Textarea
+                            id="shipping_notes"
+                            value={formData.shipping_notes}
+                            onChange={(e) => setFormData({ ...formData, shipping_notes: e.target.value })}
+                            rows={2}
+                            className="text-[11px] sm:text-xs min-h-[60px] sm:min-h-0"
+                            placeholder="Teslimat ile ilgili notlar..."
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator className="my-4" />
+                    <div className="space-y-4">
+                      <h3 className="text-[14px] sm:text-[15px] font-semibold flex items-center gap-2">
+                        <Banknote className="h-4 w-4 text-primary" />
+                        Finansal Bilgiler ve Fatura
+                      </h3>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                        <div className="space-y-1.5 sm:space-y-2">
+                          <Label htmlFor="total_amount" className="text-[11px] sm:text-xs text-muted-foreground">Toplam Tutar (₺)</Label>
+                          <Input
+                            id="total_amount"
+                            type="number"
+                            value={formData.total_amount}
+                            onChange={(e) => setFormData({ ...formData, total_amount: e.target.value })}
+                            placeholder="0.00"
+                            className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0"
+                          />
+                        </div>
+                        <div className="space-y-1.5 sm:space-y-2">
+                          <Label htmlFor="payment_method" className="text-[11px] sm:text-xs text-muted-foreground">Ödeme Yöntemi</Label>
+                          <Select
+                            value={formData.payment_method}
+                            onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
+                          >
+                            <SelectTrigger id="payment_method" className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0">
+                              <SelectValue placeholder="Seçiniz..." />
+                            </SelectTrigger>
+                            <SelectContent className="text-[11px] sm:text-xs">
+                              <SelectItem value="Kredi Kartı">Kredi Kartı</SelectItem>
+                              <SelectItem value="Havale/EFT">Havale/EFT</SelectItem>
+                              <SelectItem value="Nakit">Nakit</SelectItem>
+                              <SelectItem value="Çek">Çek</SelectItem>
+                              <SelectItem value="Diğer">Diğer</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 items-center bg-muted/30 p-3 rounded-lg border border-dashed">
+                        <div className="flex items-center justify-between space-x-2">
+                          <div className="space-y-0.5">
+                            <Label htmlFor="payment_status" className="text-[11px] sm:text-xs font-medium">Ödeme Durumu</Label>
+                            <p className="text-[10px] text-muted-foreground">Sipariş ödendi mi?</p>
+                          </div>
+                          <Switch
+                            id="payment_status"
+                            checked={formData.payment_status === "paid"}
+                            onCheckedChange={(checked) => setFormData({ ...formData, payment_status: checked ? "paid" : "unpaid" })}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between space-x-2">
+                          <div className="space-y-0.5">
+                            <Label htmlFor="invoice_issued" className="text-[11px] sm:text-xs font-medium">Fatura Durumu</Label>
+                            <p className="text-[10px] text-muted-foreground">Fatura kesildi mi?</p>
+                          </div>
+                          <Switch
+                            id="invoice_issued"
+                            checked={formData.invoice_issued}
+                            onCheckedChange={(checked) => setFormData({ ...formData, invoice_issued: checked })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-[11px] sm:text-xs text-muted-foreground">Fatura Dosyası</Label>
+                        <div className="flex items-center gap-3">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="flex-1 h-10 gap-2 border-dashed"
+                            onClick={() => document.getElementById('invoice-upload')?.click()}
+                          >
+                            <FileUp className="h-4 w-4" />
+                            {formData.invoice_url ? "Dosyayı Değiştir" : "Fatura Yükle"}
+                          </Button>
+                          {formData.invoice_url && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-10 w-10 text-primary"
+                              asChild
+                            >
+                              <a href={formData.invoice_url} target="_blank" rel="noopener noreferrer">
+                                <FileDown className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          )}
+                          <input
+                            id="invoice-upload"
+                            type="file"
+                            className="hidden"
+                            accept=".pdf,image/*"
+                            onChange={handleFileUpload}
+                          />
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">PDF veya resim dosyası (Maks. 10MB)</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </form>
+            ) : (
               <div className="space-y-3 sm:space-y-4">
                 {/* Highlight Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -1046,7 +1101,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                       </p>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="bg-gradient-to-br from-indigo-50/80 via-white to-white border-indigo-100">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -1065,7 +1120,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                       )}
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="bg-gradient-to-br from-slate-50/80 via-white to-white border-slate-100">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -1079,7 +1134,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                       </p>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="bg-gradient-to-br from-emerald-50/80 via-white to-white border-emerald-100">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -1105,14 +1160,14 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                           {getNextStatus()
                             ? `${getStatusLabel(currentStatus)} aşamasındasınız. Sıradaki adım: ${getNextStatus()!.label}`
                             : currentStatus === "on_hold"
-                            ? "Sipariş beklemede."
-                            : currentStatus === "completed"
-                            ? "Sipariş tamamlandı."
-                            : "Workflow tamamlandı."}
+                              ? "Sipariş beklemede."
+                              : currentStatus === "completed"
+                                ? "Sipariş tamamlandı."
+                                : "Workflow tamamlandı."}
                         </p>
                       </div>
                       <div className="text-[11px] sm:text-xs text-muted-foreground text-right">
-                        Son güncelleyen: {order?.statusUpdatedBy 
+                        Son güncelleyen: {order?.statusUpdatedBy
                           ? (usersMap[order.statusUpdatedBy] || order.statusUpdatedBy)
                           : (user?.fullName || "-")}
                         <br />
@@ -1132,7 +1187,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                           const isActive = index === currentIndex;
                           const isCompleted = index < currentIndex;
                           const isClickable = canUpdateStatus && (isCompleted || isActive) && statusItem.value !== "on_hold";
-                          
+
                           return (
                             <div key={statusItem.value} className="flex items-center flex-1 min-w-0">
                               <div className="flex flex-col items-center flex-1 min-w-0">
@@ -1172,18 +1227,14 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                           );
                         })}
                       </div>
-                      
+
                       {/* Next Status Button */}
                       {getNextStatus() && currentStatus !== "on_hold" && (
                         <div className="flex justify-center pt-4 border-t">
                           <Button
                             onClick={() => handleStatusChange(getNextStatus()!.value)}
                             disabled={updatingStatus || !canUpdateStatus}
-<<<<<<< HEAD
                             className="text-[11px] sm:text-xs gap-2 h-10 sm:h-10 min-h-[44px] sm:min-h-0 w-full sm:w-auto"
-=======
-                            className="text-[11px] sm:text-xs gap-2 min-h-[44px] sm:min-h-0"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
                           >
                             {updatingStatus ? (
                               <>
@@ -1202,6 +1253,38 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                           </Button>
                         </div>
                       )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Sipariş Kalemleri (Eklemler) */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
+                      <Package className="h-4 w-4 text-primary" />
+                      Sipariş Kalemleri ({orderItems.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {orderItems.map((item: any, idx) => (
+                        <div key={item.id || idx} className="flex items-center justify-between p-3 rounded-lg border bg-white shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center">
+                              <Package className="h-4 w-4 text-primary" />
+                            </div>
+                            <div>
+                              <p className="text-xs sm:text-sm font-medium">{item.productName || "Bilinmeyen Ürün"}</p>
+                              <p className="text-[11px] sm:text-xs text-muted-foreground">{item.quantity} {item.unit || "Adet"}</p>
+                            </div>
+                          </div>
+                          {item.notes && (
+                            <p className="text-[10px] sm:text-[11px] text-muted-foreground italic px-3 border-l ml-3 flex-1">
+                              {item.notes}
+                            </p>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
@@ -1244,25 +1327,17 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                       {(customer?.phone || customer?.email || order?.customerPhone || order?.customerEmail) && (
                         <div className="flex flex-wrap gap-3 pt-1">
                           {(customer?.phone || order?.customerPhone || order?.customer_phone) && (
-<<<<<<< HEAD
                             <Button variant="outline" size="sm" asChild className="text-[11px] sm:text-xs h-10 sm:h-8 min-h-[44px] sm:min-h-0 w-full sm:w-auto">
-=======
-                            <Button variant="outline" size="sm" asChild className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
                               <a href={`tel:${formatPhoneForTelLink(customer?.phone || order?.customerPhone || order?.customer_phone)}`}>
                                 Ara
                               </a>
                             </Button>
                           )}
                           {(customer?.email || order?.customerEmail || order?.customer_email) && (
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-<<<<<<< HEAD
+                            <Button
+                              variant="outline"
+                              size="sm"
                               className="text-[11px] sm:text-xs h-10 sm:h-8 min-h-[44px] sm:min-h-0 w-full sm:w-auto"
-=======
-                              className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
                               onClick={() => {
                                 const email = customer?.email || order?.customerEmail || order?.customer_email;
                                 if (email) {
@@ -1318,6 +1393,65 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                       )}
                     </CardContent>
                   </Card>
+
+                  {/* Finansal Bilgiler ve Fatura */}
+                  <Card className="lg:col-span-2 bg-gradient-to-br from-slate-50 to-white">
+                    <CardHeader>
+                      <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                        <Banknote className="h-5 w-5 text-primary" />
+                        Finansal Bilgiler ve Fatura
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="p-3 rounded-lg border bg-white shadow-sm">
+                          <p className="text-[10px] sm:text-[11px] text-muted-foreground uppercase mb-1">Toplam Tutar</p>
+                          <p className="text-sm sm:text-base font-bold text-primary">
+                            {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Number(formData.total_amount))}
+                          </p>
+                        </div>
+                        <div className="p-3 rounded-lg border bg-white shadow-sm">
+                          <p className="text-[10px] sm:text-[11px] text-muted-foreground uppercase mb-1">Ödeme Durumu</p>
+                          <Badge variant={formData.payment_status === "paid" ? "default" : "outline"} className={cn("text-[10px]", formData.payment_status === "paid" ? "bg-emerald-500 hover:bg-emerald-600" : "")}>
+                            {formData.payment_status === "paid" ? "ÖDENDİ" : "BEKLEMEDE"}
+                          </Badge>
+                        </div>
+                        <div className="p-3 rounded-lg border bg-white shadow-sm">
+                          <p className="text-[10px] sm:text-[11px] text-muted-foreground uppercase mb-1">Fatura Durumu</p>
+                          <Badge variant={formData.invoice_issued ? "secondary" : "outline"} className="text-[10px]">
+                            {formData.invoice_issued ? "FATURA KESİLDİ" : "KESİLMEDİ"}
+                          </Badge>
+                        </div>
+                        <div className="p-3 rounded-lg border bg-white shadow-sm">
+                          <p className="text-[10px] sm:text-[11px] text-muted-foreground uppercase mb-1">Ödeme Yöntemi</p>
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-xs font-medium">{formData.payment_method || "Belirtilmemiş"}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {formData.invoice_url && (
+                        <div className="mt-4 p-3 rounded-lg border border-dashed bg-primary/5 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <Receipt className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <p className="text-[11px] sm:text-xs font-medium">Sipariş Faturası</p>
+                              <p className="text-[10px] text-muted-foreground">Yüklendi: {formatDateSafe(order.updatedAt || order.updated_at)}</p>
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm" asChild className="h-8 gap-2 bg-white">
+                            <a href={formData.invoice_url} target="_blank" rel="noopener noreferrer">
+                              <FileDown className="h-4 w-4" />
+                              Faturayı Görüntüle
+                            </a>
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                 </div>
 
                 {/* Bağlı Görevler */}
@@ -1328,11 +1462,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                         <ListChecks className="h-4 w-4 sm:h-5 sm:w-5" />
                         Bağlı Görevler ({tasks.length})
                       </CardTitle>
-<<<<<<< HEAD
                       <Button variant="outline" size="sm" onClick={fetchOrderTasks} disabled={tasksLoading} className="text-[11px] sm:text-xs h-10 sm:h-8 min-h-[44px] sm:min-h-0 w-full sm:w-auto">
-=======
-                      <Button variant="outline" size="sm" onClick={fetchOrderTasks} disabled={tasksLoading} className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
                         Yenile
                       </Button>
                     </div>
@@ -1370,11 +1500,10 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                   </CardContent>
                 </Card>
               </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
-        
+
         {/* Activity Comments Panel */}
         {order?.id && user && (
           <ActivityCommentsPanel

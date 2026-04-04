@@ -91,7 +91,7 @@ export const RawMaterialDetailModal = ({
           setCanDelete(false);
           return;
         }
-        
+
         const [updatePermission, deletePermission] = await Promise.all([
           canUpdateResource(userProfile, "raw_materials"),
           canDeleteResource(userProfile, "raw_materials"),
@@ -218,7 +218,7 @@ export const RawMaterialDetailModal = ({
           try {
             const order = await getOrderById(orderId);
             if (!order) return null;
-            
+
             // Sipariş kalemlerinden ürün adını al
             let productName: string | undefined;
             try {
@@ -236,7 +236,7 @@ export const RawMaterialDetailModal = ({
                 }
               }
             }
-            
+
             return {
               orderId,
               orderNumber: order.orderNumber || order.order_number || orderId,
@@ -361,11 +361,7 @@ export const RawMaterialDetailModal = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-<<<<<<< HEAD
-        <DialogContent className="!max-w-[100vw] sm:!max-w-[95vw] md:!max-w-[85vw] !w-[100vw] sm:!w-[95vw] md:!w-[85vw] !h-[100vh] sm:!h-[90vh] md:!h-[80vh] !max-h-[100vh] sm:!max-h-[90vh] md:!max-h-[80vh] !left-0 sm:!left-[2.5vw] md:!left-[7.5vw] !top-0 sm:!top-[5vh] md:!top-[10vh] !right-0 sm:!right-auto !bottom-0 sm:!bottom-auto !translate-x-0 !translate-y-0 overflow-hidden !p-0 gap-0 bg-white flex flex-col !m-0 !rounded-none sm:!rounded-lg !border-0 sm:!border">
-=======
-        <DialogContent className="!max-w-[100vw] sm:!max-w-[85vw] !w-[100vw] sm:!w-[85vw] !h-[100vh] sm:!h-[80vh] !max-h-[100vh] sm:!max-h-[80vh] !left-0 sm:!left-[7.5vw] !top-0 sm:!top-[10vh] !right-0 sm:!right-auto !bottom-0 sm:!bottom-auto !translate-x-0 !translate-y-0 overflow-hidden !p-0 gap-0 bg-white flex flex-col !m-0 !rounded-none sm:!rounded-lg !border-0 sm:!border">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
+        <DialogContent className="app-dialog-shell">
           {/* DialogTitle ve DialogDescription DialogContent'in direkt child'ı olmalı (Radix UI gereksinimi) */}
           <DialogTitle className="sr-only">
             {material.name} - Hammadde Detayı
@@ -373,7 +369,7 @@ export const RawMaterialDetailModal = ({
           <DialogDescription className="sr-only">
             Hammadde detayları ve bilgileri
           </DialogDescription>
-          
+
           <div className="flex flex-col h-full min-h-0">
             <DialogHeader className="p-3 sm:p-4 border-b bg-white flex-shrink-0">
               <div className="flex items-center justify-between gap-3">
@@ -417,7 +413,7 @@ export const RawMaterialDetailModal = ({
             </DialogHeader>
 
             <div className="flex-1 overflow-hidden bg-gray-50/50 p-3 sm:p-4 min-h-0">
-              <div className="max-w-full mx-auto h-full overflow-y-auto">
+              <div className="max-w-full mx-auto h-full app-dialog-scroll">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                   <TabsList className="grid w-full grid-cols-3 mb-4 sm:mb-6 min-h-[44px] sm:min-h-0 overflow-hidden">
                     <TabsTrigger value="details" className="text-[11px] sm:text-xs whitespace-nowrap overflow-hidden text-ellipsis">
@@ -508,7 +504,7 @@ export const RawMaterialDetailModal = ({
                         </div>
                       ) : null}
                       {material.link ? (
-                      <div>
+                        <div>
                           <p className="text-[11px] sm:text-xs text-muted-foreground mb-1">Link</p>
                           <a
                             href={material.link}
@@ -518,7 +514,7 @@ export const RawMaterialDetailModal = ({
                           >
                             {material.link}
                           </a>
-                      </div>
+                        </div>
                       ) : null}
                       {material.supplier ? (
                         <div>
@@ -716,7 +712,7 @@ export const RawMaterialDetailModal = ({
                                 {transactions.map((t) => {
                                   const orderInfo = t.relatedOrderId ? ordersMap[t.relatedOrderId] : null;
                                   const userName = usersMap[t.createdBy] || "Bilinmeyen";
-                                  
+
                                   return (
                                     <TableRow key={t.id}>
                                       <TableCell className="text-[11px] sm:text-xs whitespace-nowrap">
@@ -728,9 +724,8 @@ export const RawMaterialDetailModal = ({
                                         </Badge>
                                       </TableCell>
                                       <TableCell
-                                        className={`text-[11px] sm:text-xs text-right font-medium whitespace-nowrap ${
-                                          t.type === "in" ? "text-green-600" : "text-red-600"
-                                        }`}
+                                        className={`text-[11px] sm:text-xs text-right font-medium whitespace-nowrap ${t.type === "in" ? "text-green-600" : "text-red-600"
+                                          }`}
                                       >
                                         {t.type === "in" ? "+" : "-"}
                                         {t.quantity}
@@ -780,33 +775,33 @@ export const RawMaterialDetailModal = ({
               </div>
             </div>
           </div>
+
+          {/* Activity Comments Panel */}
+          {material?.id && user && (
+            <ActivityCommentsPanel
+              entityId={material.id}
+              entityType="material"
+              onAddComment={async (content: string) => {
+                await addMaterialComment(
+                  material.id,
+                  user.id,
+                  content,
+                  user.fullName,
+                  user.email
+                );
+              }}
+              onGetComments={async () => {
+                return await getMaterialComments(material.id);
+              }}
+              onGetActivities={async () => {
+                return await getMaterialActivities(material.id);
+              }}
+              currentUserId={user.id}
+              currentUserName={user.fullName}
+              currentUserEmail={user.email}
+            />
+          )}
         </DialogContent>
-        
-        {/* Activity Comments Panel */}
-        {material?.id && user && (
-          <ActivityCommentsPanel
-            entityId={material.id}
-            entityType="material"
-            onAddComment={async (content: string) => {
-              await addMaterialComment(
-                material.id,
-                user.id,
-                content,
-                user.fullName,
-                user.email
-              );
-            }}
-            onGetComments={async () => {
-              return await getMaterialComments(material.id);
-            }}
-            onGetActivities={async () => {
-              return await getMaterialActivities(material.id);
-            }}
-            currentUserId={user.id}
-            currentUserName={user.fullName}
-            currentUserEmail={user.email}
-          />
-        )}
       </Dialog>
     </>
   );

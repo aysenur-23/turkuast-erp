@@ -109,7 +109,7 @@ export const ProductDetailModal = ({
   useEffect(() => {
     const checkPermissions = async () => {
       if (!user || !open) return;
-      
+
       try {
         const { getDepartments } = await import("@/services/firebase/departmentService");
         const departments = await getDepartments();
@@ -138,7 +138,7 @@ export const ProductDetailModal = ({
         setCanDelete(isAdmin || isTeamLeader || false);
       }
     };
-    
+
     checkPermissions();
   }, [user, open, isAdmin]);
 
@@ -251,7 +251,7 @@ export const ProductDetailModal = ({
     // Yetki kontrolü - canUpdate state'i henüz yüklenmemiş olabilir, bu yüzden tekrar kontrol et
     const isCreator = product.createdBy === user.id;
     let hasUpdatePermission = canUpdate;
-    
+
     // Eğer canUpdate henüz yüklenmemişse, tekrar kontrol et
     if (!hasUpdatePermission && !isCreator && !isAdmin && !isTeamLeader) {
       try {
@@ -274,14 +274,14 @@ export const ProductDetailModal = ({
         // Hata durumunda devam et
       }
     }
-    
+
     // Yetki kontrolü - canUpdate state'i veya isCreator veya isAdmin veya isTeamLeader kontrolü
     if (!hasUpdatePermission && !isCreator && !isAdmin && !isTeamLeader) {
       toast.error("Ürün düzenleme yetkiniz yok.");
       setIsEditing(false);
       return;
     }
-    
+
     setLoading(true);
     try {
       await updateProduct(product.id, {
@@ -329,11 +329,7 @@ export const ProductDetailModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-<<<<<<< HEAD
-      <DialogContent className="!max-w-[100vw] sm:!max-w-[95vw] md:!max-w-[85vw] !w-[100vw] sm:!w-[95vw] md:!w-[85vw] !h-[100vh] sm:!h-[90vh] md:!h-[80vh] !max-h-[100vh] sm:!max-h-[90vh] md:!max-h-[80vh] !left-0 sm:!left-[2.5vw] md:!left-[7.5vw] !top-0 sm:!top-[5vh] md:!top-[10vh] !right-0 sm:!right-auto !bottom-0 sm:!bottom-auto !translate-x-0 !translate-y-0 overflow-hidden !p-0 gap-0 bg-white flex flex-col !m-0 !rounded-none sm:!rounded-lg !border-0 sm:!border">
-=======
-      <DialogContent className="!max-w-[100vw] sm:!max-w-[85vw] !w-[100vw] sm:!w-[85vw] !h-[100vh] sm:!h-[80vh] !max-h-[100vh] sm:!max-h-[80vh] !left-0 sm:!left-[7.5vw] !top-0 sm:!top-[10vh] !right-0 sm:!right-auto !bottom-0 sm:!bottom-auto !translate-x-0 !translate-y-0 overflow-hidden !p-0 gap-0 bg-white flex flex-col !m-0 !rounded-none sm:!rounded-lg !border-0 sm:!border">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
+      <DialogContent className="app-dialog-shell">
         {/* DialogTitle ve DialogDescription DialogContent'in direkt child'ı olmalı (Radix UI gereksinimi) */}
         <DialogTitle className="sr-only">
           {product.name} - Ürün Detayı
@@ -341,7 +337,7 @@ export const ProductDetailModal = ({
         <DialogDescription className="sr-only">
           Ürün detayları ve bilgileri
         </DialogDescription>
-        
+
         <div className="flex flex-col h-full min-h-0">
           <DialogHeader className="p-3 sm:p-4 border-b bg-white flex-shrink-0">
             <div className="flex items-center justify-between gap-3">
@@ -349,7 +345,7 @@ export const ProductDetailModal = ({
                 <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 flex-shrink-0">
                   <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <h2 className="text-xl sm:text-2xl font-semibold text-foreground truncate">
+                <h2 className="text-[16px] sm:text-[18px] font-semibold text-foreground truncate">
                   {product.name}
                 </h2>
               </div>
@@ -436,8 +432,8 @@ export const ProductDetailModal = ({
             </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-hidden bg-gray-50/50 p-3 sm:p-4 min-h-0">
-            <div className="max-w-full mx-auto h-full overflow-y-auto">
+          <div className="flex-1 overflow-hidden bg-gray-50/50 p-3 sm:p-4 min-h-0 app-dialog-scroll">
+            <div className="max-w-full mx-auto">
               {isEditing ? (
                 <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                   <Card>
@@ -586,139 +582,136 @@ export const ProductDetailModal = ({
               ) : (
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                   <TabsList className="grid w-full grid-cols-2 mb-4 sm:mb-6">
-                    <TabsTrigger value="details" className="min-h-[44px] sm:min-h-0">Detaylar</TabsTrigger>
-                    <TabsTrigger value="recipe" className="min-h-[44px] sm:min-h-0">Reçete</TabsTrigger>
+                    <TabsTrigger value="details" className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0">Detaylar</TabsTrigger>
+                    <TabsTrigger value="recipe" className="text-[11px] sm:text-xs min-h-[44px] sm:min-h-0">Reçete</TabsTrigger>
                   </TabsList>
                   <TabsContent value="details" className="space-y-4 sm:space-y-6 mt-0">
                     <div className="space-y-4 sm:space-y-6">
-                  {/* Görsel */}
-                  {product.image_url && (
-                    <Card>
-                      <CardContent className="pt-6">
-                        <div className="flex justify-center">
-                          <div className="relative w-full max-w-md h-64 rounded-lg overflow-hidden border border-border bg-muted">
-                            <img
-                              src={(() => {
-                                if (!product.image_url) return '';
-                                if (product.image_url.startsWith('http://') || product.image_url.startsWith('https://')) {
-                                  return product.image_url;
-                                }
-                                const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
-                                const cleanPath = product.image_url.startsWith('/') ? product.image_url : `/${product.image_url}`;
-                                return `${baseUrl}${cleanPath}`;
-                              })()}
-                              alt={product.name}
-                              className="w-full h-full object-cover"
-<<<<<<< HEAD
-                              width={448}
-                              height={256}
-=======
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                              loading="lazy"
-                              decoding="async"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                                if (fallback) fallback.classList.remove('hidden');
-                              }}
-                            />
-                            <div className="hidden w-full h-full items-center justify-center bg-muted">
-                              <ImageIcon className="h-16 w-16 text-muted-foreground" />
+                      {/* Görsel */}
+                      {product.image_url && (
+                        <Card>
+                          <CardContent className="pt-6">
+                            <div className="flex justify-center">
+                              <div className="relative w-full max-w-md h-64 rounded-lg overflow-hidden border border-border bg-muted">
+                                <img
+                                  src={(() => {
+                                    if (!product.image_url) return '';
+                                    if (product.image_url.startsWith('http://') || product.image_url.startsWith('https://')) {
+                                      return product.image_url;
+                                    }
+                                    const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+                                    const cleanPath = product.image_url.startsWith('/') ? product.image_url : `/${product.image_url}`;
+                                    return `${baseUrl}${cleanPath}`;
+                                  })()}
+                                  alt={product.name}
+                                  className="w-full h-full object-cover"
+                                  width={448}
+                                  height={256}
+                                  loading="lazy"
+                                  decoding="async"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                    if (fallback) fallback.classList.remove('hidden');
+                                  }}
+                                />
+                                <div className="hidden w-full h-full items-center justify-center bg-muted">
+                                  <ImageIcon className="h-16 w-16 text-muted-foreground" />
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
+                          </CardContent>
+                        </Card>
+                      )}
 
-                  {/* Temel Bilgiler */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg sm:text-xl font-semibold">Temel Bilgiler</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <div className="rounded-lg border bg-muted/30 px-3 py-2">
-                          <p className="text-xs sm:text-sm text-muted-foreground mb-1">SKU</p>
-                          <p className="font-medium font-mono text-sm sm:text-base">{product.sku || "-"}</p>
-                        </div>
-                        {product.category && (
-                          <div className="rounded-lg border bg-muted/30 px-3 py-2">
-                            <p className="text-xs sm:text-sm text-muted-foreground mb-1">Kategori</p>
-                            <Badge variant="outline" className="font-normal">
-                              {product.category}
-                            </Badge>
+                      {/* Temel Bilgiler */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg sm:text-xl font-semibold">Temel Bilgiler</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            <div className="rounded-lg border bg-muted/30 px-3 py-2">
+                              <p className="text-xs sm:text-sm text-muted-foreground mb-1">SKU</p>
+                              <p className="font-medium font-mono text-sm sm:text-base">{product.sku || "-"}</p>
+                            </div>
+                            {product.category && (
+                              <div className="rounded-lg border bg-muted/30 px-3 py-2">
+                                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Kategori</p>
+                                <Badge variant="outline" className="font-normal">
+                                  {product.category}
+                                </Badge>
+                              </div>
+                            )}
+                            <div className="rounded-lg border bg-muted/30 px-3 py-2">
+                              <p className="text-xs sm:text-sm text-muted-foreground mb-1">Mevcut Stok</p>
+                              <p className="font-medium text-base sm:text-lg">
+                                {product.stock || 0} {product.unit || "Adet"}
+                              </p>
+                            </div>
+                            <div className="rounded-lg border bg-muted/30 px-3 py-2">
+                              <p className="text-xs sm:text-sm text-muted-foreground mb-1">Durum</p>
+                              <Badge variant={getStatusVariant(product.stock || 0, product.minStock || 0)}>
+                                {getStatusLabel(product.stock || 0, product.minStock || 0)}
+                              </Badge>
+                            </div>
+                            {product.price && (
+                              <div className="rounded-lg border bg-muted/30 px-3 py-2">
+                                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Satış Fiyatı</p>
+                                <p className="font-semibold text-base sm:text-lg">
+                                  ₺{new Intl.NumberFormat("tr-TR", {
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0,
+                                  }).format(product.price || 0)}
+                                </p>
+                              </div>
+                            )}
+                            {product.cost && (
+                              <div className="rounded-lg border bg-muted/30 px-3 py-2">
+                                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Maliyet</p>
+                                <p className="font-medium text-sm sm:text-base">
+                                  ₺{new Intl.NumberFormat("tr-TR", {
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0,
+                                  }).format(product.cost || 0)}
+                                </p>
+                              </div>
+                            )}
+                            <div className="rounded-lg border bg-muted/30 px-3 py-2">
+                              <p className="text-xs sm:text-sm text-muted-foreground mb-1">Minimum Stok</p>
+                              <p className="font-medium text-sm sm:text-base">
+                                {product.minStock || 0} {product.unit || "Adet"}
+                              </p>
+                            </div>
+                            {product.maxStock && (
+                              <div className="rounded-lg border bg-muted/30 px-3 py-2">
+                                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Maksimum Stok</p>
+                                <p className="font-medium text-sm sm:text-base">
+                                  {product.maxStock} {product.unit || "Adet"}
+                                </p>
+                              </div>
+                            )}
+                            {product.location && (
+                              <div className="rounded-lg border bg-muted/30 px-3 py-2">
+                                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Konum</p>
+                                <p className="font-medium text-sm sm:text-base">{product.location}</p>
+                              </div>
+                            )}
                           </div>
-                        )}
-                        <div className="rounded-lg border bg-muted/30 px-3 py-2">
-                          <p className="text-xs sm:text-sm text-muted-foreground mb-1">Mevcut Stok</p>
-                          <p className="font-medium text-base sm:text-lg">
-                            {product.stock || 0} {product.unit || "Adet"}
-                          </p>
-                        </div>
-                        <div className="rounded-lg border bg-muted/30 px-3 py-2">
-                          <p className="text-xs sm:text-sm text-muted-foreground mb-1">Durum</p>
-                          <Badge variant={getStatusVariant(product.stock || 0, product.minStock || 0)}>
-                            {getStatusLabel(product.stock || 0, product.minStock || 0)}
-                          </Badge>
-                        </div>
-                        {product.price && (
-                          <div className="rounded-lg border bg-muted/30 px-3 py-2">
-                            <p className="text-xs sm:text-sm text-muted-foreground mb-1">Satış Fiyatı</p>
-                            <p className="font-semibold text-base sm:text-lg">
-                              ₺{new Intl.NumberFormat("tr-TR", {
-                                minimumFractionDigits: 0,
-                                maximumFractionDigits: 0,
-                              }).format(product.price || 0)}
-                            </p>
-                          </div>
-                        )}
-                        {product.cost && (
-                          <div className="rounded-lg border bg-muted/30 px-3 py-2">
-                            <p className="text-xs sm:text-sm text-muted-foreground mb-1">Maliyet</p>
-                            <p className="font-medium text-sm sm:text-base">
-                              ₺{new Intl.NumberFormat("tr-TR", {
-                                minimumFractionDigits: 0,
-                                maximumFractionDigits: 0,
-                              }).format(product.cost || 0)}
-                            </p>
-                          </div>
-                        )}
-                        <div className="rounded-lg border bg-muted/30 px-3 py-2">
-                          <p className="text-xs sm:text-sm text-muted-foreground mb-1">Minimum Stok</p>
-                          <p className="font-medium text-sm sm:text-base">
-                            {product.minStock || 0} {product.unit || "Adet"}
-                          </p>
-                        </div>
-                        {product.maxStock && (
-                          <div className="rounded-lg border bg-muted/30 px-3 py-2">
-                            <p className="text-xs sm:text-sm text-muted-foreground mb-1">Maksimum Stok</p>
-                            <p className="font-medium text-sm sm:text-base">
-                              {product.maxStock} {product.unit || "Adet"}
-                            </p>
-                          </div>
-                        )}
-                        {product.location && (
-                          <div className="rounded-lg border bg-muted/30 px-3 py-2">
-                            <p className="text-xs sm:text-sm text-muted-foreground mb-1">Konum</p>
-                            <p className="font-medium text-sm sm:text-base">{product.location}</p>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                        </CardContent>
+                      </Card>
 
-                  {/* Açıklama */}
-                  {product.description && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg sm:text-xl font-semibold">Açıklama</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm sm:text-base whitespace-pre-wrap">{product.description}</p>
-                      </CardContent>
-                    </Card>
-                  )}
+                      {/* Açıklama */}
+                      {product.description && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-lg sm:text-xl font-semibold">Açıklama</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-sm sm:text-base whitespace-pre-wrap">{product.description}</p>
+                          </CardContent>
+                        </Card>
+                      )}
                     </div>
                   </TabsContent>
                   <TabsContent value="recipe" className="space-y-4 sm:space-y-6 mt-0">
@@ -753,57 +746,57 @@ export const ProductDetailModal = ({
                                       {recipes
                                         .filter((recipe) => recipe.rawMaterial) // Sadece hammadde bilgisi olan reçeteleri göster
                                         .map((recipe) => {
-                                        const material = recipe.rawMaterial;
+                                          const material = recipe.rawMaterial;
                                           if (!material) return null; // Güvenlik kontrolü
-                                        return (
-                                          <TableRow key={recipe.id}>
-                                            <TableCell className="font-medium">
+                                          return (
+                                            <TableRow key={recipe.id}>
+                                              <TableCell className="font-medium">
                                                 {material.name}
-                                            </TableCell>
-                                            <TableCell>
-                                              <div className="flex items-center gap-2">
-                                                <Input
-                                                  type="number"
-                                                  step="0.01"
-                                                  value={recipe.quantityPerUnit}
-                                                  onChange={(e) =>
-                                                    updateQuantity(recipe.id, e.target.value)
-                                                  }
-                                                  className="w-24 min-h-[44px] sm:min-h-0"
-                                                />
-                                                <span className="text-sm text-muted-foreground">
+                                              </TableCell>
+                                              <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                  <Input
+                                                    type="number"
+                                                    step="0.01"
+                                                    value={recipe.quantityPerUnit}
+                                                    onChange={(e) =>
+                                                      updateQuantity(recipe.id, e.target.value)
+                                                    }
+                                                    className="w-24 min-h-[44px] sm:min-h-0"
+                                                  />
+                                                  <span className="text-sm text-muted-foreground">
                                                     {material.unit}
-                                                </span>
-                                              </div>
-                                            </TableCell>
-                                            <TableCell>
+                                                  </span>
+                                                </div>
+                                              </TableCell>
+                                              <TableCell>
                                                 {material.stock} {material.unit}
-                                            </TableCell>
-                                            <TableCell>
-                                              ₺{new Intl.NumberFormat("tr-TR", {
-                                                minimumFractionDigits: 0,
-                                                maximumFractionDigits: 0,
+                                              </TableCell>
+                                              <TableCell>
+                                                ₺{new Intl.NumberFormat("tr-TR", {
+                                                  minimumFractionDigits: 0,
+                                                  maximumFractionDigits: 0,
                                                 }).format(material.cost || 0)}
-                                            </TableCell>
-                                            <TableCell>
-                                              ₺{new Intl.NumberFormat("tr-TR", {
-                                                minimumFractionDigits: 0,
-                                                maximumFractionDigits: 0,
+                                              </TableCell>
+                                              <TableCell>
+                                                ₺{new Intl.NumberFormat("tr-TR", {
+                                                  minimumFractionDigits: 0,
+                                                  maximumFractionDigits: 0,
                                                 }).format((material.cost || 0) * recipe.quantityPerUnit)}
-                                            </TableCell>
-                                            <TableCell>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => removeMaterial(recipe.id)}
-                                                className="min-h-[44px] sm:min-h-0"
-                                              >
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                              </Button>
-                                            </TableCell>
-                                          </TableRow>
-                                        );
-                                      })}
+                                              </TableCell>
+                                              <TableCell>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() => removeMaterial(recipe.id)}
+                                                  className="min-h-[44px] sm:min-h-0"
+                                                >
+                                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                                </Button>
+                                              </TableCell>
+                                            </TableRow>
+                                          );
+                                        })}
                                     </TableBody>
                                   </Table>
                                 </div>
@@ -878,7 +871,7 @@ export const ProductDetailModal = ({
             </div>
           </div>
         </div>
-        
+
         {/* Activity Comments Panel */}
         {product?.id && user && (
           <ActivityCommentsPanel

@@ -40,7 +40,7 @@ export const getCompanySettings = async (): Promise<CompanySettings | null> => {
     if (!settingsDoc.exists()) {
       // Varsayılan ayarları oluştur
       const defaultSettings: CompanySettings = {
-        companyName: "Revium ERP",
+        companyName: "Turkuast ERP",
         currency: "₺",
         taxRate: 20,
         updatedAt: serverTimestamp(),

@@ -56,7 +56,7 @@ Zaman: ${errorInfo.timestamp}
     // Firebase Console linki
     if (context.collection) {
       console.warn("📋 Firebase Console'da Security Rules'u kontrol edin:");
-      console.warn(`   https://console.firebase.google.com/project/revpad-15232/firestore/rules`);
+      console.warn(`   https://console.firebase.google.com/project/turkuast-erp/firestore/rules`);
       console.warn(`   Collection: ${context.collection}`);
       console.warn(`   Operation: ${context.operation}`);
     }

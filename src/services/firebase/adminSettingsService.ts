@@ -31,8 +31,8 @@ const ADMIN_SETTINGS_COLLECTION = "admin_settings";
 const ADMIN_SETTINGS_DOC_ID = "system";
 
 const defaultSettings: Omit<AdminSettings, "id" | "updatedAt" | "updatedBy"> = {
-  companyName: "Revium",
-  supportEmail: "destek@revium.com",
+  companyName: "Turkuast",
+  supportEmail: "destek@turkuast.com",
   maintenanceMode: false,
   allowNewRegistrations: true,
   emailNotifications: true,

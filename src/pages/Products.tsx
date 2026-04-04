@@ -3,11 +3,7 @@ import { MainLayout } from "@/components/Layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SearchInput } from "@/components/ui/search-input";
-<<<<<<< HEAD
 import { Plus, Package, X, AlertTriangle, TrendingUp, Box, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Building2, DollarSign, Trash2 } from "lucide-react";
-=======
-import { Plus, Package, X, AlertTriangle, TrendingUp, Box, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Building2, DollarSign } from "lucide-react";
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { getProducts, deleteProduct, Product } from "@/services/firebase/productService";
@@ -32,10 +28,7 @@ import { CURRENCY_OPTIONS, CURRENCY_SYMBOLS, DEFAULT_CURRENCY, type Currency } f
 import { convertFromTRY } from "@/services/exchangeRateService";
 import { canCreateResource, canDeleteResource } from "@/utils/permissions";
 import { UserProfile } from "@/services/firebase/authService";
-<<<<<<< HEAD
 import { StatCard } from "@/components/Dashboard/StatCard";
-=======
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
 
 const PRODUCT_CATEGORIES = [
   "Taşınabilir Güç Paketleri",
@@ -181,7 +174,7 @@ const Products = () => {
 
   const handleDelete = useCallback(async () => {
     if (!selectedProduct) return;
-    
+
     // Yetki kontrolü
     if (!canDelete) {
       toast.error("Ürün silme yetkiniz yok.");
@@ -249,10 +242,10 @@ const Products = () => {
   useEffect(() => {
     const handleResizeMove = (e: MouseEvent) => {
       if (!resizingColumn) return;
-      
+
       const diff = e.clientX - resizeStartX.current;
       const newWidth = Math.max(50, resizeStartWidth.current + diff);
-      
+
       setColumnWidths(prev => {
         const updated = { ...prev, [resizingColumn]: newWidth };
         localStorage.setItem('products-column-widths', JSON.stringify(updated));
@@ -279,17 +272,17 @@ const Products = () => {
       return [];
     }
     let filtered = products.filter((product) => {
-      const matchesSearch = 
+      const matchesSearch =
         product.name?.toLocaleLowerCase('tr-TR').includes(debouncedSearchTerm.toLocaleLowerCase('tr-TR')) ||
         product.sku?.toLocaleLowerCase('tr-TR').includes(debouncedSearchTerm.toLocaleLowerCase('tr-TR')) ||
         product.category?.toLocaleLowerCase('tr-TR').includes(debouncedSearchTerm.toLocaleLowerCase('tr-TR'));
-      
+
       const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
       const matchesStockView =
         stockView === "all" ||
         (stockView === "low" && isLowStockProduct(product)) ||
         (stockView === "out" && isOutOfStockProduct(product));
-      
+
       return matchesSearch && matchesCategory && matchesStockView;
     });
 
@@ -313,11 +306,11 @@ const Products = () => {
       }
 
       if (typeof aValue === "string" && typeof bValue === "string") {
-        return sortDirection === "asc" 
+        return sortDirection === "asc"
           ? aValue.localeCompare(bValue, "tr-TR")
           : bValue.localeCompare(aValue, "tr-TR");
       } else {
-        return sortDirection === "asc" 
+        return sortDirection === "asc"
           ? (aValue as number) - (bValue as number)
           : (bValue as number) - (aValue as number);
       }
@@ -439,22 +432,21 @@ const Products = () => {
             </div>
           </div>
           {canCreate && (
-          <Button 
-            className="gap-1 w-full sm:w-auto min-h-[36px] sm:min-h-8 text-[11px] sm:text-xs" 
-            onClick={() => {
-              setCreateDialogOpen(true);
-            }}
-          >
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Yeni Ürün</span>
-            <span className="sm:hidden">Yeni</span>
-          </Button>
+            <Button
+              className="gap-1 w-full sm:w-auto min-h-[36px] sm:min-h-8 text-[11px] sm:text-xs"
+              onClick={() => {
+                setCreateDialogOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Yeni Ürün</span>
+              <span className="sm:hidden">Yeni</span>
+            </Button>
           )}
         </div>
 
         {/* İstatistikler */}
         {statsExpanded && (
-<<<<<<< HEAD
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 xs:gap-2.5 sm:gap-3">
             {productStatCards.map((item) => {
               const variantMap: Record<string, "default" | "primary" | "success" | "warning" | "info"> = {
@@ -464,8 +456,8 @@ const Products = () => {
                 "total-value": "info",
               };
               const variant = variantMap[item.key] || "default";
-              const value = typeof item.value === 'function' ? item.value() : item.value;
-              
+              const value = typeof item.value === 'function' ? (item.value as Function)() : item.value;
+
               return (
                 <StatCard
                   key={item.key}
@@ -479,47 +471,6 @@ const Products = () => {
               );
             })}
           </div>
-=======
-          <Card>
-          <CardContent className="p-1.5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2">
-              {productStatCards.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Card
-                    key={item.key}
-                    className={cn(
-                      "border border-border/60 shadow-none cursor-pointer transition-all hover:shadow-md focus-within:ring-2 focus-within:ring-primary/40",
-                      item.isActive && "border-primary shadow-lg ring-2 ring-primary/20"
-                    )}
-                    role="button"
-                    tabIndex={0}
-                    onClick={item.onClick}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        item.onClick();
-                      }
-                    }}
-                    aria-label={`${item.label} kartı`}
-                  >
-                    <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-                      <div className={cn("h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0", item.accent)}>
-                        <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11px] sm:text-xs uppercase tracking-wide text-muted-foreground">{item.label}</p>
-                        <p className="text-lg sm:text-xl font-semibold text-foreground mt-0.5 sm:mt-1">{item.value}</p>
-                        <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 hidden sm:block">{item.description}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
         )}
 
         {/* Filtreler */}
@@ -540,7 +491,7 @@ const Products = () => {
                   }}
                 />
               </div>
-              
+
               {/* Kategori Filtresi */}
               <div className="w-full sm:w-auto sm:min-w-[160px] md:min-w-[180px]">
                 <Select value={categoryFilter} onValueChange={(value) => {
@@ -560,7 +511,7 @@ const Products = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {/* Para Birimi Seçici */}
               <div className="w-full sm:w-auto sm:min-w-[140px] md:min-w-[150px]">
                 <Select value={selectedCurrency} onValueChange={(value) => {
@@ -579,7 +530,7 @@ const Products = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {/* Filtreleri Temizle */}
               {(searchTerm || categoryFilter !== "all" || stockView !== "all") && (
                 <Button
@@ -629,7 +580,7 @@ const Products = () => {
                 {/* Tablo Başlıkları */}
                 <div className="table-header-group bg-[#F4F5F7] dark:bg-[#22272B]">
                   <div className="table-row">
-                    <div 
+                    <div
                       className="table-cell px-0 sm:px-0.5 md:px-1 py-1.5 sm:py-2 cursor-pointer hover:text-[#0052CC] dark:hover:text-[#4C9AFF] hover:bg-[#EBECF0] dark:hover:bg-[#2C333A] transition-all duration-200 text-xs font-semibold text-[#42526E] dark:text-[#B6C2CF] uppercase tracking-wide border-r border-[#DFE1E6] dark:border-[#38414A] relative"
                       style={{ width: columnWidths.name || 250, minWidth: 200 }}
                       onClick={() => handleSort("name")}
@@ -640,12 +591,12 @@ const Products = () => {
                           sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
                         )}
                       </div>
-                      <div 
+                      <div
                         className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-[#0052CC] dark:hover:bg-[#4C9AFF] opacity-0 hover:opacity-100 transition-opacity"
                         onMouseDown={(e) => handleResizeStart("name", e)}
                       />
                     </div>
-                    <div 
+                    <div
                       className="table-cell px-0 sm:px-0.5 md:px-1 py-1.5 sm:py-2 cursor-pointer hover:text-[#0052CC] dark:hover:text-[#4C9AFF] hover:bg-[#EBECF0] dark:hover:bg-[#2C333A] transition-all duration-200 text-xs font-semibold text-[#42526E] dark:text-[#B6C2CF] uppercase tracking-wide border-r border-[#DFE1E6] dark:border-[#38414A] relative"
                       style={{ width: columnWidths.category || 220, minWidth: 180 }}
                       onClick={() => handleSort("category")}
@@ -656,22 +607,22 @@ const Products = () => {
                           sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
                         )}
                       </div>
-                      <div 
+                      <div
                         className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-[#0052CC] dark:hover:bg-[#4C9AFF] opacity-0 hover:opacity-100 transition-opacity"
                         onMouseDown={(e) => handleResizeStart("category", e)}
                       />
                     </div>
-                    <div 
+                    <div
                       className="table-cell px-0 sm:px-0.5 md:px-1 py-1.5 sm:py-2 text-xs font-semibold text-[#42526E] dark:text-[#B6C2CF] uppercase tracking-wide border-r border-[#DFE1E6] dark:border-[#38414A] relative"
                       style={{ width: columnWidths.sku || 140, minWidth: 130 }}
                     >
                       SKU
-                      <div 
+                      <div
                         className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-[#0052CC] dark:hover:bg-[#4C9AFF] opacity-0 hover:opacity-100 transition-opacity"
                         onMouseDown={(e) => handleResizeStart("sku", e)}
                       />
                     </div>
-                    <div 
+                    <div
                       className="table-cell px-0 sm:px-0.5 md:px-1 py-1.5 sm:py-2 cursor-pointer hover:text-[#0052CC] dark:hover:text-[#4C9AFF] hover:bg-[#EBECF0] dark:hover:bg-[#2C333A] transition-all duration-200 text-xs font-semibold text-[#42526E] dark:text-[#B6C2CF] uppercase tracking-wide border-r border-[#DFE1E6] dark:border-[#38414A] relative"
                       style={{ width: columnWidths.stock || 90, minWidth: 70 }}
                       onClick={() => handleSort("stock")}
@@ -682,22 +633,22 @@ const Products = () => {
                           sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
                         )}
                       </div>
-                      <div 
+                      <div
                         className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-[#0052CC] dark:hover:bg-[#4C9AFF] opacity-0 hover:opacity-100 transition-opacity"
                         onMouseDown={(e) => handleResizeStart("stock", e)}
                       />
                     </div>
-                    <div 
+                    <div
                       className="table-cell px-0 sm:px-0.5 md:px-1 py-1.5 sm:py-2 text-xs font-semibold text-[#42526E] dark:text-[#B6C2CF] uppercase tracking-wide border-r border-[#DFE1E6] dark:border-[#38414A] relative"
                       style={{ width: columnWidths.minStock || 90, minWidth: 70 }}
                     >
                       Min Stok
-                      <div 
+                      <div
                         className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-[#0052CC] dark:hover:bg-[#4C9AFF] opacity-0 hover:opacity-100 transition-opacity"
                         onMouseDown={(e) => handleResizeStart("minStock", e)}
                       />
                     </div>
-                    <div 
+                    <div
                       className="table-cell px-0 sm:px-0.5 md:px-1 py-1.5 sm:py-2 cursor-pointer hover:text-[#0052CC] dark:hover:text-[#4C9AFF] hover:bg-[#EBECF0] dark:hover:bg-[#2C333A] transition-all duration-200 text-xs font-semibold text-[#42526E] dark:text-[#B6C2CF] uppercase tracking-wide border-r border-[#DFE1E6] dark:border-[#38414A] relative"
                       style={{ width: columnWidths.price || 140, minWidth: 120 }}
                       onClick={() => handleSort("price")}
@@ -708,49 +659,46 @@ const Products = () => {
                           sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
                         )}
                       </div>
-                      <div 
+                      <div
                         className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-[#0052CC] dark:hover:bg-[#4C9AFF] opacity-0 hover:opacity-100 transition-opacity"
                         onMouseDown={(e) => handleResizeStart("price", e)}
                       />
                     </div>
-                    <div 
+                    <div
                       className="table-cell px-0 sm:px-0.5 md:px-1 py-1.5 sm:py-2 text-xs font-semibold text-[#42526E] dark:text-[#B6C2CF] uppercase tracking-wide border-r border-[#DFE1E6] dark:border-[#38414A] relative"
                       style={{ width: columnWidths.status || 120, minWidth: 100 }}
                     >
                       Durum
-                      <div 
+                      <div
                         className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-[#0052CC] dark:hover:bg-[#4C9AFF] opacity-0 hover:opacity-100 transition-opacity"
                         onMouseDown={(e) => handleResizeStart("status", e)}
                       />
                     </div>
-                    <div 
+                    <div
                       className="table-cell px-0 sm:px-0.5 md:px-1 py-1.5 sm:py-2 text-xs font-semibold text-[#42526E] dark:text-[#B6C2CF] uppercase tracking-wide border-r border-[#DFE1E6] dark:border-[#38414A] relative"
                       style={{ width: columnWidths.createdBy || 140, minWidth: 120 }}
                     >
                       Oluşturan
-                      <div 
+                      <div
                         className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-[#0052CC] dark:hover:bg-[#4C9AFF] opacity-0 hover:opacity-100 transition-opacity"
                         onMouseDown={(e) => handleResizeStart("createdBy", e)}
                       />
                     </div>
-<<<<<<< HEAD
                     {canDelete && (
-                      <div 
+                      <div
                         className="table-cell px-0 sm:px-0.5 md:px-1 py-1.5 sm:py-2 text-xs font-semibold text-[#42526E] dark:text-[#B6C2CF] uppercase tracking-wide border-r border-[#DFE1E6] dark:border-[#38414A] relative"
                         style={{ width: 80, minWidth: 80 }}
                       >
                         İşlemler
                       </div>
                     )}
-=======
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
                   </div>
                 </div>
 
                 {/* Tablo İçeriği */}
-                <div 
+                <div
                   ref={listContainerRef}
-                  style={{ maxHeight: 'calc(100vh - 400px)', overflowY: 'auto', display: 'table-row-group' }}
+                  className="table-row-group"
                 >
                   {filteredProducts.map((product) => {
                     const stock = Number(product.stock) || 0;
@@ -761,12 +709,12 @@ const Products = () => {
 
                     return (
                       <div
-                key={product.id}
+                        key={product.id}
                         className="table-row group border-b border-[#DFE1E6] dark:border-[#38414A] hover:bg-[#F4F5F7] dark:hover:bg-[#22272B] transition-all duration-200 cursor-pointer bg-white dark:bg-[#1D2125]"
                         onClick={() => {
-                  setSelectedProduct(product);
-                  setDetailModalOpen(true);
-                }}
+                          setSelectedProduct(product);
+                          setDetailModalOpen(true);
+                        }}
                       >
                         <div className="table-cell px-0 sm:px-0.5 md:px-1 py-1 sm:py-1.5 align-middle border-r border-[#DFE1E6] dark:border-[#38414A]">
                           <div className="flex items-center gap-2">
@@ -821,14 +769,14 @@ const Products = () => {
                         </div>
                         <div className="table-cell px-0 sm:px-0.5 md:px-1 py-1 sm:py-1.5 align-middle border-r border-[#DFE1E6] dark:border-[#38414A]">
                           <span className="text-xs font-semibold text-[#42526E] dark:text-[#B6C2CF]">
-                            {CURRENCY_SYMBOLS[selectedCurrency]}{new Intl.NumberFormat(selectedCurrency === "TRY" ? "tr-TR" : "en-US", { 
-                              minimumFractionDigits: 0, 
-                              maximumFractionDigits: 0 
+                            {CURRENCY_SYMBOLS[selectedCurrency]}{new Intl.NumberFormat(selectedCurrency === "TRY" ? "tr-TR" : "en-US", {
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0
                             }).format(price)}
                           </span>
                         </div>
                         <div className="table-cell px-0 sm:px-0.5 md:px-1 py-1 sm:py-1.5 align-middle border-r border-[#DFE1E6] dark:border-[#38414A]">
-                          <Badge 
+                          <Badge
                             variant={isOutOfStock ? "destructive" : isLowStock ? "secondary" : "default"}
                             className={cn(
                               "text-xs font-medium",
@@ -849,7 +797,6 @@ const Products = () => {
                             <span className="text-xs text-[#6B778C] dark:text-[#8C9CB8]">-</span>
                           )}
                         </div>
-<<<<<<< HEAD
                         {canDelete && (
                           <div className="table-cell px-0 sm:px-0.5 md:px-1 py-1 sm:py-1.5 align-middle border-r border-[#DFE1E6] dark:border-[#38414A]">
                             <Button
@@ -866,8 +813,6 @@ const Products = () => {
                             </Button>
                           </div>
                         )}
-=======
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
                       </div>
                     );
                   })}
@@ -889,7 +834,7 @@ const Products = () => {
                     key={product.id}
                     className="cursor-pointer hover:shadow-lg transition-all"
                     onClick={() => {
-                  setSelectedProduct(product);
+                      setSelectedProduct(product);
                       setDetailModalOpen(true);
                     }}
                   >
@@ -904,9 +849,8 @@ const Products = () => {
                             </p>
                           )}
                         </div>
-<<<<<<< HEAD
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          <Badge 
+                          <Badge
                             variant={isOutOfStock ? "destructive" : isLowStock ? "secondary" : "default"}
                             className={cn(
                               isOutOfStock && "bg-destructive/10 text-destructive",
@@ -931,18 +875,6 @@ const Products = () => {
                             </Button>
                           )}
                         </div>
-=======
-                        <Badge 
-                          variant={isOutOfStock ? "destructive" : isLowStock ? "secondary" : "default"}
-                          className={cn(
-                            isOutOfStock && "bg-destructive/10 text-destructive",
-                            isLowStock && !isOutOfStock && "bg-amber-500/10 text-amber-700 dark:text-amber-400",
-                            !isOutOfStock && !isLowStock && "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-                          )}
-                        >
-                          {isOutOfStock ? "Tükendi" : isLowStock ? "Düşük" : "Var"}
-                        </Badge>
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
                       </div>
                       {product.sku && (
                         <p className="text-[11px] sm:text-xs font-mono text-muted-foreground">SKU: {product.sku}</p>
@@ -956,9 +888,9 @@ const Products = () => {
                           )}
                         </div>
                         <span className="text-[11px] sm:text-xs font-semibold">
-                          {CURRENCY_SYMBOLS[selectedCurrency]}{new Intl.NumberFormat(selectedCurrency === "TRY" ? "tr-TR" : "en-US", { 
-                            minimumFractionDigits: 0, 
-                            maximumFractionDigits: 0 
+                          {CURRENCY_SYMBOLS[selectedCurrency]}{new Intl.NumberFormat(selectedCurrency === "TRY" ? "tr-TR" : "en-US", {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0
                           }).format(price)}
                         </span>
                       </div>

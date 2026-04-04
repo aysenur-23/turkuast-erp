@@ -117,7 +117,7 @@ export const CreateCustomerDialog = ({ open, onOpenChange, onSuccess }: CreateCu
         notes: formData.notes || null,
         createdBy: user.id,
       });
-      
+
       // Eğer not varsa, bunu ayrı bir CustomerNote olarak da oluştur
       if (formData.notes && formData.notes.trim()) {
         try {
@@ -135,7 +135,7 @@ export const CreateCustomerDialog = ({ open, onOpenChange, onSuccess }: CreateCu
           }
         }
       }
-      
+
       toast.success("Müşteri başarıyla oluşturuldu");
       onSuccess();
       onOpenChange(false);
@@ -152,11 +152,7 @@ export const CreateCustomerDialog = ({ open, onOpenChange, onSuccess }: CreateCu
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-<<<<<<< HEAD
-      <DialogContent className="!max-w-[100vw] sm:!max-w-[95vw] md:!max-w-[85vw] !w-[100vw] sm:!w-[95vw] md:!w-[85vw] !h-[100vh] sm:!h-[90vh] md:!h-[80vh] !max-h-[100vh] sm:!max-h-[90vh] md:!max-h-[80vh] !left-0 sm:!left-[2.5vw] md:!left-[7.5vw] !top-0 sm:!top-[5vh] md:!top-[10vh] !right-0 sm:!right-auto !bottom-0 sm:!bottom-auto !translate-x-0 !translate-y-0 overflow-hidden !p-0 gap-0 bg-white flex flex-col !m-0 !rounded-none sm:!rounded-lg !border-0 sm:!border">
-=======
-      <DialogContent className="!max-w-[100vw] sm:!max-w-[85vw] !w-[100vw] sm:!w-[85vw] !h-[100vh] sm:!h-[80vh] !max-h-[100vh] sm:!max-h-[80vh] !left-0 sm:!left-[7.5vw] !top-0 sm:!top-[10vh] !right-0 sm:!right-auto !bottom-0 sm:!bottom-auto !translate-x-0 !translate-y-0 overflow-hidden !p-0 gap-0 bg-white flex flex-col !m-0 !rounded-none sm:!rounded-lg !border-0 sm:!border">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
+      <DialogContent className="app-dialog-shell">
         {/* DialogTitle ve DialogDescription DialogContent'in direkt child'ı olmalı (Radix UI gereksinimi) */}
         <DialogTitle className="sr-only">
           Yeni Müşteri
@@ -164,7 +160,7 @@ export const CreateCustomerDialog = ({ open, onOpenChange, onSuccess }: CreateCu
         <DialogDescription className="sr-only">
           Yeni müşteri eklemek için formu doldurun
         </DialogDescription>
-        
+
         <div className="flex flex-col h-full min-h-0">
           {/* Header */}
           <DialogHeader className="p-3 sm:p-4 border-b bg-white flex-shrink-0 relative pr-12 sm:pr-16">
@@ -205,9 +201,9 @@ export const CreateCustomerDialog = ({ open, onOpenChange, onSuccess }: CreateCu
               </div>
             </div>
           </DialogHeader>
-        
-          <div className="flex-1 overflow-hidden bg-gray-50/50 p-3 sm:p-4 min-h-0">
-            <div className="max-w-full mx-auto h-full overflow-y-auto">
+
+          <div className="flex-1 overflow-hidden bg-gray-50/50 min-h-0 flex flex-col">
+            <div className="flex-1 min-h-0 app-dialog-scroll">
               <form onSubmit={handleSubmit} className="space-y-2">
                 <Card>
                   <CardContent className="p-3 sm:p-4 space-y-1.5 sm:space-y-2">
@@ -215,7 +211,7 @@ export const CreateCustomerDialog = ({ open, onOpenChange, onSuccess }: CreateCu
                       <h3 className="text-[14px] sm:text-[15px] font-semibold text-foreground mb-1">Müşteri Bilgileri</h3>
                       <p className="text-[11px] sm:text-xs text-muted-foreground">Temel müşteri bilgilerini girin</p>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
                       <div className="space-y-1.5 sm:space-y-2">
                         <Label htmlFor="name" showRequired className="text-[11px] sm:text-xs">İsim</Label>

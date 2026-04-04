@@ -1,8 +1,8 @@
-# Revium ERP Suite
+# Turkuast ERP Suite
 
 <div align="center">
-  <img src="src/assets/rev-logo-base64.ts" alt="Revium Logo" width="120" height="auto" />
-  <h1>Revium ERP Suite</h1>
+  <img src="public/assets/images/turkuast-logo.png" alt="Turkuast Logo" width="120" height="auto" />
+  <h1>Turkuast ERP Suite</h1>
   <p>
     <strong>Modern, Esnek ve Güçlü Kurumsal Kaynak Planlama Çözümü</strong>
   </p>
@@ -16,7 +16,7 @@
 
 ---
 
-**Revium ERP Suite**, modern işletmelerin tüm süreçlerini tek bir platformdan yönetmelerini sağlayan, bulut tabanlı ve kullanıcı dostu bir ERP (Kurumsal Kaynak Planlama) sistemidir. Finanstan üretime, satıştan insan kaynaklarına kadar tüm modüller entegre bir şekilde çalışır.
+**Turkuast ERP Suite**, modern işletmelerin tüm süreçlerini tek bir platformdan yönetmelerini sağlayan, bulut tabanlı ve kullanıcı dostu bir ERP (Kurumsal Kaynak Planlama) sistemidir. Finanstan üretime, satıştan insan kaynaklarına kadar tüm modüller entegre bir şekilde çalışır.
 
 ## ✨ Temel Özellikler
 
@@ -72,8 +72,8 @@ Projeyi yerel ortamınızda çalıştırmak için aşağıdaki adımları izleyi
 ### Adım 1: Projeyi Klonlayın
 
 ```bash
-git clone https://github.com/aysenur-23/revium-erp-suite.git
-cd revium-erp-suite
+git clone https://github.com/aysenur-23/turkuast-erp-suite.git
+cd turkuast-erp-suite
 ```
 
 ### Adım 2: Bağımlılıkları Yükleyin
@@ -112,8 +112,8 @@ Bu proje **MIT Lisansı** ile lisanslanmıştır. Detaylar için `LICENSE` dosya
 ---
 
 <div align="center">
-  <p>Geliştirici: <strong>Revium Tech Ekibi</strong></p>
+  <p>Geliştirici: <strong>Turkuast Ekibi</strong></p>
   <p>
-    <a href="https://www.reviumtech.com">www.reviumtech.com</a>
+    <a href="https://www.turkuast.com">www.turkuast.com</a>
   </p>
 </div>

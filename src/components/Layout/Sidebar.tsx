@@ -22,7 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { UserProfile } from "@/services/firebase/authService";
 import { getDepartments } from "@/services/firebase/departmentService";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import logo from "@/assets/rev-logo.png";
+import logo from "@/assets/turkuast-logo.png";
 
 interface SidebarProps {
   isMobile: boolean;
@@ -105,14 +105,14 @@ export const Sidebar = ({ isMobile, open, onOpenChange, isCollapsed = false }: S
         canViewTeamManagement(userProfile, departments),
         canViewAdminPanel(userProfile),
       ]);
-      
+
       // Sonuçları cache'le
       permissionsCacheRef.current = {
         teamManagement: canViewTeam,
         admin: canViewAdmin,
       };
       permissionsCheckedRef.current = userId;
-      
+
       // localStorage'a da kaydet (sayfa yenilendiğinde hızlı gösterim için)
       try {
         localStorage.setItem(`sidebar_permissions_${userId}`, JSON.stringify({
@@ -123,7 +123,7 @@ export const Sidebar = ({ isMobile, open, onOpenChange, isCollapsed = false }: S
       } catch (e) {
         // localStorage yazma hatası - sessizce devam et
       }
-      
+
       // State'i güncelle - sadece bu kullanıcı için kontrol ediliyorsa
       // lastUserIdRef ile kontrol et - sadece aynı kullanıcı için güncelle
       if (lastUserIdRef.current === userId) {
@@ -149,21 +149,21 @@ export const Sidebar = ({ isMobile, open, onOpenChange, isCollapsed = false }: S
   // Ekip Yönetimi ve Admin Paneli yetkilerini Firestore'dan kontrol et - Sadece user.id değiştiğinde
   useEffect(() => {
     const userId = user?.id;
-    
+
     // Kullanıcı değişti mi kontrol et - sadece ID'ye bak
     const userChanged = lastUserIdRef.current !== userId;
-    
+
     if (userChanged) {
       // Kullanıcı değişti - cache'i temizle ve state'i cache'den oku
       lastUserIdRef.current = userId;
       permissionsCheckedRef.current = null;
       permissionsCacheRef.current = null;
-      
+
       // Yeni kullanıcı için state'i cache'den oku
       const cachedPerms = getCachedPermissions(userId);
       setShowTeamManagement(cachedPerms.teamManagement);
       setShowAdminPanel(cachedPerms.admin);
-      
+
       // Yeni kullanıcı için yetkileri kontrol et
       if (userId) {
         const userRoles = user?.roles;
@@ -219,10 +219,10 @@ export const Sidebar = ({ isMobile, open, onOpenChange, isCollapsed = false }: S
       '/projects': () => import("../../pages/Projects"),
       '/notifications': () => import("../../pages/Notifications"),
     };
-    
+
     const prefetchFn = prefetchMap[path];
     if (prefetchFn) {
-      prefetchFn().catch(() => {}); // Sessizce hata yoksay
+      prefetchFn().catch(() => { }); // Sessizce hata yoksay
     }
   };
 
@@ -248,7 +248,7 @@ export const Sidebar = ({ isMobile, open, onOpenChange, isCollapsed = false }: S
     <div ref={sidebarRef} className="flex h-full w-64 flex-col bg-sidebar border-r border-sidebar-border overflow-hidden relative z-50">
       {/* Logo Section - Sidebar'ın en üstünde */}
       <div className="flex-shrink-0 bg-sidebar border-b border-sidebar-border pt-4 pb-2 z-[99999] relative">
-        <div 
+        <div
           className="flex items-center gap-2 px-3 sm:px-4 cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => navigate("/")}
           role="button"
@@ -261,12 +261,8 @@ export const Sidebar = ({ isMobile, open, onOpenChange, isCollapsed = false }: S
           }}
           title="Ana sayfaya git"
         >
-<<<<<<< HEAD
-          <img src={logo} alt="Revium ERP" className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 rounded-lg object-contain bg-white p-1 flex-shrink-0" width={32} height={32} loading="eager" />
-=======
-          <img src={logo} alt="Revium ERP" className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 rounded-lg object-contain bg-white p-1 flex-shrink-0" />
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-          <span className="text-base sm:text-lg md:text-xl font-bold text-sidebar-foreground">Revium ERP</span>
+          <img src="/favicon.ico" alt="Turkuast ERP" className="h-6 w-6 sm:h-7 sm:w-7 object-contain flex-shrink-0" width={28} height={28} loading="eager" />
+          <span className="text-sm sm:text-base font-bold text-sidebar-foreground">Turkuast ERP</span>
         </div>
       </div>
 
@@ -374,14 +370,11 @@ export const Sidebar = ({ isMobile, open, onOpenChange, isCollapsed = false }: S
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent 
-          side="left" 
-<<<<<<< HEAD
+        <SheetContent
+          side="left"
           data-sidebar="true"
-=======
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
           className="p-0 w-64 max-w-[85vw] touch-manipulation overflow-y-auto"
-          style={{ 
+          style={{
             WebkitOverflowScrolling: 'touch',
             overscrollBehavior: 'contain'
           }}
@@ -393,7 +386,7 @@ export const Sidebar = ({ isMobile, open, onOpenChange, isCollapsed = false }: S
   }
 
   return (
-    <aside 
+    <aside
       className={cn(
         "h-full transition-all duration-300 flex-shrink-0 overflow-hidden relative z-50",
         isCollapsed ? "w-0" : "w-64"

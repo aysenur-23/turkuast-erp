@@ -70,14 +70,14 @@ export const getProducts = async (): Promise<Product[]> => {
           id: doc.id,
           ...doc.data(),
         })) as Product[];
-        
+
         // Client-side sıralama
         products.sort((a, b) => {
           const aDate = a.createdAt?.toMillis() || 0;
           const bDate = b.createdAt?.toMillis() || 0;
           return bDate - aDate;
         });
-        
+
         return products;
       } catch (fallbackError) {
         if (import.meta.env.DEV) {
@@ -101,7 +101,7 @@ export const getProducts = async (): Promise<Product[]> => {
 export const getProductById = async (productId: string): Promise<Product | null> => {
   try {
     const productDoc = await getDoc(doc(firestore, "products", productId));
-    
+
     if (!productDoc.exists()) {
       return null;
     }
@@ -149,7 +149,7 @@ export const createProduct = async (
         const userProfile = await getUserProfile(productData.createdBy);
         const userName = userProfile?.fullName || userProfile?.displayName || userProfile?.email;
         const userEmail = userProfile?.email;
-        
+
         await addProductActivity(
           docRef.id,
           productData.createdBy,
@@ -191,15 +191,15 @@ export const updateProduct = async (
   try {
     // Eski veriyi al
     const oldProduct = await getProductById(productId);
-    
+
     await updateDoc(doc(firestore, "products", productId), {
       ...updates,
       updatedAt: serverTimestamp(),
     });
-    
+
     // Yeni veriyi al
     const newProduct = await getProductById(productId);
-    
+
     // Audit log
     if (userId) {
       await logAudit("UPDATE", "products", productId, userId, oldProduct, newProduct);
@@ -214,11 +214,11 @@ export const updateProduct = async (
         const userEmail = userProfile?.email;
 
         const changedFields = Object.keys(updates).filter(key => {
-          const oldValue = (oldProduct as Record<string, unknown>)[key];
-          const newValue = (updates as Record<string, unknown>)[key];
+          const oldValue = (oldProduct as unknown as Record<string, unknown>)[key];
+          const newValue = (updates as unknown as Record<string, unknown>)[key];
           return oldValue !== newValue;
         });
-        
+
         if (changedFields.length > 0) {
           await addProductActivity(
             productId,
@@ -254,7 +254,7 @@ export const deleteProduct = async (productId: string, userId?: string): Promise
   try {
     // Eski veriyi al
     const oldProduct = await getProductById(productId);
-    
+
     // Aktivite log ekle (silmeden önce)
     if (userId && oldProduct) {
       try {
@@ -262,7 +262,7 @@ export const deleteProduct = async (productId: string, userId?: string): Promise
         const userProfile = await getUserProfile(userId);
         const userName = userProfile?.fullName || userProfile?.displayName || userProfile?.email;
         const userEmail = userProfile?.email;
-        
+
         await addProductActivity(
           productId,
           userId,
@@ -280,9 +280,9 @@ export const deleteProduct = async (productId: string, userId?: string): Promise
         }
       }
     }
-    
+
     await deleteDoc(doc(firestore, "products", productId));
-    
+
     // Audit log
     if (userId) {
       await logAudit("DELETE", "products", productId, userId, oldProduct, null);

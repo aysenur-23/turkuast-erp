@@ -7,16 +7,18 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   max-width: 100vw;
+  width: 100%;
+  min-height: 100%;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
   overflow-x: hidden;
-  /* Prevent horizontal scroll on all devices */
+  overflow-y: hidden;
   position: relative;
-  /* Prevent text selection issues on mobile */
   -webkit-text-size-adjust: 100%;
-  -moz-text-size-adjust: 100%;
-  -ms-text-size-adjust: 100%;
-  text-size-adjust: 100%;
 }
 
 #root {
@@ -24,12 +26,7 @@ html, body {
   overflow-x: hidden;
   min-height: 100vh;
   position: relative;
-<<<<<<< HEAD
   /* Removed contain: layout style paint - it breaks grid/flex layouts in dialogs */
-=======
-  /* Prevent overflow issues */
-  contain: layout style paint;
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
 }
 
 /* Prevent text overflow and wrapping issues */
@@ -38,19 +35,13 @@ html, body {
   overflow-wrap: break-word;
 }
 
-<<<<<<< HEAD
 /* Box-sizing only - removed max-width: 100% as it breaks grid/flex layouts */
 * {
-=======
-/* Prevent all elements from causing horizontal overflow */
-* {
-  max-width: 100%;
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
   box-sizing: border-box;
 }
 
 /* Ensure tables and containers don't overflow */
-table, 
+table,
 .table,
 [class*="table"],
 [role="table"] {
@@ -59,7 +50,6 @@ table,
   table-layout: auto;
 }
 
-<<<<<<< HEAD
 /* Overscroll behavior only - removed contain: layout style paint as it breaks layouts */
 /* If containment is needed, use .contain-safe class instead */
 [class*="overflow"],
@@ -167,13 +157,13 @@ form,
 [class*="TabsContent"],
 [class*="CardContent"] {
   position: relative;
-  overflow: visible !important;
+  overflow: auto;
 }
 
 /* Fix autocomplete dropdown z-index issues */
-input[type="email"]:focus ~ *,
-input[type="text"]:focus ~ *,
-input[type="password"]:focus ~ * {
+input[type="email"]:focus~*,
+input[type="text"]:focus~*,
+input[type="password"]:focus~* {
   position: relative;
   z-index: 0;
 }
@@ -195,30 +185,32 @@ input::-webkit-calendar-picker-indicator {
 
 /* Mobile-specific autocomplete fixes */
 @media (max-width: 768px) {
+
   /* Ensure form containers allow autocomplete on mobile */
   form,
   [class*="space-y"],
   [class*="TabsContent"],
   [class*="CardContent"] {
     position: relative !important;
-    overflow: visible !important;
+    overflow: auto !important;
     z-index: 1;
     isolation: isolate;
   }
-  
+
   /* Mobile input positioning - email inputs get highest priority */
   input[type="email"],
   input[type="text"] {
     position: relative !important;
     z-index: 1000 !important;
-    transform: translateZ(0); /* Force hardware acceleration */
+    transform: translateZ(0);
+    /* Force hardware acceleration */
     -webkit-transform: translateZ(0);
     will-change: transform;
     /* Ensure autocomplete dropdown appears correctly */
     -webkit-appearance: none;
     appearance: none;
   }
-  
+
   /* Ensure autocomplete dropdown appears above other elements on mobile */
   input[type="email"]:focus,
   input[type="text"]:focus {
@@ -229,21 +221,21 @@ input::-webkit-calendar-picker-indicator {
     /* Force autocomplete dropdown to appear in correct position */
     isolation: isolate;
   }
-  
+
   /* Password inputs should be below email autocomplete */
   input[type="password"] {
     position: relative !important;
     z-index: 1 !important;
     margin-top: 0 !important;
   }
-  
+
   /* Add spacing between email and password fields on mobile */
-  div:has(input[type="email"]) + div:has(input[type="password"]),
-  div:has(input[type="text"]) + div:has(input[type="password"]) {
+  div:has(input[type="email"])+div:has(input[type="password"]),
+  div:has(input[type="text"])+div:has(input[type="password"]) {
     margin-top: 1.5rem !important;
     padding-top: 0.5rem;
   }
-  
+
   /* Ensure email input container has proper stacking context */
   div:has(input[type="email"]),
   div:has(input[type="text"]) {
@@ -253,14 +245,14 @@ input::-webkit-calendar-picker-indicator {
     /* Ensure container doesn't clip autocomplete */
     overflow: visible !important;
   }
-  
+
   /* Password input container should be below */
   div:has(input[type="password"]) {
     position: relative !important;
     z-index: 1 !important;
     overflow: visible !important;
   }
-  
+
   /* Card container adjustments for mobile */
   [class*="Card"],
   [class*="CardContent"] {
@@ -269,13 +261,13 @@ input::-webkit-calendar-picker-indicator {
     z-index: 1;
     isolation: isolate;
   }
-  
+
   /* Prevent autocomplete from being clipped */
-  [class*="CardContent"] > * {
+  [class*="CardContent"]>* {
     position: relative;
     overflow: visible !important;
   }
-  
+
   /* Fix browser autocomplete dropdown positioning on mobile */
   input[type="email"]::-webkit-autofill,
   input[type="text"]::-webkit-autofill {
@@ -283,30 +275,24 @@ input::-webkit-calendar-picker-indicator {
     box-shadow: 0 0 0 30px white inset !important;
     -webkit-text-fill-color: inherit !important;
   }
-  
+
   /* Ensure autocomplete suggestions appear correctly on mobile */
   input[type="email"]:autofill,
   input[type="text"]:autofill {
     position: relative !important;
     z-index: 1000 !important;
   }
-  
+
   /* Fix for Select dropdown on mobile - ensure it appears above autocomplete */
   [data-radix-select-content] {
     z-index: 10010 !important;
     position: fixed !important;
   }
-=======
-/* Ensure all scrollable containers are properly contained */
-[class*="overflow"],
-[style*="overflow"] {
-  contain: layout style paint;
-  overscroll-behavior: contain;
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
 }
 
 /* Responsive container max-width prevention - only for mobile */
 @media (max-width: 640px) {
+
   .container,
   [class*="container"] {
     max-width: 100%;
@@ -324,7 +310,7 @@ img {
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
   }
-  
+
   .touch-manipulation {
     touch-action: manipulation;
   }
@@ -377,16 +363,16 @@ All colors MUST be HSL.
 
     --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
-    
+
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
-    
+
     --info: 199 89% 48%;
     --info-foreground: 0 0% 100%;
 
     --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(221 83% 43%) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(142 76% 36%) 0%, hsl(142 76% 46%) 100%);
-    
+
     --shadow-sm: 0 1px 2px 0 hsl(221 83% 53% / 0.05);
     --shadow-md: 0 4px 6px -1px hsl(221 83% 53% / 0.1);
     --shadow-lg: 0 10px 15px -3px hsl(221 83% 53% / 0.1);
@@ -434,10 +420,10 @@ All colors MUST be HSL.
 
     --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
-    
+
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
-    
+
     --info: 199 89% 48%;
     --info-foreground: 0 0% 100%;
   }
@@ -464,7 +450,11 @@ All colors MUST be HSL.
   }
 
   /* Mobile touch optimizations */
-  button, a, input, select, textarea {
+  button,
+  a,
+  input,
+  select,
+  textarea {
     touch-action: manipulation;
   }
 
@@ -476,7 +466,10 @@ All colors MUST be HSL.
   }
 
   /* Smooth transitions for interactive elements */
-  button, a, [role="button"], [tabindex] {
+  button,
+  a,
+  [role="button"],
+  [tabindex] {
     transition: all 0.2s ease-in-out;
   }
 
@@ -535,6 +528,7 @@ All colors MUST be HSL.
   /* Prevent pull-to-refresh on overscroll */
 
   @media (max-width: 768px) {
+
     /* Mobile specific optimizations */
     body {
       overscroll-behavior-y: contain;
@@ -572,12 +566,12 @@ All colors MUST be HSL.
     /* Flexbox scroll için min-height: 0 gerekli */
     min-height: 0;
   }
-  
+
   /* Flexbox scroll için main elementinin min-height constraint'i olmalı */
   main {
     min-height: 0;
   }
-  
+
   /* Scroll container için özel class - flexbox scroll için height: 0 gerekli */
   /* flex: 1 ile birlikte scroll çalışması için */
   main.main-scroll-container,
@@ -586,9 +580,15 @@ All colors MUST be HSL.
     min-height: 0;
     /* Scroll'un çalışması için overflow-y: auto olmalı */
     overflow-y: auto !important;
-    overflow-x: auto !important;
+    overflow-x: hidden !important;
+    /* Horizontal scroll'u engelle (responsive tablolar kendi scroll'unu yönetir) */
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
   }
-  
+
   /* Overflow-auto veya overflow-y-auto class'ına sahip main elementleri için (fallback) */
   main.overflow-y-auto,
   main.overflow-auto,
@@ -599,7 +599,7 @@ All colors MUST be HSL.
   }
 
   /* Tüm sayfa container'larının scroll edilebilir olmasını garantile */
-  main > div {
+  main>div {
     width: 100%;
     /* min-width: 0 kaldırıldı - scroll'u engelliyor olabilir */
     /* min-height kaldırıldı - scroll'un çalışması için içeriğin doğal yüksekliğine izin ver */
@@ -610,18 +610,24 @@ All colors MUST be HSL.
 
   /* Scroll yönetimi: Body scroll'u engelle, main element scroll edilebilir olacak */
   /* SPA'larda body scroll'u engellemek normaldir, scroll main element'te olacak */
-  html, body {
+  html,
+  body {
     height: 100%;
     width: 100%;
-    /* Body scroll'u engelle - main element scroll edilebilir olacak */
-    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    overflow: hidden !important;
+    position: relative;
+    /* Fixed causes issues on some browsers, overflow: hidden on html/body is enough */
   }
-  
-  /* Root element scroll'u engelle */
+
+  /* Root element filling the fixed body */
   #root {
-    height: 100%;
+    min-height: 100dvh;
     width: 100%;
-    overflow: hidden;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   /* Better focus management for accessibility */
@@ -631,157 +637,160 @@ All colors MUST be HSL.
     border-radius: 0.25rem;
   }
 
-         /* Professional responsive design - Touch targets and spacing */
-         /* Mobile-first: Ensure minimum touch targets on mobile */
-         @media (max-width: 767px) {
-           /* Touch targets - Apple HIG minimum 44x44px */
-           button:not(.no-touch-target),
-           a[role="button"],
-           [role="button"]:not(.no-touch-target),
-           input[type="button"],
-           input[type="submit"],
-           input[type="reset"],
-           label[for] {
-             min-height: 44px;
-             min-width: 44px;
-           }
-           
-           /* Form inputs should also have comfortable touch targets */
-           input:not([type="checkbox"]):not([type="radio"]),
-           select,
-           textarea {
-             min-height: 44px;
-           }
-           
-           /* Better spacing on mobile - reduced for compactness */
-           .space-y-4 > * + * {
-             margin-top: 0.75rem;
-           }
-           
-           .space-y-6 > * + * {
-             margin-top: 1rem;
-           }
-           
-           /* Improved padding for mobile */
-           .p-4 {
-             padding: 0.75rem;
-           }
-           
-           .p-6 {
-             padding: 1rem;
-           }
-           
-           /* Better gap for mobile */
-           .gap-4 {
-             gap: 0.75rem;
-           }
-           
-           .gap-6 {
-             gap: 1rem;
-           }
-         }
-         
-         /* Tablet optimizations */
-         @media (min-width: 768px) and (max-width: 1023px) {
-           button:not(.no-touch-target),
-           a[role="button"],
-           [role="button"]:not(.no-touch-target) {
-             min-height: 40px;
-           }
-         }
-         
-         /* Desktop - no minimum touch target requirement */
-         @media (min-width: 1024px) {
-           button:not(.no-touch-target),
-           a[role="button"],
-           [role="button"]:not(.no-touch-target) {
-             min-height: auto;
-             min-width: auto;
-           }
-         }
+  /* Professional responsive design - Touch targets and spacing */
+  /* Mobile-first: Ensure minimum touch targets on mobile */
+  @media (max-width: 767px) {
+
+    /* Touch targets - Apple HIG minimum 44x44px */
+    button:not(.no-touch-target),
+    a[role="button"],
+    [role="button"]:not(.no-touch-target),
+    input[type="button"],
+    input[type="submit"],
+    input[type="reset"],
+    label[for] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    /* Form inputs should also have comfortable touch targets */
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+      min-height: 44px;
+    }
+
+    /* Better spacing on mobile - reduced for compactness */
+    .space-y-4>*+* {
+      margin-top: 0.75rem;
+    }
+
+    .space-y-6>*+* {
+      margin-top: 1rem;
+    }
+
+    /* Improved padding for mobile */
+    .p-4 {
+      padding: 0.75rem;
+    }
+
+    .p-6 {
+      padding: 1rem;
+    }
+
+    /* Better gap for mobile */
+    .gap-4 {
+      gap: 0.75rem;
+    }
+
+    .gap-6 {
+      gap: 1rem;
+    }
+  }
+
+  /* Tablet optimizations */
+  @media (min-width: 768px) and (max-width: 1023px) {
+
+    button:not(.no-touch-target),
+    a[role="button"],
+    [role="button"]:not(.no-touch-target) {
+      min-height: 40px;
+    }
+  }
+
+  /* Desktop - no minimum touch target requirement */
+  @media (min-width: 1024px) {
+
+    button:not(.no-touch-target),
+    a[role="button"],
+    [role="button"]:not(.no-touch-target) {
+      min-height: auto;
+      min-width: auto;
+    }
+  }
 
 
-/* Professional scrollbar styling - responsive */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-@media (max-width: 640px) {
+  /* Professional scrollbar styling - responsive */
   ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  @media (max-width: 640px) {
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+
+  @media (max-width: 640px) {
+    ::-webkit-scrollbar-thumb {
+      border-radius: 3px;
+    }
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  }
+
+  @media (max-width: 640px) {
+    * {
+      scrollbar-width: thin;
+    }
+  }
+
+  /* Custom scrollbar utilities for tables */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
-}
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
-::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-@media (max-width: 640px) {
-  ::-webkit-scrollbar-thumb {
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
     border-radius: 3px;
+    transition: background-color 0.2s ease;
   }
-}
 
-::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.3);
-}
-
-/* Firefox scrollbar */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
-}
-
-@media (max-width: 640px) {
-  * {
-    scrollbar-width: thin;
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.3);
   }
-}
 
-/* Custom scrollbar utilities for tables */
-.scrollbar-thin {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
-}
+  .scrollbar-thumb-muted-foreground\/20::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.2);
+  }
 
-.scrollbar-thin::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+  .scrollbar-thumb-muted-foreground\/30::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.3);
+  }
 
-.scrollbar-thin::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
-  transition: background-color 0.2s ease;
-}
-
-.scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.3);
-}
-
-.scrollbar-thumb-muted-foreground\/20::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--muted-foreground) / 0.2);
-}
-
-.scrollbar-thumb-muted-foreground\/30::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(var(--muted-foreground) / 0.3);
-}
-
-.scrollbar-track-transparent::-webkit-scrollbar-track {
-  background: transparent;
-}
+  .scrollbar-track-transparent::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
   /* Responsive container improvements */
   .container {
@@ -824,136 +833,155 @@ All colors MUST be HSL.
     }
   }
 
-         /* Professional responsive typography - Mobile-first approach (320px-4K) */
-         /* Base styles (mobile - 320px+) */
-         h1 {
-           font-size: 1.25rem;
-           line-height: 1.5rem;
-           letter-spacing: -0.02em;
-         }
-         h2 {
-           font-size: 1.125rem;
-           line-height: 1.375rem;
-           letter-spacing: -0.01em;
-         }
-         h3 {
-           font-size: 1rem;
-           line-height: 1.375rem;
-         }
-         h4 {
-           font-size: 0.9375rem;
-           line-height: 1.375rem;
-         }
-         p {
-           font-size: 0.8125rem;
-           line-height: 1.5rem;
-         }
-         
-         /* Small mobile (475px+) */
-         @media (min-width: 475px) {
-           h1 {
-             font-size: 1.5rem;
-             line-height: 1.75rem;
-           }
-           h2 {
-             font-size: 1.25rem;
-             line-height: 1.5rem;
-           }
-           h3 {
-             font-size: 1.125rem;
-             line-height: 1.5rem;
-           }
-           p {
-             font-size: 0.875rem;
-           }
-         }
-         
-         /* Tablet and up (640px+) */
-         @media (min-width: 640px) {
-           h1 {
-             font-size: 1.875rem;
-             line-height: 2.25rem;
-           }
-           h2 {
-             font-size: 1.5rem;
-             line-height: 1.75rem;
-           }
-           h3 {
-             font-size: 1.25rem;
-             line-height: 1.75rem;
-           }
-           p {
-             font-size: 1rem;
-             line-height: 1.5rem;
-           }
-         }
-         
-         /* Desktop (1024px+) */
-         @media (min-width: 1024px) {
-           h1 {
-             font-size: 2.25rem;
-             line-height: 2.5rem;
-           }
-           h2 {
-             font-size: 1.875rem;
-             line-height: 2.25rem;
-           }
-           h3 {
-             font-size: 1.5rem;
-             line-height: 2rem;
-           }
-         }
-         
-         /* Large Desktop (1280px+) */
-         @media (min-width: 1280px) {
-           h1 {
-             font-size: 2.5rem;
-             line-height: 2.75rem;
-           }
-           h2 {
-             font-size: 2rem;
-             line-height: 2.5rem;
-           }
-         }
-         
-         /* Extra Large Desktop (1536px+) */
-         @media (min-width: 1536px) {
-           h1 {
-             font-size: 3rem;
-             line-height: 3.5rem;
-           }
-           h2 {
-             font-size: 2.25rem;
-             line-height: 2.75rem;
-           }
-         }
-         
-         /* 4K and above (1920px+) */
-         @media (min-width: 1920px) {
-           h1 {
-             font-size: 3.5rem;
-             line-height: 4rem;
-           }
-           h2 {
-             font-size: 2.5rem;
-             line-height: 3rem;
-           }
-         }
+  /* Professional responsive typography - Mobile-first approach (320px-4K) */
+  /* Base styles (mobile - 320px+) */
+  h1 {
+    font-size: 1.25rem;
+    line-height: 1.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    font-size: 1.125rem;
+    line-height: 1.375rem;
+    letter-spacing: -0.01em;
+  }
+
+  h3 {
+    font-size: 1rem;
+    line-height: 1.375rem;
+  }
+
+  h4 {
+    font-size: 0.9375rem;
+    line-height: 1.375rem;
+  }
+
+  p {
+    font-size: 0.8125rem;
+    line-height: 1.5rem;
+  }
+
+  /* Small mobile (475px+) */
+  @media (min-width: 475px) {
+    h1 {
+      font-size: 1.5rem;
+      line-height: 1.75rem;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      line-height: 1.5rem;
+    }
+
+    h3 {
+      font-size: 1.125rem;
+      line-height: 1.5rem;
+    }
+
+    p {
+      font-size: 0.875rem;
+    }
+  }
+
+  /* Tablet and up (640px+) */
+  @media (min-width: 640px) {
+    h1 {
+      font-size: 1.875rem;
+      line-height: 2.25rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      line-height: 1.75rem;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      line-height: 1.75rem;
+    }
+
+    p {
+      font-size: 1rem;
+      line-height: 1.5rem;
+    }
+  }
+
+  /* Desktop (1024px+) */
+  @media (min-width: 1024px) {
+    h1 {
+      font-size: 2.25rem;
+      line-height: 2.5rem;
+    }
+
+    h2 {
+      font-size: 1.875rem;
+      line-height: 2.25rem;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      line-height: 2rem;
+    }
+  }
+
+  /* Large Desktop (1280px+) */
+  @media (min-width: 1280px) {
+    h1 {
+      font-size: 2.5rem;
+      line-height: 2.75rem;
+    }
+
+    h2 {
+      font-size: 2rem;
+      line-height: 2.5rem;
+    }
+  }
+
+  /* Extra Large Desktop (1536px+) */
+  @media (min-width: 1536px) {
+    h1 {
+      font-size: 3rem;
+      line-height: 3.5rem;
+    }
+
+    h2 {
+      font-size: 2.25rem;
+      line-height: 2.75rem;
+    }
+  }
+
+  /* 4K and above (1920px+) */
+  @media (min-width: 1920px) {
+    h1 {
+      font-size: 3.5rem;
+      line-height: 4rem;
+    }
+
+    h2 {
+      font-size: 2.5rem;
+      line-height: 3rem;
+    }
+  }
 
   /* Responsive grid improvements for better breakpoint handling */
   @media (max-width: 640px) {
     .responsive-grid-1 {
       grid-template-columns: 1fr;
     }
+
     .responsive-grid-2 {
       grid-template-columns: 1fr;
     }
+
     .responsive-grid-3 {
       grid-template-columns: 1fr;
     }
+
     .responsive-grid-4 {
       grid-template-columns: 1fr;
     }
+
     .responsive-grid-5 {
       grid-template-columns: 1fr;
     }
@@ -963,12 +991,15 @@ All colors MUST be HSL.
     .responsive-grid-2 {
       grid-template-columns: repeat(2, 1fr);
     }
+
     .responsive-grid-3 {
       grid-template-columns: repeat(2, 1fr);
     }
+
     .responsive-grid-4 {
       grid-template-columns: repeat(2, 1fr);
     }
+
     .responsive-grid-5 {
       grid-template-columns: repeat(2, 1fr);
     }
@@ -978,9 +1009,11 @@ All colors MUST be HSL.
     .responsive-grid-3 {
       grid-template-columns: repeat(3, 1fr);
     }
+
     .responsive-grid-4 {
       grid-template-columns: repeat(4, 1fr);
     }
+
     .responsive-grid-5 {
       grid-template-columns: repeat(5, 1fr);
     }
@@ -991,6 +1024,7 @@ All colors MUST be HSL.
     .responsive-padding {
       padding: 0.75rem;
     }
+
     .responsive-gap {
       gap: 0.75rem;
     }
@@ -1000,6 +1034,7 @@ All colors MUST be HSL.
     .responsive-padding {
       padding: 1rem;
     }
+
     .responsive-gap {
       gap: 1rem;
     }
@@ -1009,6 +1044,7 @@ All colors MUST be HSL.
     .responsive-padding {
       padding: 1.5rem;
     }
+
     .responsive-gap {
       gap: 1.5rem;
     }
@@ -1020,15 +1056,15 @@ All colors MUST be HSL.
   .pb-safe {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
-  
+
   .pt-safe {
     padding-top: max(1rem, env(safe-area-inset-top));
   }
-  
+
   .pl-safe {
     padding-left: max(1rem, env(safe-area-inset-left));
   }
-  
+
   .pr-safe {
     padding-right: max(1rem, env(safe-area-inset-right));
   }
@@ -1058,6 +1094,7 @@ div[data-task-modal],
 }
 
 @media (min-width: 640px) {
+
   [data-task-modal],
   [data-radix-dialog-content][data-task-modal],
   [data-task-modal][role="dialog"],
@@ -1079,7 +1116,6 @@ div[data-task-modal],
     translate: none !important;
   }
 }
-<<<<<<< HEAD
 
 /* Removed aggressive global Radix Dialog overrides - dialogs should configure their own sizing */
 /* Only task modal override remains, strictly scoped */
@@ -1093,5 +1129,67 @@ div[data-task-modal],
   right: auto !important;
   margin: 0 !important;
 }
-=======
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
+
+/* Production Parity: App Dialog Styles */
+.app-dialog-shell {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  background: white !important;
+  border-width: 0 !important;
+  border-radius: 0 !important;
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  margin: 0 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
+.app-dialog-scroll {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  min-height: 0;
+  padding: 1.5rem !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain;
+  /* Scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+}
+
+.app-dialog-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-dialog-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-dialog-scroll::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 9999px;
+}
+
+.app-dialog-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground) / 0.3);
+}
+
+@media (min-width: 640px) {
+  .app-dialog-shell {
+    width: min(92vw, 1200px) !important;
+    max-width: 1200px !important;
+    height: 85vh !important;
+    max-height: 85vh !important;
+    border-radius: 1rem !important;
+    border-width: 1px !important;
+    border-color: hsl(var(--border)) !important;
+  }
+}

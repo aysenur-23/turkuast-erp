@@ -73,7 +73,6 @@ export const CustomerCombobox = memo(({ value, onChange, placeholder = "Müşter
     }
   }, []);
 
-<<<<<<< HEAD
   // Component mount olduğunda müşterileri yükle
   useEffect(() => {
     fetchCustomers();
@@ -81,22 +80,12 @@ export const CustomerCombobox = memo(({ value, onChange, placeholder = "Müşter
   }, []);
 
   // Popover açıldığında ve müşteri yoksa yeniden yükle
-=======
-  useEffect(() => {
-    fetchCustomers();
-  }, [fetchCustomers]);
-
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
   useEffect(() => {
     if (open && customers.length === 0 && !loading) {
       fetchCustomers();
     }
-<<<<<<< HEAD
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
-=======
-  }, [open, customers.length, loading, fetchCustomers]);
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
 
   // Popover kapandığında search query'yi temizle
   useEffect(() => {

@@ -4,9 +4,9 @@
       "http://localhost:5173",
       "http://localhost:5174",
       "http://localhost:3000",
-      "https://revpad.net",
-      "https://www.revpad.net",
-      "https://revpad-15232.web.app"
+      "https://turkuast.com",
+      "https://www.turkuast.com",
+      "https://turkuast-erp.web.app"
     ],
     "method": ["GET", "PUT", "POST", "DELETE", "HEAD", "OPTIONS"],
     "responseHeader": ["Content-Type", "Authorization"],

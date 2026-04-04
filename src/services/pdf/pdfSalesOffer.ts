@@ -14,7 +14,7 @@ import {
     formatCurrency,
     safeNumber,
     safeFormatCurrency,
-    REV_LOGO_DATA_URI,
+    TURKUAST_LOGO_BASE64,
     COMPANY_INFO,
     PDF_CONSTANTS,
     TAILWIND_COLORS
@@ -185,7 +185,7 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
 
     try {
         const logoX = rightContentX - headerLogoSize;
-        doc.addImage(REV_LOGO_DATA_URI, 'PNG', logoX, companyInfoY, headerLogoSize, headerLogoSize);
+        doc.addImage(TURKUAST_LOGO_BASE64, 'PNG', logoX, companyInfoY, headerLogoSize, headerLogoSize);
     } catch (error) {
         // ignore
     }

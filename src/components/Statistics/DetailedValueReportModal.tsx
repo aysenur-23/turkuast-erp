@@ -2,7 +2,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { BarChart3, TrendingUp, Package, DollarSign, AlertTriangle, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
@@ -18,11 +17,11 @@ interface DetailedValueReportModalProps {
   orders?: Array<Record<string, unknown>>; // Customers için sipariş verisi
 }
 
-export const DetailedValueReportModal = ({ 
-  open, 
-  onOpenChange, 
-  title, 
-  type, 
+export const DetailedValueReportModal = ({
+  open,
+  onOpenChange,
+  title,
+  type,
   data,
   orders = []
 }: DetailedValueReportModalProps) => {
@@ -67,7 +66,7 @@ export const DetailedValueReportModal = ({
           for (const order of orders) {
             const amount = Number(order.totalAmount) || 0;
             const currency = (order.currency as Currency) || "TRY";
-            
+
             let amountTRY = amount;
             if (currency !== "TRY") {
               try {
@@ -84,7 +83,7 @@ export const DetailedValueReportModal = ({
             if (customerId && typeof customerId === 'string') {
               const customer = data.find((c): c is Record<string, unknown> & { id: string } => typeof c === 'object' && c !== null && 'id' in c && typeof c.id === 'string' && c.id === customerId);
               const customerName = (customer?.name && typeof customer.name === 'string') ? customer.name : "Bilinmeyen Müşteri";
-              
+
               const custData = customerMap.get(customerId) || { name: customerName, orderCount: 0, totalAmount: 0, totalAmountTRY: 0 };
               custData.orderCount += 1;
               custData.totalAmount += amount;
@@ -118,7 +117,7 @@ export const DetailedValueReportModal = ({
             }))
             .sort((a, b) => b.valueTRY - a.valueTRY);
 
-          const averageCost = orders.length > 0 
+          const averageCost = orders.length > 0
             ? orders.reduce((sum, order) => sum + (Number(order.totalAmount) || 0), 0) / orders.length
             : 0;
 
@@ -188,7 +187,7 @@ export const DetailedValueReportModal = ({
             // Bu kısım daha sonra geliştirilebilir
             continue;
           }
-          
+
           let valueTRY = value;
           if (currency !== "TRY") {
             try {
@@ -220,7 +219,7 @@ export const DetailedValueReportModal = ({
           let status = "normal";
           if (stock === 0) status = "tükenen";
           else if (stock < minStock) status = "düşük";
-          
+
           const statusData = statusMap.get(status) || { count: 0, value: 0, valueTRY: 0 };
           statusData.count += 1;
           statusData.value += value;
@@ -274,7 +273,7 @@ export const DetailedValueReportModal = ({
           .sort((a, b) => b.valueTRY - a.valueTRY)
           .slice(0, 10);
 
-        const averageCost = data.length > 0 
+        const averageCost = data.length > 0
           ? data.reduce((sum, item) => sum + (Number(item.unitPrice !== undefined ? item.unitPrice : item.cost) || 0), 0) / data.length
           : 0;
 
@@ -331,7 +330,7 @@ export const DetailedValueReportModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl w-[80vw] sm:w-[80vw] max-h-[90vh] flex flex-col p-0 !overflow-hidden">
+      <DialogContent className="app-dialog-shell">
         {/* DialogTitle ve DialogDescription DialogContent'in direkt child'ı olmalı (Radix UI gereksinimi) */}
         <DialogTitle className="sr-only">
           {title} - Detaylı Değer Raporu
@@ -339,265 +338,265 @@ export const DetailedValueReportModal = ({
         <DialogDescription className="sr-only">
           Detaylı değer raporu
         </DialogDescription>
-        
+
         <DialogHeader className="p-3 sm:p-4 border-b bg-white flex-shrink-0">
           <h2 className="text-[16px] sm:text-[18px] font-semibold text-foreground">
             {title}
           </h2>
         </DialogHeader>
-        
-        <ScrollArea className="flex-1 min-h-0">
-          <div className="w-full p-3 sm:p-4 space-y-4">
 
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : report ? (
-            <>
-              {/* Özet Kartlar */}
-              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-[11px] sm:text-xs font-medium flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-primary" />
-                      Toplam Değer (TRY)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-[11px] sm:text-xs font-bold break-words">{formatCurrency(report.totalValueTRY, "TRY")}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Tüm para birimleri TRY'ye çevrildi
-                    </p>
-                  </CardContent>
-                </Card>
+        <div className="flex-1 overflow-hidden bg-gray-50/50 p-3 sm:p-4 min-h-0 app-dialog-scroll">
+          <div className="w-full space-y-4">
 
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-[11px] sm:text-xs font-medium flex items-center gap-2">
-                      <Package className="h-4 w-4 text-primary" />
-                      Ortalama Birim Maliyet
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-[11px] sm:text-xs font-bold break-words">{formatCurrency(report.averageCost, "TRY")}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Tüm hammaddelerin ortalaması
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-[11px] sm:text-xs font-medium flex items-center gap-2">
-                      <BarChart3 className="h-4 w-4 text-primary" />
-                      Toplam Kayıt
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-[11px] sm:text-xs font-bold">{data.length}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Toplam hammadde sayısı
-                    </p>
-                  </CardContent>
-                </Card>
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
+            ) : report ? (
+              <>
+                {/* Özet Kartlar */}
+                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-[11px] sm:text-xs font-medium flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-primary" />
+                        Toplam Değer (TRY)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-[11px] sm:text-xs font-bold break-words">{formatCurrency(report.totalValueTRY, "TRY")}</div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Tüm para birimleri TRY'ye çevrildi
+                      </p>
+                    </CardContent>
+                  </Card>
 
-              {/* Kategori Bazında */}
-              {report.byCategory.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-[14px] sm:text-[15px] flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5" />
-                      Kategori Bazında Değer Dağılımı
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Kategori</TableHead>
-                            <TableHead className="text-right">Kayıt Sayısı</TableHead>
-                            <TableHead className="text-right">Toplam Değer (TRY)</TableHead>
-                            <TableHead className="text-right">Oran</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                      <TableBody>
-                        {report.byCategory.map((item: { category: string; count: number; valueTRY: number }) => (
-                          <TableRow key={item.category}>
-                            <TableCell className="font-medium">{item.category}</TableCell>
-                            <TableCell className="text-right">{item.count}</TableCell>
-                            <TableCell className="text-right font-semibold">
-                              {formatCurrency(item.valueTRY, "TRY")}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {report.totalValueTRY > 0 
-                                ? `${((item.valueTRY / report.totalValueTRY) * 100).toFixed(1)}%`
-                                : "0%"}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-[11px] sm:text-xs font-medium flex items-center gap-2">
+                        <Package className="h-4 w-4 text-primary" />
+                        Ortalama Birim Maliyet
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-[11px] sm:text-xs font-bold break-words">{formatCurrency(report.averageCost, "TRY")}</div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Tüm hammaddelerin ortalaması
+                      </p>
+                    </CardContent>
+                  </Card>
 
-              {/* Para Birimi Bazında */}
-              {report.byCurrency.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-[14px] sm:text-[15px] flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />
-                      Para Birimi Bazında Değer Dağılımı
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Para Birimi</TableHead>
-                            <TableHead className="text-right">Kayıt Sayısı</TableHead>
-                            <TableHead className="text-right">Orijinal Değer</TableHead>
-                            <TableHead className="text-right">TRY Karşılığı</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                      <TableBody>
-                        {report.byCurrency.map((item: { currency: string; count: number; value: number; valueTRY: number }) => (
-                          <TableRow key={item.currency}>
-                            <TableCell className="font-medium">
-                              <Badge variant="outline">{item.currency}</Badge>
-                            </TableCell>
-                            <TableCell className="text-right">{item.count}</TableCell>
-                            <TableCell className="text-right">
-                              {formatCurrency(item.value, item.currency)}
-                            </TableCell>
-                            <TableCell className="text-right font-semibold">
-                              {formatCurrency(item.valueTRY, "TRY")}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-[11px] sm:text-xs font-medium flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4 text-primary" />
+                        Toplam Kayıt
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-[11px] sm:text-xs font-bold">{data.length}</div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Toplam hammadde sayısı
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
 
-              {/* Stok Durumuna Göre */}
-              {report.byStatus.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-[14px] sm:text-[15px] flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
-                      Stok Durumuna Göre Değer Dağılımı
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Stok Durumu</TableHead>
-                            <TableHead className="text-right">Kayıt Sayısı</TableHead>
-                            <TableHead className="text-right">Toplam Değer (TRY)</TableHead>
-                            <TableHead className="text-right">Oran</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                      <TableBody>
-                        {report.byStatus.map((item: { status: string; count: number; valueTRY: number }) => {
-                          const StatusIcon = getStatusIcon(item.status);
-                          return (
-                            <TableRow key={item.status}>
-                              <TableCell className="font-medium">
-                                <div className="flex items-center gap-2">
-                                  <StatusIcon className={`h-4 w-4 ${getStatusColor(item.status).split(" ")[1]}`} />
-                                  {getStatusLabel(item.status)}
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-right">{item.count}</TableCell>
-                              <TableCell className="text-right font-semibold">
-                                {formatCurrency(item.valueTRY, "TRY")}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {report.totalValueTRY > 0 
-                                  ? `${((item.valueTRY / report.totalValueTRY) * 100).toFixed(1)}%`
-                                  : "0%"}
-                              </TableCell>
+                {/* Kategori Bazında */}
+                {report.byCategory.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-[14px] sm:text-[15px] flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5" />
+                        Kategori Bazında Değer Dağılımı
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Kategori</TableHead>
+                              <TableHead className="text-right">Kayıt Sayısı</TableHead>
+                              <TableHead className="text-right">Toplam Değer (TRY)</TableHead>
+                              <TableHead className="text-right">Oran</TableHead>
                             </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                          </TableHeader>
+                          <TableBody>
+                            {report.byCategory.map((item: { category: string; count: number; valueTRY: number }) => (
+                              <TableRow key={item.category}>
+                                <TableCell className="font-medium">{item.category}</TableCell>
+                                <TableCell className="text-right">{item.count}</TableCell>
+                                <TableCell className="text-right font-semibold">
+                                  {formatCurrency(item.valueTRY, "TRY")}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {report.totalValueTRY > 0
+                                    ? `${((item.valueTRY / report.totalValueTRY) * 100).toFixed(1)}%`
+                                    : "0%"}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
-              {/* En Değerli Öğeler */}
-              {report.topItems.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-[14px] sm:text-[15px] flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
-                      <span className="break-words">
-                        {type === "rawMaterials" && "En Değerli Hammaddeler (Top 10)"}
-                        {type === "products" && "En Değerli Ürünler (Top 10)"}
-                        {type === "customers" && "En Değerli Müşteriler (Top 10)"}
-                      </span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>{type === "customers" ? "Müşteri" : type === "products" ? "Ürün" : "Hammadde"}</TableHead>
-                            <TableHead>{type === "customers" ? "Sipariş Sayısı" : "Kategori"}</TableHead>
-                            {type !== "customers" && <TableHead className="text-right">Stok</TableHead>}
-                            {type !== "customers" && <TableHead className="text-right">Birim {type === "products" ? "Fiyat" : "Maliyet"}</TableHead>}
-                            <TableHead className="text-right">Toplam Değer (TRY)</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                      <TableBody>
-                        {report.topItems.map((item: { name: string; category?: string; stock?: number; cost?: number; currency?: string; valueTRY: number }, index: number) => (
-                          <TableRow key={index}>
-                            <TableCell className="font-medium">{item.name}</TableCell>
-                            <TableCell>
-                              {type === "customers" ? (
-                                <span>{item.stock}</span>
-                              ) : (
-                                <Badge variant="outline">{item.category}</Badge>
-                              )}
-                            </TableCell>
-                            {type !== "customers" && <TableCell className="text-right">{item.stock}</TableCell>}
-                            {type !== "customers" && (
-                              <TableCell className="text-right">
-                                {formatCurrency(item.cost, item.currency)}
-                              </TableCell>
-                            )}
-                            <TableCell className="text-right font-semibold">
-                              {formatCurrency(item.valueTRY, "TRY")}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </>
-          ) : (
-            <div className="text-center text-muted-foreground py-12">
-              Veri bulunamadı
-            </div>
-          )}
+                {/* Para Birimi Bazında */}
+                {report.byCurrency.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-[14px] sm:text-[15px] flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />
+                        Para Birimi Bazında Değer Dağılımı
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Para Birimi</TableHead>
+                              <TableHead className="text-right">Kayıt Sayısı</TableHead>
+                              <TableHead className="text-right">Orijinal Değer</TableHead>
+                              <TableHead className="text-right">TRY Karşılığı</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {report.byCurrency.map((item: { currency: string; count: number; value: number; valueTRY: number }) => (
+                              <TableRow key={item.currency}>
+                                <TableCell className="font-medium">
+                                  <Badge variant="outline">{item.currency}</Badge>
+                                </TableCell>
+                                <TableCell className="text-right">{item.count}</TableCell>
+                                <TableCell className="text-right">
+                                  {formatCurrency(item.value, item.currency)}
+                                </TableCell>
+                                <TableCell className="text-right font-semibold">
+                                  {formatCurrency(item.valueTRY, "TRY")}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Stok Durumuna Göre */}
+                {report.byStatus.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-[14px] sm:text-[15px] flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
+                        Stok Durumuna Göre Değer Dağılımı
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Stok Durumu</TableHead>
+                              <TableHead className="text-right">Kayıt Sayısı</TableHead>
+                              <TableHead className="text-right">Toplam Değer (TRY)</TableHead>
+                              <TableHead className="text-right">Oran</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {report.byStatus.map((item: { status: string; count: number; valueTRY: number }) => {
+                              const StatusIcon = getStatusIcon(item.status);
+                              return (
+                                <TableRow key={item.status}>
+                                  <TableCell className="font-medium">
+                                    <div className="flex items-center gap-2">
+                                      <StatusIcon className={`h-4 w-4 ${getStatusColor(item.status).split(" ")[1]}`} />
+                                      {getStatusLabel(item.status)}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="text-right">{item.count}</TableCell>
+                                  <TableCell className="text-right font-semibold">
+                                    {formatCurrency(item.valueTRY, "TRY")}
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    {report.totalValueTRY > 0
+                                      ? `${((item.valueTRY / report.totalValueTRY) * 100).toFixed(1)}%`
+                                      : "0%"}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* En Değerli Öğeler */}
+                {report.topItems.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-[14px] sm:text-[15px] flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
+                        <span className="break-words">
+                          {type === "rawMaterials" && "En Değerli Hammaddeler (Top 10)"}
+                          {type === "products" && "En Değerli Ürünler (Top 10)"}
+                          {type === "customers" && "En Değerli Müşteriler (Top 10)"}
+                        </span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>{type === "customers" ? "Müşteri" : type === "products" ? "Ürün" : "Hammadde"}</TableHead>
+                              <TableHead>{type === "customers" ? "Sipariş Sayısı" : "Kategori"}</TableHead>
+                              {type !== "customers" && <TableHead className="text-right">Stok</TableHead>}
+                              {type !== "customers" && <TableHead className="text-right">Birim {type === "products" ? "Fiyat" : "Maliyet"}</TableHead>}
+                              <TableHead className="text-right">Toplam Değer (TRY)</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {report.topItems.map((item: { name: string; category?: string; stock?: number; cost?: number; currency?: string; valueTRY: number }, index: number) => (
+                              <TableRow key={index}>
+                                <TableCell className="font-medium">{item.name}</TableCell>
+                                <TableCell>
+                                  {type === "customers" ? (
+                                    <span>{item.stock}</span>
+                                  ) : (
+                                    <Badge variant="outline">{item.category}</Badge>
+                                  )}
+                                </TableCell>
+                                {type !== "customers" && <TableCell className="text-right">{item.stock}</TableCell>}
+                                {type !== "customers" && (
+                                  <TableCell className="text-right">
+                                    {formatCurrency(item.cost, item.currency)}
+                                  </TableCell>
+                                )}
+                                <TableCell className="text-right font-semibold">
+                                  {formatCurrency(item.valueTRY, "TRY")}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            ) : (
+              <div className="text-center text-muted-foreground py-12">
+                Veri bulunamadı
+              </div>
+            )}
           </div>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );

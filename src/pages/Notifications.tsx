@@ -113,7 +113,7 @@ export default function Notifications() {
     if (!user?.id) return;
 
     setLoading(true);
-    
+
     // Gerçek zamanlı dinleme başlat (performans için limit: 100)
     const unsubscribe = subscribeToNotifications(user.id, { limit: 100 }, (firebaseNotifications) => {
       try {
@@ -126,7 +126,7 @@ export default function Notifications() {
         setLoading(false);
       }
     });
-    
+
     // Cleanup: Component unmount olduğunda unsubscribe et
     return () => {
       unsubscribe();
@@ -194,7 +194,7 @@ export default function Notifications() {
 
   const getNotificationColor = (type: string, read: boolean) => {
     if (read) return "bg-slate-50 dark:bg-slate-900/50";
-    
+
     switch (type) {
       case "task_assigned":
         return "bg-emerald-50 dark:bg-emerald-950/30 border-l-4 border-emerald-500";
@@ -214,11 +214,11 @@ export default function Notifications() {
       toast.error("Görev bilgisi eksik. Lütfen bildirimi yenileyin.");
       return;
     }
-    
+
     setProcessing(true);
     try {
       await acceptTaskAssignment(notification.relatedId, notification.assignmentId);
-      
+
       const updatedMetadata = { ...notification.metadata, action: "accepted" };
       await updateNotification(notification.id, {
         metadata: updatedMetadata,
@@ -250,7 +250,7 @@ export default function Notifications() {
     ) {
       return;
     }
-    
+
     setProcessing(true);
     try {
       await rejectTaskAssignment(
@@ -258,7 +258,7 @@ export default function Notifications() {
         selectedNotification.assignmentId,
         rejectionReason.trim()
       );
-      
+
       const updatedMetadata = { ...selectedNotification.metadata, action: "rejected" };
       await updateNotification(selectedNotification.id, {
         metadata: updatedMetadata,
@@ -411,7 +411,7 @@ export default function Notifications() {
         user.id,
         rejectionApprovalReason.trim()
       );
-      
+
       const updatedMetadata = { ...selectedNotification.metadata, action: "rejected" };
       await updateNotification(selectedNotification.id, {
         metadata: updatedMetadata,
@@ -534,9 +534,8 @@ export default function Notifications() {
             {filteredNotifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`group relative rounded-lg transition-all duration-200 hover:shadow-md ${
-                  getNotificationColor(notification.type, notification.read)
-                } ${!notification.read ? 'shadow-sm' : ''}`}
+                className={`group relative rounded-lg transition-all duration-200 hover:shadow-md ${getNotificationColor(notification.type, notification.read)
+                  } ${!notification.read ? 'shadow-sm' : ''}`}
               >
                 <div
                   className="p-5 cursor-pointer"
@@ -548,7 +547,7 @@ export default function Notifications() {
                     if (!notification.read) {
                       markAsRead(notification.id);
                     }
-                    
+
                     // Yönlendirme mantığı
                     if (notification.relatedId) {
                       // Görev havuzu talebi bildirimleri - Ekip Yönetimi sayfasına yönlendir
@@ -559,20 +558,20 @@ export default function Notifications() {
                       // Görev ile ilgili bildirimler
                       if (['task_assigned', 'task_updated', 'task_completed', 'task_created', 'task_approval', 'task_deleted', 'comment_added'].includes(notification.type)) {
                         navigate(`/tasks?taskId=${notification.relatedId}&view=list`);
-                      } 
+                      }
                       // Sipariş bildirimleri
                       else if (['order_created', 'order_updated'].includes(notification.type)) {
                         // Metadata'dan sipariş tipini kontrol et (üretim siparişi mi normal sipariş mi)
-                        const metadata = notification.metadata as { orderType?: string; [key: string]: unknown };
+                        const metadata = notification.metadata as { orderType?: string;[key: string]: unknown };
                         if (metadata?.orderType === 'production' || notification.message?.includes('üretim')) {
                           navigate(`/production?orderId=${notification.relatedId}`);
                         } else {
                           navigate(`/orders?orderId=${notification.relatedId}`);
                         }
-                      } 
+                      }
                       // Talep bildirimleri
                       else if (notification.type === 'system' && notification.metadata) {
-                        const metadata = notification.metadata as { requestType?: string; [key: string]: unknown };
+                        const metadata = notification.metadata as { requestType?: string;[key: string]: unknown };
                         if (metadata.requestType || notification.message?.includes('talep')) {
                           navigate(`/requests?requestId=${notification.relatedId}`);
                         }
@@ -584,14 +583,14 @@ export default function Notifications() {
                     } else {
                       // relatedId yoksa tip bazlı yönlendirme
                       if (['order_created', 'order_updated'].includes(notification.type)) {
-                        const metadata = notification.metadata as { orderType?: string; [key: string]: unknown };
+                        const metadata = notification.metadata as { orderType?: string;[key: string]: unknown };
                         if (metadata?.orderType === 'production' || notification.message?.includes('üretim')) {
                           navigate('/production');
                         } else {
                           navigate('/orders');
                         }
                       } else if (notification.type === 'system' && notification.metadata) {
-                        const metadata = notification.metadata as { requestType?: string; [key: string]: unknown };
+                        const metadata = notification.metadata as { requestType?: string;[key: string]: unknown };
                         if (metadata.requestType || notification.message?.includes('talep')) {
                           navigate('/requests');
                         }
@@ -606,26 +605,24 @@ export default function Notifications() {
                   }}
                 >
                   <div className="flex items-start gap-4">
-                    <div className={`flex-shrink-0 mt-0.5 p-2.5 rounded-lg ${
-                      !notification.read 
-                        ? notification.type === "task_assigned" ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400"
+                    <div className={`flex-shrink-0 mt-0.5 p-2.5 rounded-lg ${!notification.read
+                      ? notification.type === "task_assigned" ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400"
                         : notification.type === "task_updated" ? "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400"
-                        : notification.type === "task_completed" ? "bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400"
-                        : notification.type === "task_approval" ? "bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
-                    }`}>
+                          : notification.type === "task_completed" ? "bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400"
+                            : notification.type === "task_approval" ? "bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                      }`}>
                       {getNotificationIcon(notification.type)}
                     </div>
                     <div className="flex-1 min-w-0 space-y-2">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className={`text-[11px] sm:text-xs font-semibold leading-tight ${
-                              !notification.read 
-                                ? "text-slate-900 dark:text-slate-100" 
-                                : "text-slate-700 dark:text-slate-300"
-                            }`}>
+                            <p className={`text-[11px] sm:text-xs font-semibold leading-tight ${!notification.read
+                              ? "text-slate-900 dark:text-slate-100"
+                              : "text-slate-700 dark:text-slate-300"
+                              }`}>
                               {notification.title}
                             </p>
                             {!notification.read && (
@@ -635,15 +632,14 @@ export default function Notifications() {
                         </div>
                       </div>
                       {notification.message && (
-                        <p className={`text-[11px] sm:text-xs leading-relaxed ${
-                          !notification.read 
-                            ? "text-slate-700 dark:text-slate-300" 
-                            : "text-slate-600 dark:text-slate-400"
-                        }`}>
+                        <p className={`text-[11px] sm:text-xs leading-relaxed ${!notification.read
+                          ? "text-slate-700 dark:text-slate-300"
+                          : "text-slate-600 dark:text-slate-400"
+                          }`}>
                           {(() => {
                             // Column ID'lerini kullanıcı dostu status isimlerine çevir
                             let message = notification.message;
-                            
+
                             // Column ID pattern'ini bul ve değiştir
                             const columnIdPattern = /column_\d+/g;
                             const statusNames: Record<string, string> = {
@@ -652,12 +648,12 @@ export default function Notifications() {
                               completed: "Tamamlandı",
                               cancelled: "İptal Edildi",
                             };
-                            
+
                             // Eğer mesajda column ID varsa, bunu status ismine çevirmeye çalış
                             message = message.replace(columnIdPattern, (match) => {
                               // Metadata'dan status bilgisini al
                               if (notification.metadata) {
-                                const meta = notification.metadata as { newStatus?: string; status?: string; new_status?: string; [key: string]: unknown };
+                                const meta = notification.metadata as { newStatus?: string; status?: string; new_status?: string;[key: string]: unknown };
                                 // newStatus veya status olabilir
                                 const status = meta.newStatus || meta.status || meta.new_status;
                                 if (status && statusNames[status]) {
@@ -676,7 +672,7 @@ export default function Notifications() {
                               // Metadata yoksa veya status bulunamazsa "Yeni Durum" göster
                               return "Yeni Durum";
                             });
-                            
+
                             return message;
                           })()}
                         </p>
@@ -684,11 +680,11 @@ export default function Notifications() {
                       <div className="flex items-center gap-2 pt-1">
                         <Clock className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                         <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">
-                          {notification.createdAt 
+                          {notification.createdAt
                             ? formatDistanceToNow(notification.createdAt.toDate(), {
-                                addSuffix: true,
-                                locale: tr,
-                              })
+                              addSuffix: true,
+                              locale: tr,
+                            })
                             : "Yakın zamanda"}
                         </p>
                       </div>
@@ -831,7 +827,7 @@ export default function Notifications() {
 
       {/* Reject Task Dialog */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-        <DialogContent className="!max-w-[100vw] sm:!max-w-[85vw] !w-[100vw] sm:!w-[85vw] !h-[100vh] sm:!h-[80vh] !max-h-[100vh] sm:!max-h-[80vh] !left-0 sm:!left-[7.5vw] !top-0 sm:!top-[10vh] !right-0 sm:!right-auto !bottom-0 sm:!bottom-auto !translate-x-0 !translate-y-0 overflow-hidden !p-0 gap-0 bg-white flex flex-col !m-0 !rounded-none sm:!rounded-lg !border-0 sm:!border">
+        <DialogContent className="app-dialog-shell">
           {/* DialogTitle ve DialogDescription DialogContent'in direkt child'ı olmalı (Radix UI gereksinimi) */}
           <DialogTitle className="sr-only">
             Görevi Reddet
@@ -839,7 +835,7 @@ export default function Notifications() {
           <DialogDescription className="sr-only">
             Görevi reddetmek için lütfen en az 20 karakterlik bir sebep belirtin.
           </DialogDescription>
-          
+
           <div className="flex flex-col h-full min-h-0">
             <DialogHeader className="p-2 border-b bg-white flex-shrink-0 relative pr-12 sm:pr-16">
               <h2 className="text-[14px] sm:text-[15px] font-semibold text-foreground">Görevi Reddet</h2>
@@ -899,145 +895,103 @@ export default function Notifications() {
 
       {/* Reject Rejection Dialog */}
       <Dialog open={rejectRejectionDialogOpen} onOpenChange={setRejectRejectionDialogOpen}>
-        <DialogContent className="!max-w-[100vw] sm:!max-w-[85vw] !w-[100vw] sm:!w-[85vw] !h-[100vh] sm:!h-[80vh] !max-h-[100vh] sm:!max-h-[80vh] !left-0 sm:!left-[7.5vw] !top-0 sm:!top-[10vh] !right-0 sm:!right-auto !bottom-0 sm:!bottom-auto !translate-x-0 !translate-y-0 overflow-hidden !p-0 gap-0 bg-white flex flex-col !m-0 !rounded-none sm:!rounded-lg !border-0 sm:!border">
-<<<<<<< HEAD
-          {/* DialogTitle ve DialogDescription DialogContent'in direkt child'ı olmalı (Radix UI gereksinimi) */}
-          <DialogTitle className="sr-only">Görev Reddi Reddet</DialogTitle>
-          <DialogDescription className="sr-only">
-            Görev reddi reddedildiğinde görev tekrar atanan kişiye döner. Lütfen en az 20 karakterlik bir sebep belirtin.
-          </DialogDescription>
-          <div className="flex flex-col h-full min-h-0">
-            <DialogHeader className="p-2 border-b bg-white flex-shrink-0 relative pr-12 sm:pr-16">
-              <h2 className="text-[14px] sm:text-[15px] font-semibold text-foreground">Görev Reddi Reddet</h2>
-              <p className="mt-1 text-[11px] sm:text-xs text-muted-foreground">
-                Görev reddi reddedildiğinde görev tekrar atanan kişiye döner. Lütfen en az 20 karakterlik bir sebep belirtin.
-              </p>
-=======
-          <div className="flex flex-col h-full min-h-0">
-            <DialogHeader className="p-2 border-b bg-white flex-shrink-0 relative pr-12 sm:pr-16">
-              <DialogTitle className="text-[14px] sm:text-[15px] font-semibold text-foreground">Görev Reddi Reddet</DialogTitle>
-              <DialogDescription className="mt-1 text-[11px] sm:text-xs text-muted-foreground">
-                Görev reddi reddedildiğinde görev tekrar atanan kişiye döner. Lütfen en az 20 karakterlik bir sebep belirtin.
-              </DialogDescription>
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-            </DialogHeader>
-            <div className="flex-1 overflow-hidden bg-gray-50/50 p-2 min-h-0">
-              <div className="max-w-full mx-auto h-full overflow-y-auto">
-                <Card>
-                  <CardContent className="space-y-4 pt-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="rejection_rejection_reason" className="text-[11px] sm:text-xs" showRequired>Reddetme Sebebi</Label>
-                      <Textarea
-                        id="rejection_rejection_reason"
-                        value={rejectionRejectionReason}
-                        onChange={(e) => setRejectionRejectionReason(e.target.value)}
-                        placeholder="Görev reddi neden reddedildiğini açıklayın (en az 20 karakter)..."
-                        rows={4}
-                        className={`min-h-[100px] sm:min-h-[120px] ${rejectionRejectionReason.length > 0 && rejectionRejectionReason.length < 20 ? "border-destructive" : ""}`}
-                      />
-                      {rejectionRejectionReason.length > 0 && rejectionRejectionReason.length < 20 && (
-                        <p className="text-[11px] sm:text-xs text-destructive">
-                          En az {20 - rejectionRejectionReason.length} karakter daha gerekli
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+        <DialogContent className="app-dialog-shell">
+          <DialogHeader className="px-6 py-4 border-b">
+            <DialogTitle>Görev Reddi Reddet</DialogTitle>
+            <DialogDescription>
+              Görev reddi reddedildiğinde görev tekrar atanan kişiye döner.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="app-dialog-scroll bg-gray-50/30">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="rejection_rejection_reason" className="text-sm font-medium" showRequired>Reddetme Sebebi</Label>
+                <Textarea
+                  id="rejection_rejection_reason"
+                  value={rejectionRejectionReason}
+                  onChange={(e) => setRejectionRejectionReason(e.target.value)}
+                  placeholder="Görev reddi neden reddedildiğini açıklayın (en az 20 karakter)..."
+                  className={`min-h-[150px] bg-white ${rejectionRejectionReason.length > 0 && rejectionRejectionReason.length < 20 ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                />
+                {rejectionRejectionReason.length > 0 && rejectionRejectionReason.length < 20 && (
+                  <p className="text-xs text-destructive font-medium">
+                    En az {20 - rejectionRejectionReason.length} karakter daha gerekli
+                  </p>
+                )}
               </div>
             </div>
-            <div className="p-2 border-t bg-white flex-shrink-0 flex flex-wrap gap-2 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setRejectRejectionDialogOpen(false);
-                  setRejectionRejectionReason("");
-                  setSelectedNotification(null);
-                }}
-                disabled={processing}
-                className="min-h-[44px] sm:min-h-0"
-              >
-                İptal
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleRejectRejection}
-                disabled={processing || rejectionRejectionReason.trim().length < 20}
-                className="min-h-[44px] sm:min-h-0"
-              >
-                {processing ? "Reddediliyor..." : "Reddi Reddet"}
-              </Button>
-            </div>
+          </div>
+
+          <div className="px-6 py-4 border-t bg-white flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectRejectionDialogOpen(false);
+                setRejectionRejectionReason("");
+                setSelectedNotification(null);
+              }}
+              disabled={processing}
+            >
+              İptal
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRejectRejection}
+              disabled={processing || rejectionRejectionReason.trim().length < 20}
+            >
+              {processing ? "Reddediliyor..." : "Reddi Reddet"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Reject Task Approval Dialog */}
       <Dialog open={rejectApprovalDialogOpen} onOpenChange={setRejectApprovalDialogOpen}>
-        <DialogContent className="!max-w-[100vw] sm:!max-w-[85vw] !w-[100vw] sm:!w-[85vw] !h-[100vh] sm:!h-[80vh] !max-h-[100vh] sm:!max-h-[80vh] !left-0 sm:!left-[7.5vw] !top-0 sm:!top-[10vh] !right-0 sm:!right-auto !bottom-0 sm:!bottom-auto !translate-x-0 !translate-y-0 overflow-hidden !p-0 gap-0 bg-white flex flex-col !m-0 !rounded-none sm:!rounded-lg !border-0 sm:!border">
-<<<<<<< HEAD
-          {/* DialogTitle ve DialogDescription DialogContent'in direkt child'ı olmalı (Radix UI gereksinimi) */}
-          <DialogTitle className="sr-only">Görev Onayını Reddet</DialogTitle>
-          <DialogDescription className="sr-only">
-            Görev onayını reddetmek için lütfen bir not ekleyin. Görev tekrar panoya dönecektir.
-          </DialogDescription>
-          <div className="flex flex-col h-full min-h-0">
-            <DialogHeader className="p-2 border-b bg-white flex-shrink-0 relative pr-12 sm:pr-16">
-              <h2 className="text-[14px] sm:text-[15px] font-semibold text-foreground">Görev Onayını Reddet</h2>
-              <p className="mt-1 text-[11px] sm:text-xs text-muted-foreground">
-                Görev onayını reddetmek için lütfen bir not ekleyin. Görev tekrar panoya dönecektir.
-              </p>
-=======
-          <div className="flex flex-col h-full min-h-0">
-            <DialogHeader className="p-2 border-b bg-white flex-shrink-0 relative pr-12 sm:pr-16">
-              <DialogTitle className="text-[14px] sm:text-[15px] font-semibold text-foreground">Görev Onayını Reddet</DialogTitle>
-              <DialogDescription className="mt-1 text-[11px] sm:text-xs text-muted-foreground">
-                Görev onayını reddetmek için lütfen bir not ekleyin. Görev tekrar panoya dönecektir.
-              </DialogDescription>
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-            </DialogHeader>
-            <div className="flex-1 overflow-hidden bg-gray-50/50 p-2 min-h-0">
-              <div className="max-w-full mx-auto h-full overflow-y-auto">
-                <Card>
-                  <CardContent className="space-y-4 pt-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="rejection_approval_reason" className="text-[11px] sm:text-xs" showRequired>
-                        Reddetme Notu
-                      </Label>
-                      <Textarea
-                        id="rejection_approval_reason"
-                        value={rejectionApprovalReason}
-                        onChange={(e) => setRejectionApprovalReason(e.target.value)}
-                        placeholder="Görev onayını neden reddettiğinizi açıklayın..."
-                        rows={4}
-                        className="min-h-[100px] sm:min-h-[120px]"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
+        <DialogContent className="app-dialog-shell">
+          <DialogHeader className="px-6 py-4 border-b">
+            <DialogTitle>Görev Onayını Reddet</DialogTitle>
+            <DialogDescription>
+              Görev onayını reddetmek için lütfen bir not ekleyin.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="app-dialog-scroll bg-gray-50/30">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="rejection_approval_reason" className="text-sm font-medium" showRequired>
+                  Reddetme Notu
+                </Label>
+                <Textarea
+                  id="rejection_approval_reason"
+                  value={rejectionApprovalReason}
+                  onChange={(e) => setRejectionApprovalReason(e.target.value)}
+                  placeholder="Görev onayını neden reddettiğinizi açıklayın..."
+                  className="min-h-[150px] bg-white"
+                />
               </div>
             </div>
-            <div className="p-2 border-t bg-white flex-shrink-0 flex flex-wrap gap-2 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setRejectApprovalDialogOpen(false);
-                  setRejectionApprovalReason("");
-                  setSelectedNotification(null);
-                }}
-                disabled={processing}
-                className="min-h-[44px] sm:min-h-0"
-              >
-                İptal
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleRejectTaskApproval}
-                disabled={processing || !rejectionApprovalReason.trim()}
-                className="min-h-[44px] sm:min-h-0"
-              >
-                {processing ? "Reddediliyor..." : "Reddet"}
-              </Button>
-            </div>
+          </div>
+
+          <div className="px-6 py-4 border-t bg-white flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectApprovalDialogOpen(false);
+                setRejectionApprovalReason("");
+                setSelectedNotification(null);
+              }}
+              disabled={processing}
+            >
+              İptal
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRejectTaskApproval}
+              disabled={processing || !rejectionApprovalReason.trim()}
+            >
+              {processing ? "Reddediliyor..." : "Reddet"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

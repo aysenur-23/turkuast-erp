@@ -9,6 +9,7 @@ import {
   getDoc,
   getDocs,
   addDoc,
+  updateDoc,
   deleteDoc,
   query,
   orderBy,
@@ -47,7 +48,7 @@ export const getRawMaterialCategories = async (): Promise<RawMaterialCategory[]>
     // Önce Firestore'dan kategorileri al
     const categoriesRef = collection(firestore, CATEGORIES_COLLECTION);
     const snapshot = await getDocs(query(categoriesRef, orderBy("name", "asc")));
-    
+
     const firestoreCategories: RawMaterialCategory[] = snapshot.docs.map((docSnap) => {
       const data = docSnap.data();
       return {
@@ -58,12 +59,12 @@ export const getRawMaterialCategories = async (): Promise<RawMaterialCategory[]>
         createdBy: data.createdBy || "",
       } as RawMaterialCategory;
     });
-    
+
     // Varsayılan kategorileri ekle (eğer Firestore'da yoksa)
     const defaultCategories: RawMaterialCategory[] = DEFAULT_CATEGORIES.map((cat) => {
       const exists = firestoreCategories.find((fc) => fc.value === cat.value);
       if (exists) return exists;
-      
+
       return {
         id: `default_${cat.value}`,
         name: cat.name,
@@ -72,17 +73,17 @@ export const getRawMaterialCategories = async (): Promise<RawMaterialCategory[]>
         createdBy: "system",
       } as RawMaterialCategory;
     });
-    
+
     // Firestore kategorilerini ekle (varsayılanlarla çakışmayanlar)
     const customCategories = firestoreCategories.filter(
       (fc) => !DEFAULT_CATEGORIES.some((dc) => dc.value === fc.value)
     );
-    
+
     // Tüm kategorileri birleştir ve sırala
     const allCategories = [...defaultCategories, ...customCategories].sort((a, b) =>
       a.name.localeCompare(b.name, "tr")
     );
-    
+
     return allCategories;
   } catch (error: unknown) {
     if (import.meta.env.DEV) {
@@ -110,30 +111,30 @@ export const createRawMaterialCategory = async (
     if (!name || name.trim().length === 0) {
       throw new Error("Kategori adı boş olamaz");
     }
-    
+
     const currentUserId = userId || auth?.currentUser?.uid;
     if (!currentUserId) {
       throw new Error("Kullanıcı oturumu bulunamadı");
     }
-    
+
     // Value oluştur (URL-friendly: lowercase, boşlukları alt çizgi ile değiştir)
     const value = name
       .toLowerCase()
       .trim()
       .replace(/\s+/g, "_")
       .replace(/[^a-z0-9_]/g, "");
-    
+
     if (!value || value.length === 0) {
       throw new Error("Geçersiz kategori adı");
     }
-    
+
     // Aynı value'ya sahip kategori var mı kontrol et
     const existingCategories = await getRawMaterialCategories();
     const exists = existingCategories.find((cat) => cat.value === value);
     if (exists) {
       throw new Error("Bu kategori zaten mevcut");
     }
-    
+
     // Firestore'a ekle
     const categoriesRef = collection(firestore, CATEGORIES_COLLECTION);
     const newCategory = {
@@ -142,12 +143,12 @@ export const createRawMaterialCategory = async (
       createdAt: serverTimestamp(),
       createdBy: currentUserId,
     };
-    
+
     const docRef = await addDoc(categoriesRef, newCategory);
-    
+
     // Audit log
     await logAudit("CREATE", "rawMaterialCategories", docRef.id, currentUserId, null, newCategory);
-    
+
     return {
       id: docRef.id,
       name: name.trim(),
@@ -156,9 +157,6 @@ export const createRawMaterialCategory = async (
       createdBy: currentUserId,
     } as RawMaterialCategory;
   } catch (error: unknown) {
-    if (import.meta.env.DEV) {
-      console.error("Create raw material category error:", error);
-    }
     throw error;
   }
 };
@@ -175,23 +173,23 @@ export const deleteRawMaterialCategory = async (
     if (categoryId.startsWith("default_")) {
       throw new Error("Varsayılan kategoriler silinemez");
     }
-    
+
     const currentUserId = userId || auth?.currentUser?.uid;
     if (!currentUserId) {
       throw new Error("Kullanıcı oturumu bulunamadı");
     }
-    
+
     // Eski veriyi al (audit log için)
     const categoryDoc = await getDoc(doc(firestore, CATEGORIES_COLLECTION, categoryId));
     if (!categoryDoc.exists()) {
       throw new Error("Kategori bulunamadı");
     }
-    
+
     const oldData = categoryDoc.data();
-    
+
     // Sil
     await deleteDoc(doc(firestore, CATEGORIES_COLLECTION, categoryId));
-    
+
     // Audit log
     await logAudit("DELETE", "rawMaterialCategories", categoryId, currentUserId, oldData, null);
   } catch (error: unknown) {
@@ -202,3 +200,85 @@ export const deleteRawMaterialCategory = async (
   }
 };
 
+/**
+ * Kategori güncelle
+ */
+export const updateRawMaterialCategory = async (
+  categoryId: string,
+  name: string,
+  userId?: string
+): Promise<void> => {
+  try {
+    if (!name || name.trim().length === 0) {
+      throw new Error("Kategori adi bos olamaz");
+    }
+
+    const currentUserId = userId || auth?.currentUser?.uid;
+    if (!currentUserId) {
+      throw new Error("Kullanici oturumu bulunamadi");
+    }
+
+    // Varsayilan kategoriler güncellenemez
+    if (categoryId.startsWith("default_")) {
+      throw new Error("Varsayilan kategoriler güncellenemez");
+    }
+
+    const categoryRef = doc(firestore, CATEGORIES_COLLECTION, categoryId);
+    const categoryDoc = await getDoc(categoryRef);
+    if (!categoryDoc.exists()) {
+      throw new Error("Kategori bulunamadi");
+    }
+
+    const oldData = categoryDoc.data();
+
+    // Value olustur
+    const value = name
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "_")
+      .replace(/[^a-z0-9_]/g, "");
+
+    const updatedData = {
+      name: name.trim(),
+      value,
+      updatedAt: serverTimestamp(),
+      updatedBy: currentUserId,
+    };
+
+    await updateDoc(categoryRef, updatedData);
+
+    // Audit log
+    await logAudit("UPDATE", "rawMaterialCategories", categoryId, currentUserId, oldData, updatedData);
+  } catch (error: unknown) {
+    if (import.meta.env.DEV) {
+      console.error("Update raw material category error:", error);
+    }
+    throw error;
+  }
+};
+
+/**
+ * Varsayilan kategorileri Firestore'a aktar
+ */
+export const initializeRawMaterialCategories = async (userId?: string): Promise<void> => {
+  try {
+    const currentUserId = userId || auth?.currentUser?.uid;
+    if (!currentUserId) {
+      throw new Error("Kullanici oturumu bulunamadi");
+    }
+
+    const existingCategories = await getRawMaterialCategories();
+
+    for (const cat of DEFAULT_CATEGORIES) {
+      const exists = existingCategories.find((ec) => ec.value === cat.value && !ec.id.startsWith("default_"));
+      if (!exists) {
+        await createRawMaterialCategory(cat.name, currentUserId);
+      }
+    }
+  } catch (error: unknown) {
+    if (import.meta.env.DEV) {
+      console.error("Initialize raw material categories error:", error);
+    }
+    throw error;
+  }
+};

@@ -21,10 +21,7 @@ import {
   Unsubscribe,
   QueryConstraint,
   FieldValue,
-<<<<<<< HEAD
   writeBatch,
-=======
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
 } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import { logAudit } from "@/utils/auditLogger";
@@ -108,6 +105,14 @@ export interface Order {
   delivery_notes?: string | null; // Alias
   priority?: number | null;
   deductMaterials?: boolean; // Hammadde düşürme (varsayılan: true)
+  paymentMethod?: string | null;
+  payment_method?: string | null; // Alias
+  paymentStatus?: "paid" | "unpaid" | null;
+  payment_status?: "paid" | "unpaid" | null; // Alias
+  invoiceUrl?: string | null;
+  invoice_url?: string | null; // Alias
+  invoiceIssued?: boolean | null;
+  invoice_issued?: boolean | null; // Alias
 }
 
 /**
@@ -149,7 +154,7 @@ export const getOrders = async (filters?: {
           id: doc.id,
           ...doc.data(),
         })) as Order[];
-        
+
         // Client-side filtreleme
         if (filters?.customerId) {
           orders = orders.filter(o => o.customerId === filters.customerId);
@@ -157,7 +162,7 @@ export const getOrders = async (filters?: {
         if (filters?.status) {
           orders = orders.filter(o => o.status === filters.status);
         }
-        
+
         return orders;
       } catch (fallbackError) {
         if (import.meta.env.DEV) {
@@ -169,7 +174,7 @@ export const getOrders = async (filters?: {
           id: doc.id,
           ...doc.data(),
         })) as Order[];
-        
+
         // Client-side filtreleme
         if (filters?.customerId) {
           orders = orders.filter(o => o.customerId === filters.customerId);
@@ -177,14 +182,14 @@ export const getOrders = async (filters?: {
         if (filters?.status) {
           orders = orders.filter(o => o.status === filters.status);
         }
-        
+
         // Tarihe göre sırala
         orders.sort((a, b) => {
           const aDate = a.createdAt?.toMillis() || 0;
           const bDate = b.createdAt?.toMillis() || 0;
           return bDate - aDate;
         });
-        
+
         return orders;
       }
     }
@@ -201,7 +206,7 @@ export const getOrders = async (filters?: {
 export const getOrderById = async (orderId: string): Promise<Order | null> => {
   try {
     const orderDoc = await getDoc(doc(firestore, "orders", orderId));
-    
+
     if (!orderDoc.exists()) {
       return null;
     }
@@ -249,9 +254,9 @@ export const updateOrderItem = async (
     // Eski veriyi al
     const itemDoc = await getDoc(doc(firestore, "orders", orderId, "items", itemId));
     const oldItem = itemDoc.data() as OrderItem | undefined;
-    
+
     await updateDoc(doc(firestore, "orders", orderId, "items", itemId), updates);
-    
+
     // Audit log
     if (userId) {
       const newItem = { ...oldItem, ...updates } as OrderItem;
@@ -283,16 +288,15 @@ export const createOrder = async (
   try {
     const docRef = await addDoc(collection(firestore, "orders"), {
       ...orderData,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      createdAt: serverTimestamp() as any,
+      updatedAt: serverTimestamp() as any,
     });
 
-<<<<<<< HEAD
     // Sipariş kalemlerini batch write ile ekle (optimize edildi)
     if (items && items.length > 0) {
       const batch = writeBatch(firestore);
       const itemsCollection = collection(firestore, "orders", docRef.id, "items");
-      
+
       // Tüm item'ları batch'e ekle
       const itemRefs: string[] = [];
       for (const item of items) {
@@ -300,10 +304,10 @@ export const createOrder = async (
         batch.set(itemRef, item);
         itemRefs.push(itemRef.id);
       }
-      
+
       // Batch'i commit et
       await batch.commit();
-      
+
       // Audit log'ları toplu olarak ekle (paralel)
       if (orderData.createdBy && itemRefs.length > 0) {
         await Promise.all(
@@ -334,43 +338,16 @@ export const createOrder = async (
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     } as Order;
-=======
-    // Sipariş kalemlerini ekle
-    if (items && items.length > 0) {
-      const itemsCollection = collection(firestore, "orders", docRef.id, "items");
-      for (const item of items) {
-        const itemDocRef = await addDoc(itemsCollection, item);
-        // Her item için ayrı audit log
-        if (orderData.createdBy) {
-          await logAudit(
-            "CREATE",
-            "order_items",
-            itemDocRef.id,
-            orderData.createdBy,
-            null,
-            item,
-            { orderId: docRef.id }
-          );
-        }
-      }
-    }
-
-    const createdOrder = await getOrderById(docRef.id);
-    if (!createdOrder) {
-      throw new Error("Sipariş oluşturulamadı");
-    }
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
 
     // Hammadde düşürme kontrolü: PROD- ile başlayan siparişler veya deductMaterials=true olan siparişler
     const isProductionOrder = orderData.orderNumber?.startsWith("PROD-") || orderData.order_number?.startsWith("PROD-");
     const shouldDeductMaterials = isProductionOrder || orderData.deductMaterials === true;
-    
+
     if (shouldDeductMaterials && items && items.length > 0) {
       try {
         const { getProductRecipes } = await import("@/services/firebase/recipeService");
         const { getRawMaterialById, updateRawMaterial, addMaterialTransaction } = await import("@/services/firebase/materialService");
-        
-<<<<<<< HEAD
+
         // Tüm reçeteleri paralel olarak topla
         const allRecipePromises = items
           .filter(item => item.product_id || item.productId)
@@ -385,16 +362,16 @@ export const createOrder = async (
               item,
             }));
           });
-        
+
         const allRecipeArrays = await Promise.all(allRecipePromises);
         const allRecipes = allRecipeArrays.flat();
-        
+
         // Tüm material'ları paralel olarak çek
         const materialIds = [...new Set(allRecipes.map(r => r.recipe.rawMaterialId).filter(Boolean))];
         const materialPromises = materialIds.map(id => getRawMaterialById(id!));
         const materials = await Promise.all(materialPromises);
         const materialMap = new Map(materials.filter(Boolean).map(m => [m!.id, m!]));
-        
+
         // Material güncellemelerini ve transaction'ları hazırla
         const materialUpdates: Array<{
           materialId: string;
@@ -402,23 +379,23 @@ export const createOrder = async (
           totalQuantity: number;
           reason: string;
         }> = [];
-        
+
         // Her reçete için güncelleme bilgilerini topla
         for (const { recipe, quantity, productName } of allRecipes) {
           if (recipe.rawMaterialId) {
             const material = materialMap.get(recipe.rawMaterialId);
             if (material) {
               const totalQuantity = recipe.quantityPerUnit * quantity;
-              
+
               // Stok kontrolü
               if (material.currentStock < totalQuantity) {
                 if (import.meta.env.DEV) {
                   console.warn(`Yetersiz stok: ${material.name} için ${totalQuantity} gerekli, ${material.currentStock} mevcut`);
                 }
               }
-              
+
               const newStock = Math.max(0, material.currentStock - totalQuantity);
-              
+
               // Aynı material için miktarları topla (eğer birden fazla reçete varsa)
               const existingUpdate = materialUpdates.find(u => u.materialId === recipe.rawMaterialId);
               if (existingUpdate) {
@@ -435,7 +412,7 @@ export const createOrder = async (
             }
           }
         }
-        
+
         // Tüm material güncellemelerini paralel yap
         await Promise.all(
           materialUpdates.map(async (update) => {
@@ -443,7 +420,7 @@ export const createOrder = async (
               await updateRawMaterial(update.materialId, {
                 currentStock: update.newStock,
               });
-              
+
               // Stok hareketi kaydı ekle (stok zaten güncellendi, skipStockUpdate: true)
               await addMaterialTransaction({
                 materialId: update.materialId,
@@ -461,52 +438,6 @@ export const createOrder = async (
             }
           })
         );
-=======
-        for (const item of items) {
-          if (item.product_id || item.productId) {
-            const productId = item.product_id || item.productId;
-            const quantity = item.quantity || 1;
-            
-            // Ürün reçetesini al
-            const recipes = await getProductRecipes(productId);
-            
-            // Her reçete için hammadde stokunu düş
-            for (const recipe of recipes) {
-              if (recipe.rawMaterialId) {
-                const material = await getRawMaterialById(recipe.rawMaterialId);
-                if (material) {
-                  // Toplam kullanılacak miktar = reçete miktarı × ürün miktarı
-                  const totalQuantity = recipe.quantityPerUnit * quantity;
-                  
-                  // Stok kontrolü
-                  if (material.currentStock < totalQuantity) {
-                    if (import.meta.env.DEV) {
-                      console.warn(`Yetersiz stok: ${material.name} için ${totalQuantity} gerekli, ${material.currentStock} mevcut`);
-                    }
-                    // Stok yetersiz olsa bile devam et, sadece uyarı ver
-                  }
-                  
-                  // Stoktan düş
-                  const newStock = Math.max(0, material.currentStock - totalQuantity);
-                  await updateRawMaterial(recipe.rawMaterialId, {
-                    currentStock: newStock,
-                  });
-                  
-                  // Stok hareketi kaydı ekle (stok zaten güncellendi, skipStockUpdate: true)
-                  await addMaterialTransaction({
-                    materialId: recipe.rawMaterialId,
-                    type: "out",
-                    quantity: totalQuantity,
-                    reason: `${isProductionOrder ? 'Üretim siparişi' : 'Sipariş'}: ${orderData.orderNumber || docRef.id} - ${item.product_name || 'Ürün'} (${quantity} adet)`,
-                    relatedOrderId: docRef.id,
-                    createdBy: orderData.createdBy,
-                  }, true); // skipStockUpdate: true - stok zaten güncellendi
-                }
-              }
-            }
-          }
-        }
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
       } catch (error) {
         if (import.meta.env.DEV) {
           console.error("Hammadde stok düşürme hatası:", error);
@@ -525,7 +456,7 @@ export const createOrder = async (
         const userProfile = await getUserProfile(orderData.createdBy);
         const userName = userProfile?.fullName || userProfile?.displayName || userProfile?.email;
         const userEmail = userProfile?.email;
-        
+
         await addOrderActivity(
           docRef.id,
           orderData.createdBy,
@@ -585,7 +516,7 @@ export const updateOrder = async (
   try {
     // Eski veriyi al
     const oldOrder = await getOrderById(orderId);
-    
+
     if (!oldOrder) {
       throw new Error("Sipariş bulunamadı");
     }
@@ -600,23 +531,23 @@ export const updateOrder = async (
         );
       }
     }
-    
+
     // Status değişikliği varsa statusUpdatedBy ve statusUpdatedAt ekle
     const updateData: Partial<Order> & { statusUpdatedBy?: string; statusUpdatedAt?: FieldValue | Timestamp } = {
       ...updates,
       updatedAt: serverTimestamp() as any,
     };
-    
+
     if (updates.status && updates.status !== oldOrder.status && userId) {
       updateData.statusUpdatedBy = userId;
       updateData.statusUpdatedAt = serverTimestamp() as any;
     }
-    
+
     await updateDoc(doc(firestore, "orders", orderId), updateData);
-    
+
     // Yeni veriyi al
     const newOrder = await getOrderById(orderId);
-    
+
     // Audit log
     if (userId) {
       await logAudit("UPDATE", "orders", orderId, userId, oldOrder, newOrder);
@@ -660,10 +591,10 @@ export const updateOrder = async (
           // Genel güncelleme aktivitesi
           const changedFields = Object.keys(updates).filter(key => {
             const oldValue = (oldOrder as unknown as Record<string, unknown>)[key];
-            const newValue = (updates as Record<string, unknown>)[key];
+            const newValue = (updates as unknown as Record<string, unknown>)[key];
             return oldValue !== newValue;
           });
-          
+
           if (changedFields.length > 0) {
             await addOrderActivity(
               orderId,
@@ -687,12 +618,12 @@ export const updateOrder = async (
       try {
         const { createNotification } = await import("@/services/firebase/notificationService");
         const { getUserProfile } = await import("@/services/firebase/authService");
-        
+
         const updaterProfile = userId ? await getUserProfile(userId) : null;
         const updaterName = updaterProfile?.fullName || updaterProfile?.displayName || updaterProfile?.email || "Bir kullanıcı";
-        
+
         let message = `"${oldOrder.orderNumber || oldOrder.order_number || orderId}" siparişi güncellendi.`;
-        
+
         // Status değişikliği varsa özel mesaj
         if (updates.status && updates.status !== oldOrder.status) {
           const statusLabels: Record<string, string> = {
@@ -715,7 +646,7 @@ export const updateOrder = async (
           const updateTime = new Date().toLocaleString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
           message = `"${oldOrder.orderNumber || oldOrder.order_number || orderId}" sipariş numaralı sipariş güncellendi.\n\nİşlem Zamanı: ${updateTime}`;
         }
-        
+
         await createNotification({
           userId: oldOrder.createdBy,
           type: "order_updated",
@@ -723,7 +654,7 @@ export const updateOrder = async (
           message: `${updaterName} kullanıcısı tarafından ${message}`,
           read: false,
           relatedId: orderId,
-          metadata: { 
+          metadata: {
             updatedBy: userId,
             statusChanged: updates.status && updates.status !== oldOrder.status,
             oldStatus: oldOrder.status,
@@ -752,14 +683,14 @@ export const requestOrderCompletion = async (
   try {
     // Eski veriyi al
     const oldOrder = await getOrderById(orderId);
-    
+
     await updateDoc(doc(firestore, "orders", orderId), {
       approvalStatus: "pending",
       approvalRequestedBy: userId,
       approvalRequestedAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
-    
+
     // Audit log
     if (userId) {
       const newOrder = await getOrderById(orderId);
@@ -773,7 +704,7 @@ export const requestOrderCompletion = async (
         { action: "request_completion", approvalStatus: "pending" }
       );
     }
-    
+
     // Opsiyonel: Bildirim gönderilebilir
   } catch (error) {
     console.error("Request order completion error:", error);
@@ -791,7 +722,7 @@ export const approveOrderCompletion = async (
   try {
     // Eski veriyi al
     const oldOrder = await getOrderById(orderId);
-    
+
     await updateDoc(doc(firestore, "orders", orderId), {
       status: "completed",
       approvalStatus: "approved",
@@ -799,7 +730,7 @@ export const approveOrderCompletion = async (
       approvedAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
-    
+
     // Audit log
     if (userId) {
       const newOrder = await getOrderById(orderId);
@@ -813,7 +744,7 @@ export const approveOrderCompletion = async (
         { action: "approve_completion", approvalStatus: "approved" }
       );
     }
-    
+
     // Opsiyonel: Bildirim
   } catch (error) {
     console.error("Approve order completion error:", error);
@@ -832,7 +763,7 @@ export const rejectOrderCompletion = async (
   try {
     // Eski veriyi al
     const oldOrder = await getOrderById(orderId);
-    
+
     await updateDoc(doc(firestore, "orders", orderId), {
       status: "in_production", // Geri döndür
       approvalStatus: "rejected",
@@ -841,7 +772,7 @@ export const rejectOrderCompletion = async (
       rejectionReason: reason || null,
       updatedAt: serverTimestamp(),
     });
-    
+
     // Audit log
     if (userId) {
       const newOrder = await getOrderById(orderId);
@@ -855,7 +786,7 @@ export const rejectOrderCompletion = async (
         { action: "reject_completion", approvalStatus: "rejected", reason: reason || null }
       );
     }
-    
+
     // Opsiyonel: Bildirim
   } catch (error) {
     console.error("Reject order completion error:", error);
@@ -907,7 +838,7 @@ export const deleteOrder = async (orderId: string, userId?: string): Promise<voi
   try {
     // Eski veriyi al
     const oldOrder = await getOrderById(orderId);
-    
+
     // Aktivite log ekle (silmeden önce)
     if (userId && oldOrder) {
       try {
@@ -915,7 +846,7 @@ export const deleteOrder = async (orderId: string, userId?: string): Promise<voi
         const userProfile = await getUserProfile(userId);
         const userName = userProfile?.fullName || userProfile?.displayName || userProfile?.email;
         const userEmail = userProfile?.email;
-        
+
         await addOrderActivity(
           orderId,
           userId,
@@ -931,9 +862,9 @@ export const deleteOrder = async (orderId: string, userId?: string): Promise<voi
         }
       }
     }
-    
+
     await deleteDoc(doc(firestore, "orders", orderId));
-    
+
     // Audit log
     if (userId) {
       await logAudit("DELETE", "orders", orderId, userId, oldOrder, null);
@@ -959,23 +890,23 @@ export const subscribeToOrders = (
 ): Unsubscribe => {
   try {
     const ordersRef = collection(firestore, "orders");
-    
+
     const buildQuery = () => {
       const constraints: QueryConstraint[] = [orderBy("createdAt", "desc")];
-      
+
       if (filters?.customerId) {
         constraints.push(where("customerId", "==", filters.customerId));
       }
-      
+
       if (filters?.status) {
         constraints.push(where("status", "==", filters.status));
       }
-      
+
       return query(ordersRef, ...constraints);
     };
-    
+
     let q = buildQuery();
-    
+
     // onSnapshot ile gerçek zamanlı dinleme
     const unsubscribe = onSnapshot(
       q,
@@ -985,7 +916,7 @@ export const subscribeToOrders = (
             id: doc.id,
             ...doc.data(),
           })) as Order[];
-          
+
           // Client-side filtreleme (index hatası durumunda)
           if (filters?.customerId) {
             orders = orders.filter(o => o.customerId === filters.customerId);
@@ -993,7 +924,7 @@ export const subscribeToOrders = (
           if (filters?.status) {
             orders = orders.filter(o => o.status === filters.status);
           }
-          
+
           callback(orders);
         } catch (error) {
           console.error("Subscribe to orders error:", error);
@@ -1003,17 +934,17 @@ export const subscribeToOrders = (
       (error) => {
         // 404 ve network hatalarını sessizce handle et (Firestore otomatik yeniden bağlanacak)
         // Production'da da sessizce handle et - bu normal Firestore long-polling davranışı
-        if (error?.code === 'unavailable' || 
-            error?.code === 'not-found' ||
-            error?.message?.includes('404') || 
-            error?.message?.includes('network') ||
-            error?.message?.includes('transport errored')) {
+        if (error?.code === 'unavailable' ||
+          error?.code === 'not-found' ||
+          error?.message?.includes('404') ||
+          error?.message?.includes('network') ||
+          error?.message?.includes('transport errored')) {
           // Sessizce handle et - Firestore otomatik olarak yeniden bağlanacak
           // Production'da console'a yazma (performans ve gürültü azaltma)
           callback([]);
           return;
         }
-        
+
         // Sadece gerçek hataları logla
         if (import.meta.env.DEV) {
           console.error("Orders snapshot error:", error);
@@ -1030,7 +961,7 @@ export const subscribeToOrders = (
                     id: doc.id,
                     ...doc.data(),
                   })) as Order[];
-                  
+
                   // Client-side filtreleme
                   if (filters?.customerId) {
                     orders = orders.filter(o => o.customerId === filters.customerId);
@@ -1038,7 +969,7 @@ export const subscribeToOrders = (
                   if (filters?.status) {
                     orders = orders.filter(o => o.status === filters.status);
                   }
-                  
+
                   callback(orders);
                 } catch (err) {
                   console.error("Fallback subscribe to orders error:", err);
@@ -1060,13 +991,13 @@ export const subscribeToOrders = (
         }
       }
     );
-    
+
     return unsubscribe;
   } catch (error: unknown) {
     if (import.meta.env.DEV) {
       console.error("Subscribe to orders setup error:", error);
     }
-    return () => {};
+    return () => { };
   }
 };
 

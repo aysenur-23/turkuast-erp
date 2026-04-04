@@ -29,6 +29,8 @@ import {
   NotebookPen,
   CircleDot,
   X,
+  FileText,
+  XCircle,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -97,7 +99,7 @@ const formatCurrency = (value?: number | null, currency?: Currency | string) => 
   const currencyCode = orderCurrency === "TRY" ? "TRY" : orderCurrency;
   const locale = orderCurrency === "TRY" ? "tr-TR" : "en-US";
   const symbol = CURRENCY_SYMBOLS[orderCurrency] || "₺";
-  
+
   try {
     return new Intl.NumberFormat(locale, {
       style: "currency",
@@ -126,7 +128,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete }
   const [currentStatus, setCurrentStatus] = useState<string>(normalizeStatusValue(order?.status));
   const [approvalStatus, setApprovalStatus] = useState<string | undefined>(order?.approvalStatus);
   const [usersMap, setUsersMap] = useState<Record<string, string>>({});
-  
+
   // Personel kontrolü - Personel sipariş detayını görebilir ama düzenleyemez
   const isPersonnel = user?.roles?.includes("personnel") || false;
 
@@ -160,7 +162,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete }
   const subtotalValue = Number(order?.subtotal ?? order?.totalAmount ?? 0);
   const taxValue = Number(order?.taxAmount ?? 0);
   const totalValue = Number(order?.totalAmount ?? subtotalValue + taxValue - totalDiscount);
-  
+
   const [canUpdate, setCanUpdate] = useState(false);
   const [canDeleteState, setCanDeleteState] = useState(false);
   const [canApprove, setCanApprove] = useState(false);
@@ -204,13 +206,13 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete }
         ]);
         setCanUpdate(canUpdateOrder);
         setCanDeleteState(canDeleteOrder);
-        
+
         // Admin ve ekip lideri her zaman düzenleyebilir
         if (isAdmin || isTeamLeader) {
           setCanUpdate(true);
           setCanDeleteState(true);
         }
-        
+
         // Onaylama yetkisi: Güncelleme yetkisi varsa veya oluşturan kişi ise
         const isCreator = user.id === order.createdBy;
         setCanApprove(canUpdateOrder || isCreator || isTeamLeader);
@@ -271,10 +273,35 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete }
     { label: "Son Ödeme", value: formatDateSafe(dueDateValue as Date | string | Timestamp | null) },
     { label: "Para Birimi", value: currency },
     { label: "Ödeme Şartı", value: paymentTerms },
-    { label: "Oluşturan", value: order?.createdBy 
-      ? (usersMap[order.createdBy] || "-")
-      : "-" },
+    {
+      label: "Oluşturan", value: order?.createdBy
+        ? (usersMap[order.createdBy] || "-")
+        : "-"
+    },
     { label: "Son Güncelleme", value: formatDateSafe(updatedAtValue as Date | string | Timestamp | null) },
+    {
+      label: "Ödeme Yöntemi",
+      value: order?.payment_method === "bank_transfer" ? "Banka Havalesi / EFT" :
+        order?.payment_method === "cash" ? "Nakit" :
+          order?.payment_method === "credit_card" ? "Kredi Kartı" :
+            order?.payment_method === "check" ? "Çek / Senet" :
+              order?.payment_method === "other" ? "Diğer" : "-"
+    },
+    {
+      label: "Ödeme Durumu",
+      value: (
+        <div className="flex items-center gap-1.5">
+          {order?.payment_status === "paid" ? (
+            <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+          ) : (
+            <XCircle className="h-3.5 w-3.5 text-destructive" />
+          )}
+          <span className={order?.payment_status === "paid" ? "text-green-600" : "text-destructive"}>
+            {order?.payment_status === "paid" ? "Ödendi" : "Ödenmedi"}
+          </span>
+        </div>
+      )
+    },
   ];
   const quickMetaChips = [
     orderNumber && { label: "Sipariş No", value: orderNumber },
@@ -388,11 +415,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete }
       return 1;
     }
     return index;
-<<<<<<< HEAD
   }, [currentStatus]);
-=======
-  }, [currentStatus, statusWorkflow]);
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
 
   const nextStatus = useMemo(() => {
     const currentIndex = getCurrentStatusIndex();
@@ -401,11 +424,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete }
       return null;
     }
     return statusWorkflow[currentIndex + 1];
-<<<<<<< HEAD
   }, [getCurrentStatusIndex]);
-=======
-  }, [getCurrentStatusIndex, statusWorkflow]);
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
 
   const handleStatusChange = async (nextStatus: string) => {
     if (!order?.id || !user?.id) {
@@ -424,7 +443,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete }
       // Eğer tamamlandı durumuna geçiliyorsa ve yetkili değilse onaya gönder
       if (nextStatus === "completed") {
         const canCompleteDirectly = canUpdate || isCreator;
-        
+
         if (!canCompleteDirectly) {
           await requestOrderCompletion(order.id, user.id);
           setApprovalStatus("pending");
@@ -432,7 +451,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete }
           setUpdatingStatus(false);
           return;
         }
-        
+
         // Yetkili ise direkt onayla (completed + approved)
         await approveOrderCompletion(order.id, user.id);
         setCurrentStatus("completed");
@@ -445,7 +464,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete }
       await updateOrder(
         order.id,
         {
-        status: nextStatus as Order["status"],
+          status: nextStatus as Order["status"],
         },
         user.id,
         canUpdate // Yetkili kullanıcılar için durum geçiş validasyonunu atla
@@ -491,7 +510,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete }
     if (!order?.id || !user?.id) {
       return;
     }
-    
+
     // Yetki kontrolü
     if (!canUpdate && !isCreator) {
       toast.error("Sipariş durumunu değiştirme yetkiniz yok.");
@@ -521,11 +540,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-<<<<<<< HEAD
-      <DialogContent className="!max-w-[100vw] sm:!max-w-[95vw] md:!max-w-[85vw] !w-[100vw] sm:!w-[95vw] md:!w-[85vw] !h-[100vh] sm:!h-[90vh] md:!h-[85vh] !max-h-[100vh] sm:!max-h-[90vh] md:!max-h-[85vh] !left-0 sm:!left-[2.5vw] md:!left-[7.5vw] !top-0 sm:!top-[5vh] md:!top-[7.5vh] !right-0 sm:!right-auto !bottom-0 sm:!bottom-auto !translate-x-0 !translate-y-0 overflow-hidden !p-0 gap-0 bg-white flex flex-col !m-0 !rounded-none sm:!rounded-lg !border-0 sm:!border">
-=======
-      <DialogContent className="!max-w-[100vw] sm:!max-w-[80vw] !w-[100vw] sm:!w-[80vw] !h-[100vh] sm:!h-[90vh] !max-h-[100vh] sm:!max-h-[90vh] !left-0 sm:!left-[10vw] !top-0 sm:!top-[5vh] !right-0 sm:!right-auto !bottom-0 sm:!bottom-auto !translate-x-0 !translate-y-0 overflow-hidden !p-0 gap-0 bg-white flex flex-col !m-0 !rounded-none sm:!rounded-lg !border-0 sm:!border">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
+      <DialogContent className="app-dialog-shell">
         {/* DialogTitle ve DialogDescription DialogContent'in direkt child'ı olmalı (Radix UI gereksinimi) */}
         <DialogTitle className="sr-only">
           Sipariş Detayı - {orderNumber}
@@ -533,9 +548,8 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete }
         <DialogDescription className="sr-only">
           Sipariş detayları ve bilgileri
         </DialogDescription>
-        
+
         <div className="flex flex-col h-full min-h-0">
-<<<<<<< HEAD
           <DialogHeader className="p-2 sm:p-3 md:p-4 border-b bg-white flex-shrink-0 relative pr-10 sm:pr-12">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
               <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 w-full sm:w-auto">
@@ -547,19 +561,6 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete }
                 </h2>
               </div>
               <div className="flex flex-wrap gap-2 flex-shrink-0 relative z-10 w-full sm:w-auto justify-start sm:justify-end">
-=======
-          <DialogHeader className="p-3 sm:p-4 border-b bg-white flex-shrink-0">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 flex-shrink-0">
-                  <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                </div>
-                <h2 className="text-xl sm:text-2xl font-semibold text-foreground truncate">
-                  Sipariş Detayı - {orderNumber}
-                </h2>
-              </div>
-              <div className="flex flex-wrap gap-2 flex-shrink-0 relative z-10 pr-10 sm:pr-12">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
                 {approvalStatus === "pending" && (
                   <Badge variant="outline" className="border-yellow-500 text-yellow-600 bg-yellow-50 text-xs px-2 sm:px-3 py-1 relative z-10">
                     Onay Bekliyor
@@ -572,19 +573,11 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete }
             </div>
           </DialogHeader>
           {quickMetaChips.length > 0 && (
-<<<<<<< HEAD
             <div className="px-2 sm:px-3 md:px-4 py-2 border-b bg-gray-50/50 flex flex-wrap items-center gap-1.5 sm:gap-2 flex-shrink-0 overflow-x-auto scrollbar-hide">
               {quickMetaChips.map((chip) => (
                 <div
                   key={`${chip.label}-${chip.value}`}
                   className="flex items-center gap-1 rounded-full border bg-muted/40 px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium text-muted-foreground whitespace-nowrap"
-=======
-            <div className="px-3 sm:px-4 py-2 border-b bg-gray-50/50 flex flex-wrap items-center gap-2 flex-shrink-0">
-              {quickMetaChips.map((chip) => (
-                <div
-                  key={`${chip.label}-${chip.value}`}
-                  className="flex items-center gap-1 rounded-full border bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
                 >
                   <span className="text-muted-foreground/70">{chip.label}:</span>
                   <span className="text-foreground">{chip.value}</span>
@@ -593,414 +586,399 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete }
             </div>
           )}
 
-<<<<<<< HEAD
-          <div className="flex-1 overflow-hidden bg-gray-50/50 p-2 sm:p-3 md:p-4 min-h-0">
-            <div className="max-w-full mx-auto h-full overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
-=======
-          <div className="flex-1 overflow-hidden bg-gray-50/50 p-3 sm:p-4 min-h-0">
-            <div className="max-w-full mx-auto h-full overflow-y-auto">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
+          <div className="flex-1 overflow-hidden bg-gray-50/50 min-h-0 p-2 sm:p-3 md:p-4">
+            <div className="max-w-full mx-auto h-full overscroll-contain app-dialog-scroll" style={{ WebkitOverflowScrolling: 'touch' }}>
               {loading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               ) : (
                 <div className="space-y-6">
-            {approvalStatus === "pending" && (
-<<<<<<< HEAD
-              <div className="p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-[13px] sm:text-sm font-semibold text-yellow-900">Sipariş Tamamlanma Onayı Bekliyor</h4>
-                    <p className="text-[11px] sm:text-sm text-yellow-700 mt-1">
-=======
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div>
-                    <h4 className="text-sm font-semibold text-yellow-900">Sipariş Tamamlanma Onayı Bekliyor</h4>
-                    <p className="text-sm text-yellow-700">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                      Bu sipariş tamamlandı olarak işaretlendi ve onayınızı bekliyor.
-                    </p>
-                  </div>
-                  {canApprove && (
-                    <div className="flex gap-2 w-full sm:w-auto">
-                      <Button
-                        size="sm"
-                        variant="outline"
-<<<<<<< HEAD
-                        className="flex-1 sm:flex-none border-yellow-300 text-yellow-900 hover:bg-yellow-100 h-9 sm:h-10 min-h-[44px] sm:min-h-0 text-[11px] sm:text-xs"
-=======
-                        className="flex-1 sm:flex-none border-yellow-300 text-yellow-900 hover:bg-yellow-100"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                        onClick={handleReject}
-                      >
-                        <X className="h-4 w-4 mr-1" />
-                        Reddet
-                      </Button>
-                      <Button
-                        size="sm"
-<<<<<<< HEAD
-                        className="flex-1 sm:flex-none bg-yellow-600 hover:bg-yellow-700 text-white border-none h-9 sm:h-10 min-h-[44px] sm:min-h-0 text-[11px] sm:text-xs"
-=======
-                        className="flex-1 sm:flex-none bg-yellow-600 hover:bg-yellow-700 text-white border-none"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                        onClick={handleApprove}
-                      >
-                        <Check className="h-4 w-4 mr-1" />
-                        Onayla
-                      </Button>
+                  {approvalStatus === "pending" && (
+                    <div className="p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-[13px] sm:text-sm font-semibold text-yellow-900">Sipariş Tamamlanma Onayı Bekliyor</h4>
+                          <p className="text-[11px] sm:text-sm text-yellow-700 mt-1">
+                            Bu sipariş tamamlandı olarak işaretlendi ve onayınızı bekliyor.
+                          </p>
+                        </div>
+                        {canApprove && (
+                          <div className="flex gap-2 w-full sm:w-auto">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 sm:flex-none border-yellow-300 text-yellow-900 hover:bg-yellow-100 h-9 sm:h-10 min-h-[44px] sm:min-h-0 text-[11px] sm:text-xs"
+                              onClick={handleReject}
+                            >
+                              <X className="h-4 w-4 mr-1" />
+                              Reddet
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="flex-1 sm:flex-none bg-yellow-600 hover:bg-yellow-700 text-white border-none h-9 sm:h-10 min-h-[44px] sm:min-h-0 text-[11px] sm:text-xs"
+                              onClick={handleApprove}
+                            >
+                              <Check className="h-4 w-4 mr-1" />
+                              Onayla
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
-                </div>
-              </div>
-            )}
 
-<<<<<<< HEAD
-            <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4 auto-rows-fr">
-=======
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 auto-rows-fr">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-              {highlightCards.map((card) => {
-                const Icon = card.icon;
-                return (
-                  <Tooltip key={card.label} delayDuration={150}>
-                    <TooltipTrigger asChild>
-                      <div
-                        className={`rounded-2xl border bg-gradient-to-br text-card-foreground p-4 shadow-sm transition hover:shadow-md hover:-translate-y-0.5 h-full ${card.accent}`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs uppercase tracking-wide text-muted-foreground">{card.label}</p>
-                            <p className="text-2xl font-semibold mt-1 leading-tight">{card.value}</p>
-                          </div>
-                          <div className="rounded-full border p-2 bg-white/75 shadow-inner shrink-0">
-                            <Icon className="h-5 w-5 text-primary" />
-                          </div>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-3">{card.helper}</p>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>{card.tooltip}</TooltipContent>
-                  </Tooltip>
-                );
-              })}
-            </div>
-
-            {/* Status Timeline */}
-            <Card>
-              <CardHeader className="space-y-1">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <CardTitle className="text-lg sm:text-xl font-semibold">Sipariş Durumu</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {(() => {
-                        const normalizedStatus = normalizeStatusValue(currentStatus);
-                        if (nextStatus) {
-                          return `${getStatusLabel(normalizedStatus)} aşamasındasınız. Sıradaki adım: ${nextStatus.label}`;
-                        }
-                        return "Workflow tamamlandı.";
-                      })()}
-                    </p>
-                  </div>
-                  <div className="text-xs text-muted-foreground text-right">
-                    Son güncelleyen: {order?.statusUpdatedBy 
-                      ? (usersMap[order.statusUpdatedBy] || order.statusUpdatedBy)
-                      : (user?.fullName || "-")}
-                    <br />
-                    <span className="text-[11px]">
-                      {order?.statusUpdatedAt ? formatDateSafe(order.statusUpdatedAt as Timestamp | Date | string | null) : ""}
-                    </span>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-4 md:p-6">
-                <div className="space-y-3 sm:space-y-4">
-                  {/* Status Timeline */}
-                  <div className="flex items-center justify-between overflow-x-auto overflow-y-visible pt-2 pb-4">
-                    {statusWorkflow.map((statusItem, index) => {
-                      const Icon = statusItem.icon;
-                      const currentIndex = getCurrentStatusIndex();
-                      const isActive = index === currentIndex;
-                      const isCompleted = index < currentIndex;
-                      const isClickable = !isPersonnel && (canUpdate || isCreator) && isCompleted && statusItem.value !== "cancelled" && approvalStatus !== "pending";
-                      
+                  <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4 auto-rows-fr">
+                    {highlightCards.map((card) => {
+                      const Icon = card.icon;
                       return (
-                        <div key={statusItem.value} className="flex items-center flex-1 min-w-0">
-                          <div className="flex flex-col items-center flex-1 min-w-0">
-                            <Tooltip delayDuration={150}>
-                              <TooltipTrigger asChild>
-                                <div
-                                  className={`
+                        <Tooltip key={card.label} delayDuration={150}>
+                          <TooltipTrigger asChild>
+                            <div
+                              className={`rounded-2xl border bg-gradient-to-br text-card-foreground p-4 shadow-sm transition hover:shadow-md hover:-translate-y-0.5 h-full ${card.accent}`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-xs uppercase tracking-wide text-muted-foreground">{card.label}</p>
+                                  <p className="text-2xl font-semibold mt-1 leading-tight">{card.value}</p>
+                                </div>
+                                <div className="rounded-full border p-2 bg-white/75 shadow-inner shrink-0">
+                                  <Icon className="h-5 w-5 text-primary" />
+                                </div>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-3">{card.helper}</p>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>{card.tooltip}</TooltipContent>
+                        </Tooltip>
+                      );
+                    })}
+                  </div>
+
+                  {/* Status Timeline */}
+                  <Card>
+                    <CardHeader className="space-y-1">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <CardTitle className="text-lg sm:text-xl font-semibold">Sipariş Durumu</CardTitle>
+                          <p className="text-sm text-muted-foreground">
+                            {(() => {
+                              const normalizedStatus = normalizeStatusValue(currentStatus);
+                              if (nextStatus) {
+                                return `${getStatusLabel(normalizedStatus)} aşamasındasınız. Sıradaki adım: ${nextStatus.label}`;
+                              }
+                              return "Workflow tamamlandı.";
+                            })()}
+                          </p>
+                        </div>
+                        <div className="text-xs text-muted-foreground text-right">
+                          Son güncelleyen: {order?.statusUpdatedBy
+                            ? (usersMap[order.statusUpdatedBy] || order.statusUpdatedBy)
+                            : (user?.fullName || "-")}
+                          <br />
+                          <span className="text-[11px]">
+                            {order?.statusUpdatedAt ? formatDateSafe(order.statusUpdatedAt as Timestamp | Date | string | null) : ""}
+                          </span>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-3 sm:p-4 md:p-6">
+                      <div className="space-y-3 sm:space-y-4">
+                        {/* Status Timeline */}
+                        <div className="flex items-center justify-between overflow-x-auto overflow-y-visible pt-2 pb-4">
+                          {statusWorkflow.map((statusItem, index) => {
+                            const Icon = statusItem.icon;
+                            const currentIndex = getCurrentStatusIndex();
+                            const isActive = index === currentIndex;
+                            const isCompleted = index < currentIndex;
+                            const isClickable = !isPersonnel && (canUpdate || isCreator) && isCompleted && statusItem.value !== "cancelled" && approvalStatus !== "pending";
+
+                            return (
+                              <div key={statusItem.value} className="flex items-center flex-1 min-w-0">
+                                <div className="flex flex-col items-center flex-1 min-w-0">
+                                  <Tooltip delayDuration={150}>
+                                    <TooltipTrigger asChild>
+                                      <div
+                                        className={`
                                     w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all relative z-10
                                     ${isActive ? "bg-primary text-primary-foreground border-primary scale-110" : ""}
                                     ${isCompleted ? "bg-green-500 text-white border-green-500" : ""}
                                     ${!isActive && !isCompleted ? "bg-muted border-muted-foreground/20" : ""}
                                     ${isClickable ? "cursor-pointer hover:scale-105 hover:ring-2 hover:ring-primary/50" : ""}
                                   `}
-                                  onClick={() => {
-                                    if (isClickable) {
-                                      handleRevertStatus(statusItem.value);
-                                    }
-                                  }}
-                                >
-                                  <Icon className={`h-5 w-5 ${isActive || isCompleted ? "text-white" : statusItem.color}`} />
+                                        onClick={() => {
+                                          if (isClickable) {
+                                            handleRevertStatus(statusItem.value);
+                                          }
+                                        }}
+                                      >
+                                        <Icon className={`h-5 w-5 ${isActive || isCompleted ? "text-white" : statusItem.color}`} />
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      {isClickable
+                                        ? `${statusItem.label} durumuna geri dönmek için tıklayın`
+                                        : statusItem.label}
+                                    </TooltipContent>
+                                  </Tooltip>
+                                  <p className={`text-xs mt-2 text-center font-medium ${isActive ? "text-primary" : isCompleted ? "text-green-600" : "text-muted-foreground"}`}>
+                                    {statusItem.label}
+                                  </p>
                                 </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {isClickable
-                                  ? `${statusItem.label} durumuna geri dönmek için tıklayın`
-                                  : statusItem.label}
-                              </TooltipContent>
-                            </Tooltip>
-                            <p className={`text-xs mt-2 text-center font-medium ${isActive ? "text-primary" : isCompleted ? "text-green-600" : "text-muted-foreground"}`}>
-                              {statusItem.label}
-                            </p>
-                          </div>
-                          {index < statusWorkflow.length - 1 && (
-                            <div className={`flex-1 h-0.5 mx-2 ${isCompleted ? "bg-green-500" : "bg-muted"}`} />
-                          )}
+                                {index < statusWorkflow.length - 1 && (
+                                  <div className={`flex-1 h-0.5 mx-2 ${isCompleted ? "bg-green-500" : "bg-muted"}`} />
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
-                      );
-                    })}
-                  </div>
-                  
-                  {/* Next Status Button */}
-                  {(() => {
-                    const normalizedCurrentStatus = normalizeStatusValue(currentStatus);
-                    // Buton gösterilme koşulları: next status var, delivered/cancelled değil, approval pending değil
-                    const shouldShowButton = nextStatus && 
-                      normalizedCurrentStatus !== "delivered" && 
-                      normalizedCurrentStatus !== "cancelled" && 
-                      approvalStatus !== "pending" &&
-                      !isPersonnel && // Personel durum değiştiremez
-                      (canUpdate || isCreator); // Yetki kontrolü
-                    
-                    if (!shouldShowButton) {
-                      // Debug için konsola yaz (sadece dev modda)
-                      if (import.meta.env.DEV && nextStatus) {
-<<<<<<< HEAD
-                        // Debug log could go here if needed
-=======
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-                      }
-                      return null;
-                    }
-                    
-                    return (
-                      <div className="flex justify-center pt-4 border-t">
-                        <Button
-                          onClick={() => handleStatusChange(nextStatus.value)}
-                          disabled={updatingStatus}
-                          className="gap-2"
-                        >
-                          {updatingStatus ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                              Güncelleniyor...
-                            </>
-                          ) : (
-                            <>
-                              {(() => {
-                                const NextIcon = nextStatus.icon;
-                                return <NextIcon className="h-4 w-4" />;
-                              })()}
-                              {nextStatus.label} Durumuna Geç
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    );
-                  })()}
-                </div>
-              </CardContent>
-            </Card>
 
-            <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
-              {/* Customer Information */}
-              <Card>
-                <CardHeader className="space-y-1">
-                  <CardTitle className="text-lg sm:text-xl font-semibold">Müşteri Bilgileri</CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    İletişim ve teslimat detayları
-                  </p>
-                </CardHeader>
-                <CardContent className="space-y-3 sm:space-y-4">
-                  <div className="space-y-2 sm:space-y-3">
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{customer?.name || order?.customerName || order?.customer_name || "-"}</span>
-                    </div>
-                    {(customer?.company || order?.customerCompany) && (
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                        <span>{customer?.company || order?.customerCompany || order?.customer_company}</span>
-                  </div>
-                )}
-                    {(customer?.phone || order?.customerPhone) && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span>{formatPhoneForDisplay(customer?.phone || order?.customerPhone || order?.customer_phone)}</span>
-                  </div>
-                )}
-                    {(customer?.email || order?.customerEmail) && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span>{customer?.email || order?.customerEmail || order?.customer_email}</span>
-                      </div>
-                    )}
-                  </div>
+                        {/* Next Status Button */}
+                        {(() => {
+                          const normalizedCurrentStatus = normalizeStatusValue(currentStatus);
+                          // Buton gösterilme koşulları: next status var, delivered/cancelled değil, approval pending değil
+                          const shouldShowButton = nextStatus &&
+                            normalizedCurrentStatus !== "delivered" &&
+                            normalizedCurrentStatus !== "cancelled" &&
+                            approvalStatus !== "pending" &&
+                            !isPersonnel && // Personel durum değiştiremez
+                            (canUpdate || isCreator); // Yetki kontrolü
 
-                  {(customer?.phone || customer?.email || order?.customerPhone || order?.customerEmail) && (
-                    <div className="flex flex-wrap gap-3 pt-1">
-                      {(customer?.phone || order?.customerPhone) && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={`tel:${formatPhoneForTelLink(customer?.phone || order?.customerPhone || order?.customer_phone)}`}>
-                            Ara
-                          </a>
-                        </Button>
-                      )}
-                      {(customer?.email || order?.customerEmail) && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            const email = customer?.email || order?.customerEmail || order?.customer_email;
-                            if (email) {
-                              window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}`, '_blank');
+                          if (!shouldShowButton) {
+                            // Debug için konsola yaz (sadece dev modda)
+                            if (import.meta.env.DEV && nextStatus) {
+                              // Debug log could go here if needed
                             }
-                          }}
-                        >
-                          E-posta Gönder
-                        </Button>
-                      )}
-                    </div>
-                  )}
+                            return null;
+                          }
 
-                  {(shippingAddress || shippingNotes) && (
-                    <div className="space-y-2 rounded-lg border bg-muted/40 p-3">
-                      <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                        <Truck className="h-4 w-4" />
-                        Teslimat Bilgileri
-                      </p>
-                      {shippingAddress && (
-                        <p className="text-sm">{shippingAddress}</p>
-                      )}
-                      {shippingNotes && (
-                        <p className="text-xs text-muted-foreground">{shippingNotes}</p>
-                      )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                          return (
+                            <div className="flex justify-center pt-4 border-t">
+                              <Button
+                                onClick={() => handleStatusChange(nextStatus.value)}
+                                disabled={updatingStatus}
+                                className="gap-2"
+                              >
+                                {updatingStatus ? (
+                                  <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                    Güncelleniyor...
+                                  </>
+                                ) : (
+                                  <>
+                                    {(() => {
+                                      const NextIcon = nextStatus.icon;
+                                      return <NextIcon className="h-4 w-4" />;
+                                    })()}
+                                    {nextStatus.label} Durumuna Geç
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </CardContent>
+                  </Card>
 
-            {/* Order Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg sm:text-xl font-semibold">Sipariş Bilgileri</CardTitle>
-              </CardHeader>
-                <CardContent className="space-y-3 sm:space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    {orderSummaryRows.map((row) => (
-                      <div key={row.label} className="rounded-lg border bg-muted/30 px-3 py-2">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wide">{row.label}</p>
-                        <p className="text-sm font-medium mt-1">{row.value || "-"}</p>
-                    </div>
-                    ))}
-                  </div>
-                  {order?.notes && (
-                    <div className="rounded-lg border bg-muted/20 p-3">
-                      <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2">
-                        <CircleDot className="h-4 w-4" />
-                        İç Not
-                      </p>
-                      <p className="text-sm leading-relaxed">{order.notes}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            </div>
-
-            {/* Order Items */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg sm:text-xl font-semibold">Ürünler</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6">
-                {orderItems.length ? (
-                  <div className="rounded-lg border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Ürün</TableHead>
-                          <TableHead>SKU</TableHead>
-                          <TableHead>Kategori</TableHead>
-                          <TableHead className="text-right">Miktar</TableHead>
-                          <TableHead className="text-right">Birim Fiyat</TableHead>
-                          <TableHead className="text-right">İndirim</TableHead>
-                          <TableHead className="text-right">Toplam</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {orderItems.map((item) => (
-                          <TableRow key={item.id}>
-                            <TableCell className="font-medium">
-                              {item.productName || item.product_name || "-"}
-                            </TableCell>
-                            <TableCell>-</TableCell>
-                            <TableCell>{item.category || "-"}</TableCell>
-                            <TableCell className="text-right">{item.quantity}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(item.unit_price ?? item.unitPrice, currency)}</TableCell>
-                            <TableCell className="text-right text-destructive">
-                              {item.discount ? `-${formatCurrency(item.discount, currency)}` : "-"}
-                            </TableCell>
-                            <TableCell className="text-right font-semibold">
-                              {formatCurrency(item.total, currency)}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                  <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
+                    {/* Customer Information */}
+                    <Card>
+                      <CardHeader className="space-y-1">
+                        <CardTitle className="text-lg sm:text-xl font-semibold">Müşteri Bilgileri</CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          İletişim ve teslimat detayları
+                        </p>
+                      </CardHeader>
+                      <CardContent className="space-y-3 sm:space-y-4">
+                        <div className="space-y-2 sm:space-y-3">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">{customer?.name || order?.customerName || order?.customer_name || "-"}</span>
                           </div>
-                ) : (
-                  <div className="text-center text-sm text-muted-foreground py-6">
-                    Bu siparişe ait ürün bulunamadı.
+                          {(customer?.company || order?.customerCompany) && (
+                            <div className="flex items-center gap-2">
+                              <Building2 className="h-4 w-4 text-muted-foreground" />
+                              <span>{customer?.company || order?.customerCompany || order?.customer_company}</span>
+                            </div>
+                          )}
+                          {(customer?.phone || order?.customerPhone) && (
+                            <div className="flex items-center gap-2">
+                              <Phone className="h-4 w-4 text-muted-foreground" />
+                              <span>{formatPhoneForDisplay(customer?.phone || order?.customerPhone || order?.customer_phone)}</span>
+                            </div>
+                          )}
+                          {(customer?.email || order?.customerEmail) && (
+                            <div className="flex items-center gap-2">
+                              <Mail className="h-4 w-4 text-muted-foreground" />
+                              <span>{customer?.email || order?.customerEmail || order?.customer_email}</span>
+                            </div>
+                          )}
                         </div>
-                )}
-              </CardContent>
-            </Card>
 
-            {/* Financial Summary */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg sm:text-xl font-semibold">Finansal Özet</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Ara Toplam:</span>
-                    <span>{formatCurrency(subtotalValue, currency)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>KDV:</span>
-                    <span>{formatCurrency(taxValue, currency)}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>Genel Toplam:</span>
-                    <span>{formatCurrency(totalValue, currency)}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                        {(customer?.phone || customer?.email || order?.customerPhone || order?.customerEmail) && (
+                          <div className="flex flex-wrap gap-3 pt-1">
+                            {(customer?.phone || order?.customerPhone) && (
+                              <Button variant="outline" size="sm" asChild>
+                                <a href={`tel:${formatPhoneForTelLink(customer?.phone || order?.customerPhone || order?.customer_phone)}`}>
+                                  Ara
+                                </a>
+                              </Button>
+                            )}
+                            {(customer?.email || order?.customerEmail) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const email = customer?.email || order?.customerEmail || order?.customer_email;
+                                  if (email) {
+                                    window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}`, '_blank');
+                                  }
+                                }}
+                              >
+                                E-posta Gönder
+                              </Button>
+                            )}
+                          </div>
+                        )}
 
-            {order?.createdBy && usersMap[order.createdBy] && (
-              <p className="text-xs text-muted-foreground text-right">
-                Siparişi ekleyen: <span className="font-medium">
-                  {usersMap[order.createdBy] || "Bilinmeyen"}
-                </span>
-              </p>
-            )}
+                        {(shippingAddress || shippingNotes) && (
+                          <div className="space-y-2 rounded-lg border bg-muted/40 p-3">
+                            <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                              <Truck className="h-4 w-4" />
+                              Teslimat Bilgileri
+                            </p>
+                            {shippingAddress && (
+                              <p className="text-sm">{shippingAddress}</p>
+                            )}
+                            {shippingNotes && (
+                              <p className="text-xs text-muted-foreground">{shippingNotes}</p>
+                            )}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Order Information */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg sm:text-xl font-semibold">Sipariş Bilgileri</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3 sm:space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                          {orderSummaryRows.map((row) => (
+                            <div key={row.label} className="rounded-lg border bg-muted/30 px-3 py-2">
+                              <p className="text-xs text-muted-foreground uppercase tracking-wide">{row.label}</p>
+                              <p className="text-sm font-medium mt-1">{row.value || "-"}</p>
+                            </div>
+                          ))}
+                        </div>
+                        {order?.notes && (
+                          <div className="rounded-lg border bg-muted/20 p-3">
+                            <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2">
+                              <CircleDot className="h-4 w-4" />
+                              İç Not
+                            </p>
+                            <p className="text-sm leading-relaxed">{order.notes}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Order Items */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg sm:text-xl font-semibold">Ürünler</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 sm:p-6">
+                      {orderItems.length ? (
+                        <div className="rounded-lg border">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Ürün</TableHead>
+                                <TableHead>SKU</TableHead>
+                                <TableHead>Kategori</TableHead>
+                                <TableHead className="text-right">Miktar</TableHead>
+                                <TableHead className="text-right">Birim Fiyat</TableHead>
+                                <TableHead className="text-right">İndirim</TableHead>
+                                <TableHead className="text-right">Toplam</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {orderItems.map((item) => (
+                                <TableRow key={item.id}>
+                                  <TableCell className="font-medium">
+                                    {item.productName || item.product_name || "-"}
+                                  </TableCell>
+                                  <TableCell>-</TableCell>
+                                  <TableCell>{item.category || "-"}</TableCell>
+                                  <TableCell className="text-right">{item.quantity}</TableCell>
+                                  <TableCell className="text-right">{formatCurrency(item.unit_price ?? item.unitPrice, currency)}</TableCell>
+                                  <TableCell className="text-right text-destructive">
+                                    {item.discount ? `-${formatCurrency(item.discount, currency)}` : "-"}
+                                  </TableCell>
+                                  <TableCell className="text-right font-semibold">
+                                    {formatCurrency(item.total, currency)}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      ) : (
+                        <div className="text-center text-sm text-muted-foreground py-6">
+                          Bu siparişe ait ürün bulunamadı.
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Financial Summary */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg sm:text-xl font-semibold">Finansal Özet</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span>Ara Toplam:</span>
+                          <span>{formatCurrency(subtotalValue, currency)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>KDV:</span>
+                          <span>{formatCurrency(taxValue, currency)}</span>
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between font-bold text-lg">
+                          <span>Genel Toplam:</span>
+                          <span>{formatCurrency(totalValue, currency)}</span>
+                        </div>
+                      </div>
+
+                      {order?.invoice_url && (
+                        <div className="mt-6 pt-6 border-t">
+                          <Button
+                            variant="outline"
+                            className="w-full gap-2 h-11"
+                            onClick={() => window.open(order.invoice_url, "_blank")}
+                          >
+                            <FileText className="h-5 w-5 text-primary" />
+                            Faturayı Görüntüle
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {order?.createdBy && usersMap[order.createdBy] && (
+                    <p className="text-xs text-muted-foreground text-right">
+                      Siparişi ekleyen: <span className="font-medium">
+                        {usersMap[order.createdBy] || "Bilinmeyen"}
+                      </span>
+                    </p>
+                  )}
 
                   {/* Action Buttons */}
                   <div className="flex justify-end gap-2">
@@ -1021,7 +999,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete }
               )}
             </div>
           </div>
-          
+
           {/* Activity Comments Panel */}
           {order?.id && user && (
             <ActivityCommentsPanel

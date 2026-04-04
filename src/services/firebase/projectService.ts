@@ -74,7 +74,7 @@ export const getProjects = async (filters?: {
           id: doc.id,
           ...doc.data(),
         })) as Project[];
-        
+
         // Client-side filtreleme
         if (filters?.status) {
           projects = projects.filter(p => p.status === filters.status);
@@ -82,7 +82,7 @@ export const getProjects = async (filters?: {
         if (filters?.createdBy) {
           projects = projects.filter(p => p.createdBy === filters.createdBy);
         }
-        
+
         return projects;
       } catch (fallbackError: unknown) {
         if (import.meta.env.DEV) {
@@ -96,7 +96,7 @@ export const getProjects = async (filters?: {
           id: doc.id,
           ...doc.data(),
         })) as Project[];
-        
+
         // Client-side filtreleme
         if (filters?.status) {
           projects = projects.filter(p => p.status === filters.status);
@@ -104,14 +104,14 @@ export const getProjects = async (filters?: {
         if (filters?.createdBy) {
           projects = projects.filter(p => p.createdBy === filters.createdBy);
         }
-        
+
         // Tarihe göre sırala
         projects.sort((a, b) => {
           const aDate = a.createdAt?.toMillis() || 0;
           const bDate = b.createdAt?.toMillis() || 0;
           return bDate - aDate;
         });
-        
+
         return projects;
       }
     }
@@ -130,7 +130,7 @@ export const getProjects = async (filters?: {
 export const getProjectById = async (projectId: string): Promise<Project | null> => {
   try {
     const projectDoc = await getDoc(doc(firestore, PROJECTS_COLLECTION, projectId));
-    
+
     if (!projectDoc.exists()) {
       return null;
     }
@@ -159,7 +159,7 @@ export const createProject = async (
       createdAt: serverTimestamp() as Timestamp,
       updatedAt: serverTimestamp() as Timestamp,
     };
-    
+
     const docRef = await addDoc(collection(firestore, PROJECTS_COLLECTION), projectDoc);
 
     const createdProject = await getProjectById(docRef.id);
@@ -193,31 +193,31 @@ export const updateProject = async (
     if (!oldProject) {
       throw new Error("Proje bulunamadı");
     }
-    
+
     // Yetki kontrolü
     if (userId) {
       const { getUserProfile } = await import("@/services/firebase/authService");
       const { canEditProject } = await import("@/utils/permissions");
       const userProfile = await getUserProfile(userId);
-      
+
       if (!userProfile) {
         throw new Error("Kullanıcı profili bulunamadı");
       }
-      
+
       const canEdit = await canEditProject(oldProject, userProfile);
       if (!canEdit) {
         throw new Error("Bu projeyi düzenlemek için yetkiniz yok. Sadece yöneticiler, ekip liderleri veya projeyi oluşturan kişi düzenleyebilir.");
       }
     }
-    
+
     await updateDoc(doc(firestore, PROJECTS_COLLECTION, projectId), {
       ...updates,
-      updatedAt: serverTimestamp(),
+      updatedAt: serverTimestamp() as any,
     });
-    
+
     // Yeni veriyi al
     const newProject = await getProjectById(projectId);
-    
+
     // Audit log
     if (userId) {
       await logAudit("UPDATE", "projects", projectId, userId, oldProject, newProject);
@@ -272,12 +272,11 @@ export const getOrCreatePrivateTasksProject = async (userId: string): Promise<Pr
  */
 export const deleteProject = async (projectId: string, userId?: string): Promise<void> => {
   try {
-<<<<<<< HEAD
     // Proje ID kontrolü
     if (!projectId || projectId.trim() === "") {
       throw new Error("Proje ID'si geçersiz");
     }
-    
+
     // Eski veriyi al
     const oldProject = await getProjectById(projectId);
     if (!oldProject) {
@@ -287,45 +286,35 @@ export const deleteProject = async (projectId: string, userId?: string): Promise
         console.warn(`Proje bulunamadı (ID: ${projectId}). Zaten silinmiş olabilir.`);
       }
       return; // Sessizce çık - proje zaten yok
-=======
-    // Eski veriyi al
-    const oldProject = await getProjectById(projectId);
-    if (!oldProject) {
-      throw new Error("Proje bulunamadı");
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
     }
-    
+
     // Yetki kontrolü
     if (userId) {
       const { getUserProfile } = await import("@/services/firebase/authService");
       const { canDeleteProject } = await import("@/utils/permissions");
       const userProfile = await getUserProfile(userId);
-      
+
       if (!userProfile) {
         throw new Error("Kullanıcı profili bulunamadı");
       }
-      
+
       const canDelete = await canDeleteProject(oldProject, userProfile);
       if (!canDelete) {
-<<<<<<< HEAD
         throw new Error("Bu projeyi silmek için yetkiniz yok. Sadece yöneticiler projeleri silebilir.");
-=======
-        throw new Error("Bu projeyi silmek için yetkiniz yok. Sadece yöneticiler, ekip liderleri veya projeyi oluşturan kişi silebilir.");
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
       }
     }
-    
+
     // Projeye ait görevleri bul ve sil
     const projectTasks = await getTasks({ projectId });
-    
+
     // Görevleri paralel olarak sil
     await Promise.all(
       projectTasks.map(task => deleteTask(task.id, userId))
     );
-    
+
     // Projeyi sil
     await deleteDoc(doc(firestore, PROJECTS_COLLECTION, projectId));
-    
+
     // Audit log
     if (userId) {
       await logAudit("DELETE", "projects", projectId, userId, oldProject, null);

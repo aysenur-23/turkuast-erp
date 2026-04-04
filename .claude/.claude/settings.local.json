@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp \"C:/Users/aslan/Desktop/turkuast.png\" \"C:/Users/aslan/Desktop/turkuast-erp/src/assets/turkuast-logo.png\")",
+      "Bash(cp \"C:/Users/aslan/Desktop/turkuast.png\" \"C:/Users/aslan/Desktop/turkuast-erp/public/turkuast-favicon.png\")",
+      "Bash(npm run:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(powershell -Command \"Get-Content ''C:\\\\Users\\\\aslan\\\\Desktop\\\\turkuast-erp\\\\server\\\\server.js'' -Encoding UTF8 -TotalCount 5\")",
+      "Bash(powershell -Command \":*)",
+      "Bash(del \"C:\\\\Users\\\\aslan\\\\Desktop\\\\turkuast-erp\\\\server\\\\server.js.bak\")",
+      "Bash(npx firebase:*)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(rm -rf node_modules/.vite)",
+      "Bash(rm -f server/server.js.bak)"
+    ]
+  }
+}

@@ -30,13 +30,13 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 const sheetVariants = cva(
-  "fixed z-[10001] gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
+  "fixed z-[10001] gap-4 overflow-y-auto overflow-x-hidden overscroll-contain bg-background p-6 shadow-lg transition ease-in-out [-webkit-overflow-scrolling:touch] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
   {
     variants: {
       side: {
-        top: "inset-x-0 top-0 border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
+        top: "inset-x-0 top-0 max-h-[85dvh] border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
         bottom:
-          "inset-x-0 bottom-0 border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+          "inset-x-0 bottom-0 max-h-[85dvh] border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
         left: "inset-y-0 left-0 h-full w-3/4 border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm",
         right:
           "inset-y-0 right-0 h-full w-3/4  border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm",
@@ -55,7 +55,6 @@ interface SheetContentProps
 const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Content>, SheetContentProps>(
   ({ side = "right", className, children, ...props }, ref) => {
     const sidebarContext = useSidebarContext();
-<<<<<<< HEAD
     const contentRef = React.useRef<HTMLDivElement>(null);
     const combinedRef = React.useCallback((node: HTMLDivElement | null) => {
       if (typeof ref === 'function') {
@@ -69,46 +68,24 @@ const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Con
     // Props'tan data-sidebar attribute'unu oku (daha güvenilir)
     const propsObj = props as Record<string, unknown>;
     const isSidebar = 'data-sidebar' in propsObj && propsObj['data-sidebar'] === 'true';
-=======
-    const propsObj = props as Record<string, unknown>;
-    
-    // Sheet açıldığında mobilde menüyü kapat (sadece sidebar değilse)
-    // SheetContent mount olduğunda menüyü kapat (Sheet açıldığında)
-    React.useEffect(() => {
-      // Sidebar Sheet'i değilse (yani data-sidebar attribute'u yoksa) menüyü kapat
-      if (sidebarContext && !('data-sidebar' in propsObj && propsObj['data-sidebar'])) {
-        sidebarContext.closeSidebar();
-      }
-    }, [sidebarContext, propsObj]);
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
     
     return (
       <SheetPortal>
         <SheetOverlay 
-<<<<<<< HEAD
           onClick={isSidebar ? undefined : () => {
             // Overlay'e tıklandığında mobilde menüyü kapat (sadece sidebar değilse)
             // Sidebar için overlay tıklaması Sheet'in kendi onOpenChange'i ile handle edilir
             if (sidebarContext) {
-=======
-          onClick={() => {
-            // Overlay'e tıklandığında mobilde menüyü kapat (sadece sidebar değilse)
-            if (sidebarContext && !('data-sidebar' in propsObj && propsObj['data-sidebar'])) {
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
               sidebarContext.closeSidebar();
             }
           }}
         />
-<<<<<<< HEAD
         <SheetPrimitive.Content 
           ref={combinedRef} 
           className={cn(sheetVariants({ side }), className)} 
           data-sidebar={isSidebar ? "true" : undefined}
           {...props}
         >
-=======
-        <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
           {children}
           <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity data-[state=open]:bg-secondary hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center">
             <X className="h-5 w-5 sm:h-4 sm:w-4" />

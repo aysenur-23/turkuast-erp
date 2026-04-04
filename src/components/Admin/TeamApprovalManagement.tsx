@@ -32,7 +32,7 @@ import { Label } from "@/components/ui/label";
 export const TeamApprovalManagement = () => {
   const { user, isAdmin } = useAuth();
   const [canApprove, setCanApprove] = useState(false);
-  
+
   // Ekip talebi onaylama yetkisi - Firestore'dan kontrol et
   useEffect(() => {
     const checkPermission = async () => {
@@ -74,13 +74,13 @@ export const TeamApprovalManagement = () => {
 
   useEffect(() => {
     fetchRequests();
-    
+
     // Dinamik güncelleme için users collection'ını dinle
     if (!user?.id) return;
-    
+
     let unsubscribe: Unsubscribe | null = null;
     let isMounted = true;
-    
+
     // Users collection değiştiğinde talepleri yeniden yükle
     unsubscribe = onSnapshot(
       collection(firestore, "users"),
@@ -95,7 +95,7 @@ export const TeamApprovalManagement = () => {
         }
       }
     );
-    
+
     return () => {
       isMounted = false;
       if (unsubscribe) unsubscribe();
@@ -104,7 +104,7 @@ export const TeamApprovalManagement = () => {
 
   const fetchRequests = async () => {
     if (!user?.id) return;
-    
+
     setLoading(true);
     try {
       let data: TeamApprovalRequest[];
@@ -143,7 +143,7 @@ export const TeamApprovalManagement = () => {
       toast.error("Ekip talebi reddetme yetkiniz yok.");
       return;
     }
-    
+
     try {
       await rejectTeamRequest(selectedRequest.userId, selectedRequest.teamId, rejectReason, user?.id);
       toast.success(`${selectedRequest.userName} kullanıcısının ${selectedRequest.teamName} ekibi talebi reddedildi`);
@@ -229,7 +229,7 @@ export const TeamApprovalManagement = () => {
       </Card>
 
       <AlertDialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="app-dialog-shell max-w-lg">
           <AlertDialogHeader>
             <AlertDialogTitle>Ekip Talebini Reddet</AlertDialogTitle>
             <AlertDialogDescription>

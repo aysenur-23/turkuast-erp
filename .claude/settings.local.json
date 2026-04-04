@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/aslan/Desktop/Downloads/Downloads/revium-erp-suite-main/revium-erp-suite-main/src -type f \\\\\\(-name *.tsx -o -name *.ts \\\\\\))",
+      "Bash(find /c/Users/aslan/Desktop/Downloads/Downloads/revium-erp-suite-main/revium-erp-suite-main/src -name \"*.tsx\" -exec grep -l \"TaskBoard\\\\|overflow-hidden\" {})",
+      "Bash(grep -n \"query\\(q,\" src/services/firebase/*.ts)",
+      "Bash(grep -n \"if \\(import.meta.env.DEV\\)\" src/services/firebase/*.ts)",
+      "Bash(grep -B1 -A0 \"if \\(import.meta.env.DEV\\)\" src/services/firebase/*.ts)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite:*)",
+      "Bash(firebase --version)",
+      "Bash(firebase use:*)",
+      "Bash(firebase projects:list)"
+    ]
+  }
+}

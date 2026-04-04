@@ -70,7 +70,7 @@ const createEmailTemplate = (
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">Revium ERP Suite</h1>
+    <h1 style="color: white; margin: 0; font-size: 24px;">Turkuast ERP Suite</h1>
   </div>
   <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
     <h2 style="color: #333; margin-top: 0; font-size: 20px;">${title}</h2>
@@ -82,7 +82,7 @@ const createEmailTemplate = (
     ` : ''}
     <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
     <p style="color: #999; font-size: 12px; text-align: center; margin: 0;">
-      Bu e-posta Revium ERP Suite tarafından otomatik olarak gönderilmiştir.<br>
+      Bu e-posta Turkuast ERP Suite tarafından otomatik olarak gönderilmiştir.<br>
       E-posta bildirimlerini ayarlardan yönetebilirsiniz.
     </p>
   </div>
@@ -146,15 +146,15 @@ export const sendNotificationEmail = onDocumentCreated(
       }
 
       // E-posta içeriğini oluştur
-      const appUrl = process.env.APP_URL || "https://revpad.net";
+      const appUrl = process.env.APP_URL || "https://turkuast.com";
       const emailHtml = createEmailTemplate(title, message, type, relatedId, appUrl);
       const emailFrom = process.env.SMTP_FROM || process.env.SMTP_USER || "noreply@reviumtech.com";
 
       // E-posta gönder
       const mailOptions = {
-        from: `"Revium ERP Suite" <${emailFrom}>`,
+        from: `"Turkuast ERP Suite" <${emailFrom}>`,
         to: userEmail,
-        subject: `Revium ERP - ${title}`,
+        subject: `Turkuast ERP - ${title}`,
         html: emailHtml,
       };
 

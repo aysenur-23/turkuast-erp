@@ -1,8 +1,5 @@
 import { useMemo, memo } from "react";
-<<<<<<< HEAD
 import * as React from "react";
-=======
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
 import { MainLayout } from "@/components/Layout/MainLayout";
 import { StatCard } from "@/components/Dashboard/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +21,6 @@ const Dashboard = () => {
   const { isAdmin, user } = useAuth();
   const statsExpanded = true; // İstatistikler her zaman açık
   
-<<<<<<< HEAD
   // Defer non-critical queries: İlk render'dan sonra yükle
   const [shouldLoadTasks, setShouldLoadTasks] = React.useState(false);
   const [shouldLoadLowStock, setShouldLoadLowStock] = React.useState(false);
@@ -46,35 +42,19 @@ const Dashboard = () => {
   
   // Tasks'i dinamik olarak güncelle - Kullanıcının oluşturduğu ve atanan görevleri al
   // Optimized: Daha az görev yükle, lazy loading ile, defer edilmiş yükleme
-=======
-  // Tasks'i dinamik olarak güncelle - Kullanıcının oluşturduğu ve atanan görevleri al
-  // Geçmiş ve yaklaşan görevleri bulmak için daha fazla görev al
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
   const { data: tasks = [], isLoading: tasksLoading } = useQuery({
     queryKey: ["dashboard-tasks", user?.id],
     queryFn: async () => {
       try {
-<<<<<<< HEAD
         // Performans için: Sadece son 30 görevi al (50 → 30), limit ile
         const allTasks = await getTasks({ limit: 30 });
-=======
-        // Tüm görevleri al (geçmiş görevleri de bulmak için)
-        const allTasks = await getTasks();
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
         // Kullanıcının oluşturduğu veya kendisine atanan görevleri filtrele
         if (user?.id) {
           // Önce kullanıcının oluşturduğu görevleri al
           const createdTasks = allTasks.filter(t => t.createdBy === user.id);
-<<<<<<< HEAD
           // Sonra kullanıcıya atanan görevleri bulmak için son görevleri kontrol et
           // Performans için: Son 30 görevi al (50 → 30)
           const recentTasks = allTasks.slice(0, 30);
-=======
-          // Sonra kullanıcıya atanan görevleri bulmak için tüm görevleri kontrol et
-          // (Assignment'lar sonra kontrol edilecek)
-          // Performans için: Son 200 görevi al (geçmiş görevleri de kapsamak için)
-          const recentTasks = allTasks.slice(0, 200);
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
           // Kullanıcının oluşturduğu görevler + son görevleri birleştir (duplicate'leri kaldır)
           const taskMap = new Map();
           createdTasks.forEach(t => taskMap.set(t.id, t));
@@ -85,11 +65,7 @@ const Dashboard = () => {
           });
           return Array.from(taskMap.values());
         }
-<<<<<<< HEAD
         return allTasks.slice(0, 30); // 50 → 30
-=======
-        return allTasks.slice(0, 200);
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
       } catch (error: unknown) {
         if (import.meta.env.DEV) {
           console.error("Tasks yüklenirken hata:", error);
@@ -97,21 +73,14 @@ const Dashboard = () => {
         return [];
       }
     },
-<<<<<<< HEAD
     enabled: !!user?.id && shouldLoadTasks, // Sadece kullanıcı varsa ve defer süresi geçtiyse çalıştır
-=======
-    enabled: !!user?.id, // Sadece kullanıcı varsa çalıştır
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
     refetchInterval: 180000, // 3 dakikada bir güncelle (performans için)
     refetchOnWindowFocus: false, // Window focus'ta refetch yapma (performans için)
     staleTime: 120000, // 2 dakika stale time (performans için)
     // İlk yüklemede daha hızlı render için
     placeholderData: [], // Boş array ile başla, loading state'i daha hızlı geçer
-<<<<<<< HEAD
     // Defer et: İlk render'dan sonra yükle (non-blocking)
     refetchOnMount: false, // Cache'den göster, sonra güncelle
-=======
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
   });
 
   // Task assignments'ları dinamik olarak güncelle (kabul edilen görevleri kontrol etmek için)
@@ -123,13 +92,8 @@ const Dashboard = () => {
       try {
         const assignmentsMap = new Map<string, TaskAssignment[]>();
         // Tüm görevler için assignment'ları al (kullanıcıya atanan görevleri bulmak için)
-<<<<<<< HEAD
         // Performans için: Maksimum 20 görev için assignment'ları al (30 → 20)
         const limitedTasks = tasks.slice(0, 20);
-=======
-        // Performans için: Maksimum 100 görev için assignment'ları al
-        const limitedTasks = tasks.slice(0, 100);
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
         // Her görev için assignment'ları al (batch işlem, paralel)
         await Promise.all(
           limitedTasks.map(async (task) => {
@@ -148,18 +112,13 @@ const Dashboard = () => {
         return new Map();
       }
     },
-<<<<<<< HEAD
     enabled: tasks.length > 0 && !!user?.id && shouldLoadTasks, // Tasks yüklendikten sonra çalıştır
-=======
-    enabled: tasks.length > 0 && !!user?.id,
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
     refetchInterval: 180000, // 3 dakikada bir güncelle (performans için)
     refetchOnWindowFocus: false, // Window focus'ta refetch yapma (performans için)
     staleTime: 120000, // 2 dakika stale time (performans için)
   });
 
   // Düşük stoklu ürünleri ve hammaddeleri dinamik olarak güncelle
-<<<<<<< HEAD
   // Performans için: Sadece ilk 30 ürün/hammaddeyi kontrol et, defer et
   const { data: lowStockItems = [], isLoading: lowStockLoading } = useQuery({
     queryKey: ["dashboard-low-stock-items"],
@@ -169,16 +128,6 @@ const Dashboard = () => {
         const [products, rawMaterials] = await Promise.all([
           getProducts().then(p => p.slice(0, 30)), // Son 30 ürün (50 → 30)
           getRawMaterials().then(r => r.slice(0, 30)), // Son 30 hammadde (50 → 30)
-=======
-  // Performans için: Sadece ilk 50 ürün/hammaddeyi kontrol et
-  const { data: lowStockItems = [], isLoading: lowStockLoading } = useQuery({
-    queryKey: ["dashboard-low-stock-items"],
-    queryFn: async () => {
-      try {
-        const [products, rawMaterials] = await Promise.all([
-          getProducts().then(p => p.slice(0, 50)), // Son 50 ürün
-          getRawMaterials().then(r => r.slice(0, 50)), // Son 50 hammadde
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
         ]);
         
         // Düşük stoklu ve tükenen ürünleri filtrele
@@ -236,7 +185,6 @@ const Dashboard = () => {
     refetchInterval: 180000, // 3 dakikada bir güncelle (performans için)
     refetchOnWindowFocus: false, // Window focus'ta refetch yapma (performans için)
     staleTime: 120000, // 2 dakika stale time (performans için)
-<<<<<<< HEAD
     refetchOnMount: false, // Cache'den göster, sonra güncelle (performans için)
     placeholderData: [], // Hızlı render için
   });
@@ -252,18 +200,6 @@ const Dashboard = () => {
         const [warrantyRecords, allProducts] = await Promise.all([
           getWarrantyRecords().then(w => w.slice(0, 50)), // Son 50 warranty kaydı
           getProducts().then(p => p.slice(0, 50)), // Son 50 ürün
-=======
-  });
-
-  // Aktif warranty kayıtlarını al (bizde olan ürünler)
-  const { data: activeWarrantyItems = [], isLoading: warrantyLoading } = useQuery({
-    queryKey: ["dashboard-active-warranty-items"],
-    queryFn: async () => {
-      try {
-        const [warrantyRecords, allProducts] = await Promise.all([
-          getWarrantyRecords(),
-          getProducts(),
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
         ]);
         
         // Aktif warranty kayıtlarını filtrele (bizde olanlar: received veya in_repair)
@@ -296,11 +232,8 @@ const Dashboard = () => {
     refetchInterval: 180000, // 3 dakikada bir güncelle (performans için)
     refetchOnWindowFocus: false, // Window focus'ta refetch yapma (performans için)
     staleTime: 120000, // 2 dakika stale time (performans için)
-<<<<<<< HEAD
     refetchOnMount: false, // Cache'den göster, sonra güncelle (performans için)
     placeholderData: [], // Hızlı render için
-=======
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
   });
 
   // Performans için: useMemo ile optimize edilmiş hesaplamalar
@@ -387,13 +320,8 @@ const Dashboard = () => {
 
         {statsExpanded && (
           <div className={isAdmin 
-<<<<<<< HEAD
             ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 xs:gap-2.5 sm:gap-2.5 md:gap-3"
             : "grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 xs:gap-2.5 sm:gap-3"
-=======
-            ? "grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 xs:gap-2.5 sm:gap-2.5 md:gap-3"
-            : "grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 xs:gap-2.5 sm:gap-3"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
           }>
           {isLoading || !stats ? (
             // Loading skeleton
@@ -529,11 +457,7 @@ const Dashboard = () => {
                                   ? 'secondary' 
                                   : 'outline'
                               }
-<<<<<<< HEAD
                               className="h-4 px-1.5 py-0 text-[10px] font-normal leading-tight"
-=======
-                              className="text-[10px] sm:text-xs"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
                             >
                               {order.status === 'confirmed' ? 'Onaylandı' :
                                order.status === 'pending' ? 'Beklemede' :

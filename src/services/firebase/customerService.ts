@@ -43,7 +43,7 @@ export const getCustomers = async (): Promise<Customer[]> => {
     if (!firestore) {
       throw new Error("Firebase Firestore başlatılamadı. Lütfen .env dosyasında Firebase yapılandırmasını kontrol edin.");
     }
-    
+
     // orderBy kullanmadan önce index gerektirebilir, bu yüzden önce basit sorgu deneyelim
     // Performans için limit ekle (500 kayıt)
     try {
@@ -53,12 +53,12 @@ export const getCustomers = async (): Promise<Customer[]> => {
         id: doc.id,
         ...doc.data(),
       })) as Customer[];
-      
+
       // Duplicate kontrolü - aynı ID'ye sahip müşterileri filtrele
       const uniqueCustomers = customers.filter((customer, index, self) =>
         index === self.findIndex((c) => c.id === customer.id)
       );
-      
+
       return uniqueCustomers;
     } catch (orderByError: unknown) {
       // Index hatası varsa orderBy olmadan al
@@ -73,12 +73,12 @@ export const getCustomers = async (): Promise<Customer[]> => {
         id: doc.id,
         ...doc.data(),
       })) as Customer[];
-      
+
       // Duplicate kontrolü - aynı ID'ye sahip müşterileri filtrele
       const uniqueCustomers = customers.filter((customer, index, self) =>
         index === self.findIndex((c) => c.id === customer.id)
       );
-      
+
       // Client-side sorting
       return uniqueCustomers.sort((a, b) => {
         const aTime = a.createdAt?.toMillis() || 0;
@@ -102,7 +102,7 @@ export const getCustomers = async (): Promise<Customer[]> => {
 export const getCustomerById = async (customerId: string): Promise<Customer | null> => {
   try {
     const customerDoc = await getDoc(doc(firestore, "customers", customerId));
-    
+
     if (!customerDoc.exists()) {
       return null;
     }
@@ -149,7 +149,7 @@ export const createCustomer = async (
         const userProfile = await getUserProfile(customerData.createdBy);
         const userName = userProfile?.fullName || userProfile?.displayName || userProfile?.email;
         const userEmail = userProfile?.email;
-        
+
         await addCustomerActivity(
           docRef.id,
           customerData.createdBy,
@@ -188,15 +188,15 @@ export const updateCustomer = async (
   try {
     // Eski veriyi al
     const oldCustomer = await getCustomerById(customerId);
-    
+
     await updateDoc(doc(firestore, "customers", customerId), {
       ...updates,
       updatedAt: serverTimestamp(),
     });
-    
+
     // Yeni veriyi al
     const newCustomer = await getCustomerById(customerId);
-    
+
     // Audit log
     if (userId) {
       await logAudit("UPDATE", "customers", customerId, userId, oldCustomer, newCustomer);
@@ -211,11 +211,11 @@ export const updateCustomer = async (
         const userEmail = userProfile?.email;
 
         const changedFields = Object.keys(updates).filter(key => {
-          const oldValue = (oldCustomer as Record<string, unknown>)[key];
-          const newValue = (updates as Record<string, unknown>)[key];
+          const oldValue = (oldCustomer as unknown as Record<string, unknown>)[key];
+          const newValue = (updates as unknown as Record<string, unknown>)[key];
           return oldValue !== newValue;
         });
-        
+
         if (changedFields.length > 0) {
           await addCustomerActivity(
             customerId,
@@ -246,7 +246,7 @@ export const deleteCustomer = async (customerId: string, userId?: string): Promi
   try {
     // Eski veriyi al
     const oldCustomer = await getCustomerById(customerId);
-    
+
     // Aktivite log ekle (silmeden önce)
     if (userId && oldCustomer) {
       try {
@@ -254,7 +254,7 @@ export const deleteCustomer = async (customerId: string, userId?: string): Promi
         const userProfile = await getUserProfile(userId);
         const userName = userProfile?.fullName || userProfile?.displayName || userProfile?.email;
         const userEmail = userProfile?.email;
-        
+
         await addCustomerActivity(
           customerId,
           userId,
@@ -270,9 +270,9 @@ export const deleteCustomer = async (customerId: string, userId?: string): Promi
         }
       }
     }
-    
+
     await deleteDoc(doc(firestore, "customers", customerId));
-    
+
     // Audit log
     if (userId) {
       await logAudit("DELETE", "customers", customerId, userId, oldCustomer, null);

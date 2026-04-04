@@ -39,7 +39,7 @@ export const downloadDatabaseBackup = async () => {
     }
 
     const date = new Date().toISOString().split('T')[0];
-    const fileName = `revium_backup_${date}.json`;
+    const fileName = `turkuast_backup_${date}.json`;
     const json = JSON.stringify(backupData, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const href = URL.createObjectURL(blob);

@@ -203,14 +203,14 @@ try {
     if (cspPattern.test(indexContent)) {
       const beforeCsp = indexContent;
       indexContent = indexContent.replace(cspPattern, (match, cspContent) => {
-        // script-src ve script-src-elem'e 'wasm-unsafe-eval' ve https://revpad.net/UA-* ekle
+        // script-src ve script-src-elem'e 'wasm-unsafe-eval' ve https://turkuast.com/UA-* ekle
         let updatedCsp = cspContent
           .replace(/script-src ([^;]+);/g, (m, src) => {
             if (!src.includes('wasm-unsafe-eval')) {
               src = src + " 'wasm-unsafe-eval'";
             }
-            if (!src.includes('https://revpad.net/UA-*')) {
-              src = src + ' https://revpad.net/UA-*';
+            if (!src.includes('https://turkuast.com/UA-*')) {
+              src = src + ' https://turkuast.com/UA-*';
             }
             return `script-src ${src};`;
           })
@@ -218,8 +218,8 @@ try {
             if (!src.includes('wasm-unsafe-eval')) {
               src = src + " 'wasm-unsafe-eval'";
             }
-            if (!src.includes('https://revpad.net/UA-*')) {
-              src = src + ' https://revpad.net/UA-*';
+            if (!src.includes('https://turkuast.com/UA-*')) {
+              src = src + ' https://turkuast.com/UA-*';
             }
             return `script-src-elem ${src};`;
           });

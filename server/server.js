@@ -42,7 +42,7 @@ const GOOGLE_SCOPES = ['https://www.googleapis.com/auth/drive.file'];
 const corsOptions = {
   origin: function (origin, callback) {
     // Origin yoksa (mobile app, postman, vb.) veya localhost ise izin ver
-    if (!origin || origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('revpad.net') || origin.includes('revium')) {
+    if (!origin || origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('turkuast.com')) {
       callback(null, true);
     } else {
       // Production'da spesifik domain kontrolü yapılabilir
@@ -168,24 +168,24 @@ app.post('/api/send-email', async (req, res) => {
   res.header('Access-Control-Allow-Credentials', 'false');
   res.header('Access-Control-Expose-Headers', 'Content-Type');
   res.header('Access-Control-Max-Age', '86400');
-  
+
   try {
     const { to, subject, html } = req.body;
 
     // Validasyon
     if (!to || !subject || !html) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        error: 'Eksik alanlar: to, subject, html gerekli' 
+        error: 'Eksik alanlar: to, subject, html gerekli'
       });
     }
 
     // Email format kontrolü
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(to)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        error: 'Geçersiz e-posta adresi' 
+        error: 'Geçersiz e-posta adresi'
       });
     }
 
@@ -204,22 +204,22 @@ app.post('/api/send-email', async (req, res) => {
 
     // E-posta gönder
     const info = await transporter.sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@reviumtech.com',
+      from: process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@turkuast.com',
       to,
       subject,
       html,
     });
 
     console.log('✅ E-posta gönderildi:', info.messageId, '→', to);
-    
-    return res.status(200).json({ 
-      success: true, 
+
+    return res.status(200).json({
+      success: true,
       messageId: info.messageId,
       to: to
     });
   } catch (error) {
     console.error('❌ E-posta gönderme hatası:', error);
-    
+
     // Daha detaylı hata mesajı
     let errorMessage = 'E-posta gönderilemedi';
     if (error.code === 'EAUTH') {
@@ -229,8 +229,8 @@ app.post('/api/send-email', async (req, res) => {
     } else if (error.message) {
       errorMessage = error.message;
     }
-    
-    return res.status(500).json({ 
+
+    return res.status(500).json({
       success: false,
       error: errorMessage,
       code: error.code || 'UNKNOWN'
@@ -241,7 +241,7 @@ app.post('/api/send-email', async (req, res) => {
 // API info endpoint
 app.get('/api/info', (req, res) => {
   res.json({
-    service: 'Revium ERP API Server',
+    service: 'Turkuast ERP API Server',
     version: '1.0.0',
     endpoints: {
       email: '/api/send-email',
@@ -264,7 +264,7 @@ app.get('/health', async (req, res) => {
   try {
     // SMTP yapılandırma kontrolü
     const smtpConfigured = !!(process.env.SMTP_USER && process.env.SMTP_PASSWORD);
-    
+
     // SMTP bağlantısını test et
     let smtpStatus = 'unknown';
     if (smtpConfigured) {
@@ -282,8 +282,8 @@ app.get('/health', async (req, res) => {
     // Drive yapılandırma kontrolü
     const driveConfigured = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
 
-    res.json({ 
-      status: 'OK', 
+    res.json({
+      status: 'OK',
       service: 'Email & Drive Server',
       timestamp: new Date().toISOString(),
       smtp: {
@@ -302,8 +302,8 @@ app.get('/health', async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ 
-      status: 'ERROR', 
+    res.status(500).json({
+      status: 'ERROR',
       service: 'Email & Drive Server',
       error: error?.message || String(error) || 'Bilinmeyen hata',
       timestamp: new Date().toISOString()
@@ -361,7 +361,7 @@ app.post('/api/drive/upload', upload.single('file'), async (req, res) => {
   res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
   res.header('Access-Control-Allow-Credentials', 'false');
-  
+
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, error: 'Dosya bulunamadı (field: file)' });
@@ -442,7 +442,7 @@ const server = app.listen(PORT, () => {
   console.log(`📝 API Endpoint: http://localhost:${PORT}/api/send-email`);
   console.log(`✅ Health Check: http://localhost:${PORT}/health`);
   console.log(`🔧 SMTP Host: ${process.env.SMTP_HOST || 'smtp.hostinger.com'}`);
-  console.log(`📮 SMTP User: ${process.env.SMTP_USER || 'mail@revpad.net'}`);
+  console.log(`📮 SMTP User: ${process.env.SMTP_USER || 'mail@turkuast.com'}`);
   console.log(`\n⚠️  Backend'i durdurmak için Ctrl+C tuşlarına basın\n`);
 });
 

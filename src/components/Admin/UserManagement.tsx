@@ -70,7 +70,7 @@ export const UserManagement = () => {
 
   useEffect(() => {
     fetchData();
-    
+
     // Kullanıcı koleksiyonu için real-time listener
     let unsubscribe: Unsubscribe | null = null;
     if (firestore) {
@@ -89,11 +89,7 @@ export const UserManagement = () => {
                 phone: u.phone || null,
                 department_id: u.departmentId || null,
                 created_at: u.createdAt instanceof Timestamp ? u.createdAt : (u.createdAt instanceof Date ? Timestamp.fromDate(u.createdAt) : Timestamp.now()),
-<<<<<<< HEAD
                 roles: u.role || [], // UserProfile'da role (tekil), User interface'inde roles (çoğul)
-=======
-                roles: u.role || [],
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
                 last_login_at: u.lastLoginAt instanceof Timestamp ? u.lastLoginAt : (u.lastLoginAt instanceof Date ? Timestamp.fromDate(u.lastLoginAt) : null),
               }))
               .sort((a, b) => {
@@ -102,8 +98,7 @@ export const UserManagement = () => {
                 const bTime = b.created_at instanceof Timestamp ? b.created_at.toMillis() : (b.created_at instanceof Date ? b.created_at.getTime() : 0);
                 return aTime - bTime;
               });
-<<<<<<< HEAD
-            
+
             if (import.meta.env.DEV) {
               console.log("Real-time listener: Kullanıcı listesi güncellendi", {
                 userCount: fetchedUsers.length,
@@ -114,9 +109,7 @@ export const UserManagement = () => {
                 } : null
               });
             }
-            
-=======
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
+
             setUsers(fetchedUsers);
             setLoading(false);
           } catch (error) {
@@ -132,9 +125,9 @@ export const UserManagement = () => {
         }
       );
     }
-    
+
     // Interval kaldırıldı - performans için gereksiz (kullanıcı manuel yenileme yapabilir)
-    
+
     // Yetki cache'i değiştiğinde kullanıcı listesini tazele (rol görünürlükleri için)
     const unsubscribePermissionCache = onPermissionCacheChange(() => {
       fetchData();
@@ -234,9 +227,9 @@ export const UserManagement = () => {
       // Single role assignment for simplicity in this UI, but data structure supports array
       // If you want to support multiple roles, you'd need a multi-select or logic to add/remove
       // For now, replacing the role seems to be the intended behavior based on the single select UI
-      const updatedRoles = [newRole]; 
+      const updatedRoles = [newRole];
       const oldRole = selectedUser.roles?.[0] || "viewer";
-      
+
       // Kullanıcının rolünü güncelle - roles collection'ındaki tanımlarla senkronize
       await updateFirebaseUserProfile(selectedUser.id, {
         role: updatedRoles,
@@ -248,18 +241,18 @@ export const UserManagement = () => {
           const departments = await getDepartments();
           // Kullanıcının zaten bir departmanın manager'ı olup olmadığını kontrol et
           const isAlreadyManager = departments.some(d => d.managerId === selectedUser.id);
-          
+
           if (!isAlreadyManager) {
             // Manager'ı olmayan ilk departmanı bul
             const departmentWithoutManager = departments.find(d => !d.managerId);
-            
+
             if (departmentWithoutManager) {
               // Kullanıcıyı bu departmanın manager'ı olarak ata
               await updateDepartment(departmentWithoutManager.id, {
                 managerId: selectedUser.id,
               }, user?.id || null);
               toast.success(`${selectedUser.full_name || selectedUser.email} kullanıcısı "${departmentWithoutManager.name}" departmanının lideri olarak atandı`);
-              
+
               // Ekip kontrolü yap (uyarı ver ama engelleme)
               const { validateTeamLeaderHasTeam } = await import("@/utils/validateTeamLeader");
               const teamValidation = await validateTeamLeaderHasTeam(selectedUser.id);
@@ -300,13 +293,13 @@ export const UserManagement = () => {
         try {
           const departments = await getDepartments();
           const managedDepartments = departments.filter(d => d.managerId === selectedUser.id);
-          
+
           for (const dept of managedDepartments) {
             await updateDepartment(dept.id, {
               managerId: null,
             }, user?.id || null);
           }
-          
+
           if (managedDepartments.length > 0) {
             toast.success(`${selectedUser.full_name || selectedUser.email} kullanıcısı ${managedDepartments.length} departmandan manager olarak kaldırıldı`);
           }
@@ -325,7 +318,7 @@ export const UserManagement = () => {
         const roleLabel = roleDef ? roleDef.label : newRole;
         const oldRoleDef = roles.find(r => r.key === oldRole);
         const oldRoleLabel = oldRoleDef ? oldRoleDef.label : oldRole;
-        
+
         await createNotification({
           userId: selectedUser.id,
           type: "role_changed",
@@ -383,26 +376,21 @@ export const UserManagement = () => {
         return;
       }
 
-<<<<<<< HEAD
       // Kullanıcının mevcut rolleri (User interface'inde roles çoğul, Firestore'da role tekil)
-=======
-      // Kullanıcının mevcut rolleri
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
       const currentRoles = targetUser.roles || [];
-      
+
       // Eğer kullanıcı team_leader değilse, ekle
       if (!currentRoles.includes("team_leader")) {
-<<<<<<< HEAD
         const newRoles = [...currentRoles, "team_leader"];
         const updateResult = await updateFirebaseUserProfile(userId, {
           role: newRoles, // Firestore'a role (tekil) olarak yazılıyor
         }, user?.id || null);
-        
+
         if (!updateResult.success) {
           toast.error(`Rol güncelleme hatası: ${updateResult.message || "Bilinmeyen hata"}`);
           return;
         }
-        
+
         if (import.meta.env.DEV) {
           console.log("Rol güncellendi:", {
             userId,
@@ -410,18 +398,13 @@ export const UserManagement = () => {
             newRoles: newRoles
           });
         }
-        
+
         // Kullanıcı listesini hemen güncelle (optimistic update)
-        setUsers(prevUsers => prevUsers.map(u => 
-          u.id === userId 
+        setUsers(prevUsers => prevUsers.map(u =>
+          u.id === userId
             ? { ...u, roles: newRoles }
             : u
         ));
-=======
-        await updateFirebaseUserProfile(userId, {
-          role: [...currentRoles, "team_leader"],
-        }, user?.id || null);
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
       }
 
       // Seçilen departmanın mevcut manager'ını kontrol et
@@ -439,29 +422,21 @@ export const UserManagement = () => {
           const otherDeptAsManager = departments.find(
             d => d.id !== departmentId && d.managerId === oldManager.id
           );
-          
+
           // Eğer başka departmanda manager değilse, team_leader rolünü kaldır
           if (!otherDeptAsManager) {
-<<<<<<< HEAD
             const oldManagerRoles = oldManager.roles || []; // User interface'inde roles çoğul
-=======
-            const oldManagerRoles = oldManager.roles || [];
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
             const updatedOldManagerRoles = oldManagerRoles.filter((r: string) => r !== "team_leader");
             if (updatedOldManagerRoles.length === 0) {
               updatedOldManagerRoles.push("viewer"); // En azından viewer rolü olsun
             }
             await updateFirebaseUserProfile(oldManager.id, {
-<<<<<<< HEAD
               role: updatedOldManagerRoles, // Firestore'a role (tekil) olarak yazılıyor
-=======
-              role: updatedOldManagerRoles,
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
             }, user?.id || null);
           }
         }
       }
-      
+
       // Yeni manager'ı departmana ata
       await updateDepartment(departmentId, {
         managerId: userId,
@@ -478,13 +453,12 @@ export const UserManagement = () => {
       }
 
       toast.success(`${targetUser.full_name || targetUser.email} kullanıcısı "${targetDepartment.name}" departmanının lideri olarak atandı`);
-      
-<<<<<<< HEAD
+
       // Kullanıcı listesini yenile (await ile bekle)
       // Real-time listener otomatik güncelleyecek ama manuel yenileme de yapalım
       try {
         await fetchData();
-        
+
         // Firestore eventual consistency için kısa bir gecikme sonrası tekrar kontrol et
         setTimeout(async () => {
           await fetchData();
@@ -495,10 +469,6 @@ export const UserManagement = () => {
         }
         // Hata olsa bile real-time listener güncelleyecek
       }
-=======
-      // Kullanıcı listesini yenile
-      fetchData();
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
     } catch (error: unknown) {
       toast.error("Ekip lideri atanırken hata: " + (error instanceof Error ? error.message : "Bilinmeyen hata"));
     }
@@ -542,7 +512,7 @@ export const UserManagement = () => {
 
   const handleDeleteUser = async () => {
     if (!selectedUser || !user) return;
-    
+
     try {
       setDeleting(true);
       await deleteUser(selectedUser.id, user.id);
@@ -590,175 +560,169 @@ export const UserManagement = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-<<<<<<< HEAD
           <div className="overflow-x-auto -mx-4 sm:mx-0 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
             <div className="inline-block min-w-full align-middle px-4 sm:px-0">
               <Table className="min-w-[800px] sm:min-w-0 w-full">
-=======
-          <div className="overflow-x-auto -mx-4 sm:mx-0">
-            <div className="inline-block min-w-full align-middle px-4 sm:px-0">
-              <Table className="min-w-[800px] sm:min-w-0">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
-              <TableHeader>
-              <TableRow>
-                <TableHead className="min-w-[150px]">Kullanıcı</TableHead>
-                <TableHead className="hidden md:table-cell min-w-[180px]">Email</TableHead>
-                <TableHead className="min-w-[140px]">Departman</TableHead>
-                <TableHead className="min-w-[100px] max-w-[140px]">Rol</TableHead>
-                <TableHead className="hidden lg:table-cell min-w-[120px]">Son Giriş</TableHead>
-                <TableHead className="text-right min-w-[120px]">İşlemler</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map((tableUser) => (
-                <TableRow key={tableUser.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
-                        <AvatarFallback className="text-[10px] sm:text-[11px]">{getInitials(tableUser.full_name)}</AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <div className="font-medium text-[11px] sm:text-xs truncate">{tableUser.full_name}</div>
-                        {tableUser.phone && (
-                          <div className="text-[10px] sm:text-[11px] text-muted-foreground truncate">{formatPhoneForDisplay(tableUser.phone)}</div>
-                        )}
-                        <div className="text-[10px] sm:text-[11px] text-muted-foreground md:hidden truncate">{tableUser.email}</div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">{tableUser.email}</TableCell>
-                  <TableCell>
-                    {isAdmin ? (
-                      <div className="flex flex-col gap-1.5">
-                        <Select
-                          value={tableUser.department_id || "none"}
-                          onValueChange={(value) => handleDepartmentChange(tableUser.id, value)}
-                        >
-                          <SelectTrigger className="w-full min-w-[120px] sm:min-w-[140px] sm:w-[180px] text-[11px] sm:text-xs h-8 sm:h-10">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Atanmamış</SelectItem>
-                            {departments.map((dept) => (
-                              <SelectItem key={dept.id} value={dept.id}>
-                                {dept.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full text-xs h-7 sm:h-8"
-                          onClick={() => {
-                            const deptId = tableUser.department_id || departments[0]?.id;
-                            if (deptId && deptId !== "none") {
-                              handleAssignTeamLeader(tableUser.id, deptId);
-                            } else {
-                              toast.error("Lütfen önce bir departman seçin");
-                            }
-                          }}
-                          disabled={!tableUser.department_id || tableUser.department_id === "none"}
-                        >
-                          Ekip Lideri Ata
-                        </Button>
-                      </div>
-                    ) : (
-                      <span className="text-[10px] sm:text-[11px] text-muted-foreground truncate block">
-                        {departments.find(d => d.id === tableUser.department_id)?.name || "Atanmamış"}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="min-w-[100px] max-w-[140px]">
-                    <div className="flex items-center justify-start">
-                      <Badge className={`${getRoleBadgeColor(getUserRole(tableUser))} text-white hover:opacity-80 text-xs px-2 py-0.5 whitespace-nowrap truncate max-w-full`}>
-                        {getRoleLabel(getUserRole(tableUser))}
-                      </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    <div className="flex items-center gap-2">
-                      {(() => {
-                        const isOnline = isUserOnline(tableUser.last_login_at);
-                        const lastLoginText = formatLastLogin(tableUser.last_login_at);
-                        const lastLoginDate = tableUser.last_login_at 
-                          ? (tableUser.last_login_at instanceof Timestamp 
-                              ? tableUser.last_login_at.toDate() 
-                              : typeof tableUser.last_login_at === 'object' && 'toDate' in tableUser.last_login_at && typeof (tableUser.last_login_at as { toDate: () => Date }).toDate === 'function'
-                              ? (tableUser.last_login_at as { toDate: () => Date }).toDate()
-                              : new Date(tableUser.last_login_at))
-                          : null;
-                        return (
-                          <>
-                            {isOnline && (
-                              <Circle className="h-2.5 w-2.5 fill-green-500 text-green-500 animate-pulse" />
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[150px]">Kullanıcı</TableHead>
+                    <TableHead className="hidden md:table-cell min-w-[180px]">Email</TableHead>
+                    <TableHead className="min-w-[140px]">Departman</TableHead>
+                    <TableHead className="min-w-[100px] max-w-[140px]">Rol</TableHead>
+                    <TableHead className="hidden lg:table-cell min-w-[120px]">Son Giriş</TableHead>
+                    <TableHead className="text-right min-w-[120px]">İşlemler</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredUsers.map((tableUser) => (
+                    <TableRow key={tableUser.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
+                            <AvatarFallback className="text-[10px] sm:text-[11px]">{getInitials(tableUser.full_name)}</AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium text-[11px] sm:text-xs truncate">{tableUser.full_name}</div>
+                            {tableUser.phone && (
+                              <div className="text-[10px] sm:text-[11px] text-muted-foreground truncate">{formatPhoneForDisplay(tableUser.phone)}</div>
                             )}
-                            <span 
-                              className={
-                                isOnline 
-                                  ? "text-green-600 dark:text-green-400 font-medium text-[10px] sm:text-[11px]" 
-                                  : lastLoginText === "Hiç giriş yapmamış"
-                                  ? "text-muted-foreground italic text-[10px] sm:text-[11px]"
-                                  : "text-muted-foreground text-[10px] sm:text-[11px]"
-                              }
-                              title={lastLoginDate ? `Son giriş: ${lastLoginDate.toLocaleString("tr-TR")}` : "Hiç giriş yapılmamış"}
+                            <div className="text-[10px] sm:text-[11px] text-muted-foreground md:hidden truncate">{tableUser.email}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">{tableUser.email}</TableCell>
+                      <TableCell>
+                        {isAdmin ? (
+                          <div className="flex flex-col gap-1.5">
+                            <Select
+                              value={tableUser.department_id || "none"}
+                              onValueChange={(value) => handleDepartmentChange(tableUser.id, value)}
                             >
-                              {isOnline ? "Çevrimiçi" : lastLoginText}
-                            </span>
-                          </>
-                        );
-                      })()}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1 sm:gap-2 flex-wrap">
-                      {isSuperAdmin && (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 w-8 sm:h-9 sm:w-auto sm:min-w-[120px] sm:min-h-0 text-[11px] sm:text-xs p-0 sm:px-3"
-                            onClick={() => {
-                              setSelectedUser(tableUser);
-                              setNewRole(getUserRole(tableUser));
-                              setShowRoleDialog(true);
-                            }}
-                          >
-                            <Shield className="h-4 w-4 sm:mr-2" />
-                            <span className="hidden sm:inline">Rol Değiştir</span>
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 w-8 sm:h-9 sm:w-auto sm:min-w-[80px] sm:min-h-0 text-destructive hover:text-destructive hover:bg-destructive/10 p-0 sm:px-3"
-                            onClick={() => {
-                              // Kendi hesabını silmeye çalışıyorsa engelle
-                              if (user && tableUser.id === user.id) {
-                                toast.error("Kendi hesabınızı silemezsiniz.");
-                                return;
-                              }
-                              setSelectedUser(tableUser);
-                              setShowDeleteDialog(true);
-                            }}
-                            disabled={user && tableUser.id === user.id}
-                          >
-                            <Trash2 className="h-4 w-4 sm:mr-2" />
-                            <span className="hidden sm:inline">Sil</span>
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filteredUsers.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    Kullanıcı bulunamadı
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
+                              <SelectTrigger className="w-full min-w-[120px] sm:min-w-[140px] sm:w-[180px] text-[11px] sm:text-xs h-8 sm:h-10">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">Atanmamış</SelectItem>
+                                {departments.map((dept) => (
+                                  <SelectItem key={dept.id} value={dept.id}>
+                                    {dept.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full text-xs h-7 sm:h-8"
+                              onClick={() => {
+                                const deptId = tableUser.department_id || departments[0]?.id;
+                                if (deptId && deptId !== "none") {
+                                  handleAssignTeamLeader(tableUser.id, deptId);
+                                } else {
+                                  toast.error("Lütfen önce bir departman seçin");
+                                }
+                              }}
+                              disabled={!tableUser.department_id || tableUser.department_id === "none"}
+                            >
+                              Ekip Lideri Ata
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] sm:text-[11px] text-muted-foreground truncate block">
+                            {departments.find(d => d.id === tableUser.department_id)?.name || "Atanmamış"}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="min-w-[100px] max-w-[140px]">
+                        <div className="flex items-center justify-start">
+                          <Badge className={`${getRoleBadgeColor(getUserRole(tableUser))} text-white hover:opacity-80 text-xs px-2 py-0.5 whitespace-nowrap truncate max-w-full`}>
+                            {getRoleLabel(getUserRole(tableUser))}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        <div className="flex items-center gap-2">
+                          {(() => {
+                            const isOnline = isUserOnline(tableUser.last_login_at);
+                            const lastLoginText = formatLastLogin(tableUser.last_login_at);
+                            const lastLoginDate = tableUser.last_login_at
+                              ? (tableUser.last_login_at instanceof Timestamp
+                                ? tableUser.last_login_at.toDate()
+                                : typeof tableUser.last_login_at === 'object' && 'toDate' in tableUser.last_login_at && typeof (tableUser.last_login_at as { toDate: () => Date }).toDate === 'function'
+                                  ? (tableUser.last_login_at as { toDate: () => Date }).toDate()
+                                  : new Date(tableUser.last_login_at))
+                              : null;
+                            return (
+                              <>
+                                {isOnline && (
+                                  <Circle className="h-2.5 w-2.5 fill-green-500 text-green-500 animate-pulse" />
+                                )}
+                                <span
+                                  className={
+                                    isOnline
+                                      ? "text-green-600 dark:text-green-400 font-medium text-[10px] sm:text-[11px]"
+                                      : lastLoginText === "Hiç giriş yapmamış"
+                                        ? "text-muted-foreground italic text-[10px] sm:text-[11px]"
+                                        : "text-muted-foreground text-[10px] sm:text-[11px]"
+                                  }
+                                  title={lastLoginDate ? `Son giriş: ${lastLoginDate.toLocaleString("tr-TR")}` : "Hiç giriş yapılmamış"}
+                                >
+                                  {isOnline ? "Çevrimiçi" : lastLoginText}
+                                </span>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1 sm:gap-2 flex-wrap">
+                          {isSuperAdmin && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 w-8 sm:h-9 sm:w-auto sm:min-w-[120px] sm:min-h-0 text-[11px] sm:text-xs p-0 sm:px-3"
+                                onClick={() => {
+                                  setSelectedUser(tableUser);
+                                  setNewRole(getUserRole(tableUser));
+                                  setShowRoleDialog(true);
+                                }}
+                              >
+                                <Shield className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Rol Değiştir</span>
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 w-8 sm:h-9 sm:w-auto sm:min-w-[80px] sm:min-h-0 text-destructive hover:text-destructive hover:bg-destructive/10 p-0 sm:px-3"
+                                onClick={() => {
+                                  // Kendi hesabını silmeye çalışıyorsa engelle
+                                  if (user && tableUser.id === user.id) {
+                                    toast.error("Kendi hesabınızı silemezsiniz.");
+                                    return;
+                                  }
+                                  setSelectedUser(tableUser);
+                                  setShowDeleteDialog(true);
+                                }}
+                                disabled={user && tableUser.id === user.id}
+                              >
+                                <Trash2 className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Sil</span>
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {filteredUsers.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        Kullanıcı bulunamadı
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
               </Table>
             </div>
           </div>
@@ -766,7 +730,7 @@ export const UserManagement = () => {
       </Card>
 
       <AlertDialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="app-dialog-shell max-w-lg">
           <AlertDialogHeader>
             <AlertDialogTitle>Kullanıcı Rolü Değiştir</AlertDialogTitle>
             <AlertDialogDescription>
@@ -775,11 +739,7 @@ export const UserManagement = () => {
           </AlertDialogHeader>
           <div className="py-4">
             <Select value={newRole} onValueChange={setNewRole}>
-<<<<<<< HEAD
               <SelectTrigger className="min-h-[44px] sm:min-h-0 text-[14px] sm:text-sm">
-=======
-              <SelectTrigger>
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
                 <SelectValue placeholder="Rol seçin" />
               </SelectTrigger>
               <SelectContent>
@@ -791,15 +751,9 @@ export const UserManagement = () => {
               </SelectContent>
             </Select>
           </div>
-<<<<<<< HEAD
           <AlertDialogFooter className="flex-col sm:flex-row gap-2">
             <AlertDialogCancel className="w-full sm:w-auto min-h-[44px] sm:min-h-0 text-[11px] sm:text-xs">İptal</AlertDialogCancel>
             <AlertDialogAction onClick={handleRoleChange} className="w-full sm:w-auto min-h-[44px] sm:min-h-0 text-[11px] sm:text-xs">
-=======
-          <AlertDialogFooter>
-            <AlertDialogCancel>İptal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRoleChange}>
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
               Kaydet
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -838,13 +792,8 @@ export const UserManagement = () => {
               </ul>
             </div>
           </div>
-<<<<<<< HEAD
           <AlertDialogFooter className="flex-col sm:flex-row gap-2">
             <AlertDialogCancel className="w-full sm:w-auto min-h-[44px] sm:min-h-0 text-[11px] sm:text-xs">İptal</AlertDialogCancel>
-=======
-          <AlertDialogFooter>
-            <AlertDialogCancel>İptal</AlertDialogCancel>
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
             <AlertDialogAction
               onClick={() => {
                 // Son bir kez kontrol et - kendi hesabını silmeye çalışıyorsa engelle
@@ -857,11 +806,7 @@ export const UserManagement = () => {
                 setShowDeleteDialog(false);
                 setShowDeleteConfirmDialog(true);
               }}
-<<<<<<< HEAD
               className="bg-destructive hover:bg-destructive/90 w-full sm:w-auto min-h-[44px] sm:min-h-0 text-[11px] sm:text-xs"
-=======
-              className="bg-destructive hover:bg-destructive/90"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
             >
               Devam Et
             </AlertDialogAction>
@@ -895,21 +840,12 @@ export const UserManagement = () => {
               </p>
             </div>
           </div>
-<<<<<<< HEAD
           <AlertDialogFooter className="flex-col sm:flex-row gap-2">
             <AlertDialogCancel disabled={deleting} className="w-full sm:w-auto min-h-[44px] sm:min-h-0 text-[11px] sm:text-xs">İptal</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteUser}
               disabled={deleting}
               className="bg-destructive hover:bg-destructive/90 w-full sm:w-auto min-h-[44px] sm:min-h-0 text-[11px] sm:text-xs"
-=======
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>İptal</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteUser}
-              disabled={deleting}
-              className="bg-destructive hover:bg-destructive/90"
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
             >
               {deleting ? "Siliniyor..." : "Evet, Sil"}
             </AlertDialogAction>

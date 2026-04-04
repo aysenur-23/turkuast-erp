@@ -1,18 +1,18 @@
 import jsPDF, { jsPDFOptions } from "jspdf";
 import autoTable, { CellHookData as AutoTableCellHookData } from "jspdf-autotable";
-import { REV_LOGO_DATA_URI } from "@/assets/rev-logo-base64";
+import { TURKUAST_LOGO_BASE64 } from "@/assets/turkuast-logo-base64";
 import { ROBOTO_REGULAR_BASE64, ROBOTO_BOLD_BASE64 } from "@/assets/fonts/roboto-base64";
 
 // Sabit şirket bilgileri - cache'lenmiş, değişmeyen değerler
 const COMPANY_INFO = {
-  name: "Revium Ltd. Şti.",
+  name: "Turkuast Ltd. Şti.",
   address: "Fevzi Cakmak Mah. Milenyum Cad. No:81",
   city: "Karatay/KONYA",
-  email: "info@reviumtech.com",
-  website: "www.reviumtech.com",
+  email: "info@turkuast.com",
+  website: "www.turkuast.com",
   phone: "+90 (551) 829-1613",
   fullAddress: "Fevzi Cakmak Mah. Milenyum Cad. No:81, Karatay/KONYA",
-  contactInfo: "info@reviumtech.com | www.reviumtech.com | +90 (551) 829-1613",
+  contactInfo: "info@turkuast.com | www.turkuast.com | +90 (551) 829-1613",
   headerAddress: "Fevzi Cakmak Mah. Milenyum Cad. No:81",
 } as const;
 
@@ -164,7 +164,7 @@ const createPDFTemplate = (doc: jsPDFWithFontStatus): PDFTemplateLayout => {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const mar = PDF_CONSTANTS.margin;
-  
+
   return {
     background: {
       startY: 0,
@@ -251,7 +251,7 @@ const createSafeText = (doc: jsPDFWithFontStatus) => {
   return (text: string, x: number, y: number, fontSize: number, isBold: boolean = false) => {
     // Her zaman transliterate et
     const processedText = transliterateTurkish(text);
-    
+
     // Font yüklenmemişse veya yükleme başarısızsa direkt helvetica kullan
     if (!doc._robotoFontLoaded || doc._robotoFontLoadFailed) {
       try {
@@ -263,7 +263,7 @@ const createSafeText = (doc: jsPDFWithFontStatus) => {
       }
       return;
     }
-    
+
     // Roboto kullanmayı dene - ÇOK AGRESİF YAKLAŞIM
     // Font'u MUTLAKA Roboto olarak ayarla - daha fazla deneme
     let fontSet = false;
@@ -279,7 +279,7 @@ const createSafeText = (doc: jsPDFWithFontStatus) => {
         // Tekrar dene
       }
     }
-    
+
     if (!fontSet) {
       // Font ayarlanamadı, Helvetica'ya geç
       try {
@@ -293,7 +293,7 @@ const createSafeText = (doc: jsPDFWithFontStatus) => {
       }
       return;
     }
-    
+
     // Font Roboto, ama Türkçe karakterleri transliterate edilmiş text ile yaz
     doc.setFontSize(fontSize);
     try {
@@ -312,7 +312,7 @@ const createSafeText = (doc: jsPDFWithFontStatus) => {
           // Tekrar dene
         }
       }
-      
+
       if (!fontVerified) {
         // Font ayarlanamadı, font listesini kontrol et
         try {
@@ -338,7 +338,7 @@ const createSafeText = (doc: jsPDFWithFontStatus) => {
           // Font listesi alınamadı
         }
       }
-      
+
       // Font doğrulandı, text'i yaz - ama önce tekrar kontrol et
       if (fontVerified) {
         // Text yazmadan hemen önce font'u tekrar ayarla ve doğrula
@@ -356,7 +356,7 @@ const createSafeText = (doc: jsPDFWithFontStatus) => {
             // Tekrar dene
           }
         }
-        
+
         if (finalFontSet) {
           // Font kesinlikle Roboto, ama jsPDF ş, İ, ğ karakterlerini desteklemiyor
           // Bu yüzden processedText zaten transliterate edilmiş (fonksiyon başında)
@@ -375,7 +375,7 @@ const createSafeText = (doc: jsPDFWithFontStatus) => {
                 // Tekrar dene
               }
             }
-            
+
             // Roboto font yüklü, ama Türkçe karakterleri transliterate edilmiş text ile yaz
             doc.setFont("Roboto", isBold ? "bold" : "normal");
             doc.setFontSize(fontSize);
@@ -451,13 +451,13 @@ const createSafeText = (doc: jsPDFWithFontStatus) => {
 const drawPDFBackground = (doc: jsPDFWithFontStatus, template: PDFTemplateLayout) => {
   const pageWidth = doc.internal.pageSize.getWidth();
   const [primaryR, primaryG, primaryB] = PDF_CONSTANTS.primaryColor;
-  
+
   // Header background - profesyonel ve minimal (daha hafif)
   doc.setFillColor(primaryR, primaryG, primaryB);
   doc.setGState(doc.GState({ opacity: 0.04 })); // Daha hafif: 0.08 → 0.04
   doc.rect(0, 0, pageWidth, PDF_CONSTANTS.headerHeight, "F");
   doc.setGState(doc.GState({ opacity: 1 }));
-  
+
   // Footer background - sabit (profesyonel gri)
   const footerY = doc.internal.pageSize.getHeight() - PDF_CONSTANTS.footerHeight;
   doc.setFillColor(TAILWIND_COLORS.gray50[0], TAILWIND_COLORS.gray50[1], TAILWIND_COLORS.gray50[2]);
@@ -478,15 +478,15 @@ const drawStatCard = (
   const [borderR, borderG, borderB] = config.color.border;
   const [textR, textG, textB] = config.color.text;
   const [valueR, valueG, valueB] = config.color.value;
-  
+
   // Primary kart için özel arka plan (opacity ile) - Web sayfasındaki gibi
-  const isPrimaryCard = borderR === TAILWIND_COLORS.primaryCardBorder[0] && 
-                       borderG === TAILWIND_COLORS.primaryCardBorder[1] && 
-                       borderB === TAILWIND_COLORS.primaryCardBorder[2] &&
-                       bgR === TAILWIND_COLORS.white[0] && 
-                       bgG === TAILWIND_COLORS.white[1] && 
-                       bgB === TAILWIND_COLORS.white[2];
-  
+  const isPrimaryCard = borderR === TAILWIND_COLORS.primaryCardBorder[0] &&
+    borderG === TAILWIND_COLORS.primaryCardBorder[1] &&
+    borderB === TAILWIND_COLORS.primaryCardBorder[2] &&
+    bgR === TAILWIND_COLORS.white[0] &&
+    bgG === TAILWIND_COLORS.white[1] &&
+    bgB === TAILWIND_COLORS.white[2];
+
   if (isPrimaryCard) {
     // Primary kart için hafif arka plan (web: rgba(221, 83, 53, 0.05))
     doc.setFillColor(borderR, borderG, borderB);
@@ -498,30 +498,30 @@ const drawStatCard = (
     doc.setFillColor(bgR, bgG, bgB);
     doc.roundedRect(x, y, width, height, 6, 6, "F");
   }
-  
+
   // Border - Web sayfasındaki gibi (2pt kalınlık - border-2)
   doc.setDrawColor(borderR, borderG, borderB);
   doc.setLineWidth(2);
   doc.roundedRect(x, y, width, height, 6, 6, "S");
-  
+
   // Başlık - Web sayfasındaki gibi (küçültülmüş spacing)
   // Title: y + cardPadding (14px) + title baseline (~12px) = y + 26
   doc.setTextColor(textR, textG, textB);
   safeText(config.title, x + PDF_CONSTANTS.cardPadding, y + 26, PDF_CONSTANTS.fontSizeCardTitle, true);
-  
+
   // Değer - Web sayfasındaki gibi (küçültülmüş spacing)
   // Value: title'dan sonra (10px) + value baseline (~24px) = y + 26 + 10 + 24 = y + 60
   const valueText = typeof config.value === 'number' ? config.value.toString() : config.value;
   doc.setTextColor(valueR, valueG, valueB);
   safeText(valueText, x + PDF_CONSTANTS.cardPadding, y + 60, PDF_CONSTANTS.fontSizeCardValue, true);
-  
+
   // Açıklama - Web sayfasındaki gibi (küçültülmüş spacing)
   // Description: value'dan sonra (4px) + description baseline (~11px) = y + 60 + 4 + 11 = y + 75
   if (config.description) {
     doc.setTextColor(textR, textG, textB);
     safeText(config.description, x + PDF_CONSTANTS.cardPadding, y + 75, PDF_CONSTANTS.fontSizeCardDescription, false);
   }
-  
+
   doc.setTextColor(0, 0, 0);
 };
 
@@ -535,21 +535,21 @@ const drawProfessionalTableHeader = (
 ): number => {
   const safeText = createSafeText(doc);
   const [primaryR, primaryG, primaryB] = PDF_CONSTANTS.primaryColor;
-  
+
   // Web sayfasındaki renkler - bg-[rgb(249,250,251)] border-b
   const bgColor = config.backgroundColor || TAILWIND_COLORS.gray50; // Web: bg-[rgb(249,250,251)]
   const textColor = config.textColor || PDF_CONSTANTS.primaryColor; // Web: text-primary
   const borderColor = config.borderColor || [229, 231, 235]; // Web: border-b (gray200)
-  
+
   // Başlık için arka plan - Web sayfasındaki gibi (bg-[rgb(249,250,251)])
   doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
   doc.roundedRect(x, y - PDF_CONSTANTS.tableHeaderPadding, width, PDF_CONSTANTS.tableHeaderHeight, 4, 4, "F");
-  
+
   // Alt border - Web sayfasındaki gibi (border-b)
   doc.setDrawColor(borderColor[0], borderColor[1], borderColor[2]);
   doc.setLineWidth(1);
   doc.line(x, y + PDF_CONSTANTS.tableHeaderHeight - PDF_CONSTANTS.tableHeaderPadding, x + width, y + PDF_CONSTANTS.tableHeaderHeight - PDF_CONSTANTS.tableHeaderPadding);
-  
+
   // Başlık text - Web sayfasındaki gibi (text-lg font-bold = 18px, bold)
   doc.setTextColor(textColor[0], textColor[1], textColor[2]);
   // Font'u bold yap
@@ -560,7 +560,7 @@ const drawProfessionalTableHeader = (
   }
   safeText(config.title, x + 10, y + PDF_CONSTANTS.tableHeaderPadding, PDF_CONSTANTS.fontSizeTableHeader, true); // Küçültülmüş: 18 → 16
   doc.setTextColor(0, 0, 0);
-  
+
   // Başlıktan sonraki Y pozisyonu: headerHeight + padding + spacing (iyileştirilmiş)
   // Yeterli boşluk için optimize edildi
   return y + PDF_CONSTANTS.tableHeaderHeight + PDF_CONSTANTS.tableHeaderSpacing - 2; // Daha kompakt (-2px)
@@ -589,7 +589,7 @@ const createProfessionalTableStyles = (
   const headerFontSize = options?.headerFontSize || PDF_CONSTANTS.fontSizeTableHeaderText;
   const bodyFontSize = options?.bodyFontSize || PDF_CONSTANTS.fontSizeTableBody;
   const cellPadding = options?.cellPadding || { top: 10, right: 12, bottom: 10, left: 12 };
-  
+
   // Font'u zorla Roboto yap - ÇOK AGRESİF YAKLAŞIM
   // Font'un gerçekten yüklü olduğunu kontrol et ve MUTLAKA Roboto kullan
   let fontName = "helvetica";
@@ -607,7 +607,7 @@ const createProfessionalTableStyles = (
         // Tekrar dene
       }
     }
-    
+
     // Font listesinde Roboto var mı kontrol et
     if (fontName === "helvetica") {
       try {
@@ -633,7 +633,7 @@ const createProfessionalTableStyles = (
       }
     }
   }
-  
+
   return {
     headStyles: {
       fillColor: [249, 250, 251], // Web: bg-gray-50/50 (gray50 with opacity, PDF'te tam gray50)
@@ -687,22 +687,22 @@ const ensureTableFitsPage = (
 ): number => {
   const pageHeight = doc.internal.pageSize.getHeight();
   const footerHeight = PDF_CONSTANTS.footerHeight;
-  
+
   // Eğer tablo sayfa sığmazsa yeni sayfa ekle (daha fazla boşluk bırak)
   const minSpaceNeeded = requiredHeight + 70; // 70pt ekstra boşluk (50pt'den artırıldı)
   if (currentY + minSpaceNeeded > pageHeight - footerHeight - margin) {
     doc.addPage();
     let nextY = margin + 30; // Üstten 30pt daha fazla boşluk (20pt'den artırıldı)
-    
+
     // Yeni sayfada template'i uygula
     const template = createPDFTemplate(doc);
     drawPDFBackground(doc, template);
-    
+
     // "(devam)" etiketi kaldırıldı - kullanıcı isteği
-    
+
     return nextY;
   }
-  
+
   return currentY;
 };
 
@@ -718,13 +718,13 @@ const drawSummarySection = (
 ): number => {
   const safeText = createSafeText(doc);
   const [headerR, headerG, headerB] = headerColor;
-  
+
   // Özet başlık arka planı - sabit tasarım
   doc.setFillColor(headerR, headerG, headerB);
   doc.roundedRect(x, y, width, 40, 5, 5, "F");
   doc.setDrawColor(headerR, headerG, headerB);
   doc.roundedRect(x, y, width, 40, 5, 5, "S");
-  
+
   // Dekoratif çizgi - sabit tasarım
   doc.setDrawColor(255, 255, 255);
   doc.setGState(doc.GState({ opacity: 0.3 }));
@@ -732,17 +732,17 @@ const drawSummarySection = (
   const pageWidth = doc.internal.pageSize.getWidth();
   doc.line(x + 5, y + 38, pageWidth - x - 5, y + 38);
   doc.setGState(doc.GState({ opacity: 1 }));
-  
+
   // Başlık text - dinamik (daha okunabilir font size)
   doc.setTextColor(255, 255, 255);
   safeText(title, x + 15, y + 26, 19, true); // İyileştirildi: 18px → 19px
   doc.setTextColor(0, 0, 0);
-  
+
   const summaryY = y + 50;
-  
+
   // Font'u zorla Roboto olarak ayarla (autoTable öncesi)
   forceRobotoFont(doc, "normal");
-  
+
   // Özet tablosu - sabit stil, dinamik veriler
   autoTable(doc, {
     startY: summaryY,
@@ -750,17 +750,17 @@ const drawSummarySection = (
     body: transliterateTableData(data),
     margin: { left: x, right: x },
     willDrawCell: createWillDrawCell(doc),
-    headStyles: { 
+    headStyles: {
       fillColor: [headerR, headerG, headerB],
-      textColor: [255, 255, 255], 
-      fontStyle: "bold", 
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
       fontSize: 12,
       font: getFontName(doc),
       lineColor: [headerR, headerG, headerB],
       lineWidth: { top: 1, bottom: 1, left: 1, right: 1 },
       cellPadding: { top: 12, right: 14, bottom: 12, left: 14 }
     },
-    bodyStyles: { 
+    bodyStyles: {
       textColor: [31, 41, 55],
       fontSize: 11,
       font: getFontName(doc),
@@ -768,9 +768,9 @@ const drawSummarySection = (
       lineWidth: { bottom: 1 },
       cellPadding: { top: 12, right: 14, bottom: 12, left: 14 }
     },
-    styles: { 
-      font: getFontName(doc), 
-      fontStyle: "normal", 
+    styles: {
+      font: getFontName(doc),
+      fontStyle: "normal",
       fontSize: 11,
       cellPadding: { top: 12, right: 14, bottom: 12, left: 14 }
     },
@@ -782,7 +782,7 @@ const drawSummarySection = (
       fillColor: [249, 250, 251]
     },
   });
-  
+
   const finalY = (doc.lastAutoTable?.finalY || summaryY) + 50; // Optimize edilmiş boşluk: 50pt
   return finalY;
 };
@@ -852,7 +852,7 @@ const registerFonts = async (doc: jsPDFWithFontStatus) => {
   // Eğer "..." ile bitiyorsa, font string'leri kesilmiş demektir
   // Ayrıca string'lerin çok kısa olup olmadığını kontrol et (base64 font'lar genellikle çok uzun olur)
   if (ROBOTO_REGULAR_BASE64.endsWith('...') || ROBOTO_BOLD_BASE64.endsWith('...') ||
-      ROBOTO_REGULAR_BASE64.length < 1000 || ROBOTO_BOLD_BASE64.length < 1000) {
+    ROBOTO_REGULAR_BASE64.length < 1000 || ROBOTO_BOLD_BASE64.length < 1000) {
     doc.setFont("helvetica", "normal");
     doc._robotoFontLoaded = false;
     doc._robotoFontLoadFailed = true;
@@ -864,21 +864,21 @@ const registerFonts = async (doc: jsPDFWithFontStatus) => {
     // Önce data: prefix'i varsa temizle
     let cleanRegular = ROBOTO_REGULAR_BASE64.replace(/^data:.*?,/, '').trim();
     let cleanBold = ROBOTO_BOLD_BASE64.replace(/^data:.*?,/, '').trim();
-    
-    
+
+
     // "..." gibi kesilme işaretlerini kaldır (eğer varsa)
     cleanRegular = cleanRegular.replace(/\.\.\.$/, '').trim();
     cleanBold = cleanBold.replace(/\.\.\.$/, '').trim();
-    
+
     // Eğer string'ler boşsa, direkt helvetica'ya geç
     if (!cleanRegular || !cleanBold || cleanRegular.length === 0 || cleanBold.length === 0) {
       throw new Error("Font base64 string'leri boş");
     }
-    
+
     // Tüm whitespace karakterlerini kaldır (boşluk, tab, newline, vb.)
     cleanRegular = cleanRegular.replace(/\s+/g, '');
     cleanBold = cleanBold.replace(/\s+/g, '');
-    
+
     // Sadece geçerli base64 karakterlerini tut (A-Z, a-z, 0-9, +, /, =)
     cleanRegular = cleanRegular.replace(/[^A-Za-z0-9+/=]/g, '');
     cleanBold = cleanBold.replace(/[^A-Za-z0-9+/=]/g, '');
@@ -905,25 +905,25 @@ const registerFonts = async (doc: jsPDFWithFontStatus) => {
     // ÖNEMLİ: Font'u eklemeden önce VFS'de olduğundan emin ol
     try {
       const fontListBefore = doc.getFontList();
-      
+
       // Font'u ekle - font adı "Roboto" olmalı
       doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
-      
+
       // Font'un eklendiğini doğrula
       const fontListAfterRegular = doc.getFontList();
       const hasRobotoRegular = fontListAfterRegular && Object.keys(fontListAfterRegular).some((key) => isRobotoName(key));
-      
-      
+
+
       if (!hasRobotoRegular) {
         throw new Error("Roboto Regular font eklenemedi");
       }
-      
+
       doc.addFont("Roboto-Bold.ttf", "Roboto", "bold");
-      
+
       // Font'un eklendiğini doğrula
       const fontListAfterBold = doc.getFontList();
       const hasRobotoBold = fontListAfterBold && Object.keys(fontListAfterBold).some((key) => isRobotoName(key));
-      
+
       if (!hasRobotoBold) {
         // Roboto Bold font eklenemedi, ama Regular yüklü
       }
@@ -940,12 +940,12 @@ const registerFonts = async (doc: jsPDFWithFontStatus) => {
     // Set default font ve test et
     try {
       doc.setFont("Roboto", "normal");
-      
+
       const fontAfterSet = doc.getFont();
     } catch (setFontError) {
       throw new Error("Font ayarlanamadı: " + setFontError);
     }
-    
+
     // Font'un gerçekten yüklendiğini test et - basit bir text yazmayı dene
     try {
       const fontList = doc.getFontList();
@@ -953,8 +953,8 @@ const registerFonts = async (doc: jsPDFWithFontStatus) => {
       const hasRoboto =
         fontList &&
         Object.keys(fontList).some((fontKey) => isRobotoName(fontKey));
-      
-      
+
+
       if (!hasRoboto) {
         throw new Error("Roboto font listesinde bulunamadı");
       }
@@ -963,7 +963,7 @@ const registerFonts = async (doc: jsPDFWithFontStatus) => {
       if (!currentFont || !isRobotoName(currentFont.fontName)) {
         throw new Error("Font ayarlandı ama font name eşleşmiyor");
       }
-      
+
       // Türkçe karakter testi - "İğüşöç" karakterlerini test et - daha kapsamlı test
       // Özellikle ş, ç, ğ, İ karakterlerini test et (kullanıcının belirttiği karakterler)
       let turkishTestPassed = false;
@@ -972,7 +972,7 @@ const registerFonts = async (doc: jsPDFWithFontStatus) => {
         // Test text'i yaz (görünmez bir yere) - tüm Türkçe karakterleri test et
         // Özellikle ş, ç, ğ, İ karakterlerini test et (kullanıcının belirttiği karakterler)
         const testText = "İğüşöçÇĞÜŞÖÇşçğİŞÇĞ";
-        
+
         // Font'u tekrar ayarla ve test et - daha agresif
         for (let i = 0; i < 5; i++) {
           try {
@@ -981,7 +981,7 @@ const registerFonts = async (doc: jsPDFWithFontStatus) => {
             const checkFont = doc.getFont();
             if (checkFont && isRobotoName(checkFont.fontName)) {
               // Font Roboto, test text'i yaz
-          doc.text(testText, -1000, -1000);
+              doc.text(testText, -1000, -1000);
               turkishTestPassed = true;
               break;
             }
@@ -989,7 +989,7 @@ const registerFonts = async (doc: jsPDFWithFontStatus) => {
             // Tekrar dene
           }
         }
-        
+
         if (!turkishTestPassed) {
           // Türkçe karakter testi başarısız, ama font yüklü olabilir
           // Font listesini kontrol et
@@ -1004,7 +1004,7 @@ const registerFonts = async (doc: jsPDFWithFontStatus) => {
             // Font listesi alınamadı
           }
         }
-        
+
         // Font'un gerçekten çalıştığını doğrula
         const verifyFont = doc.getFont();
         if (verifyFont && isRobotoName(verifyFont.fontName) && turkishTestPassed) {
@@ -1023,13 +1023,13 @@ const registerFonts = async (doc: jsPDFWithFontStatus) => {
         // Ama yine de font yüklü olabilir, bu yüzden devam et
         // Font listesinde varsa kabul et
         try {
-        const fontList = doc.getFontList();
+          const fontList = doc.getFontList();
           const hasRoboto = fontList && Object.keys(fontList).some((key) => isRobotoName(key));
-        const currentFont = doc.getFont();
-        if (hasRoboto && currentFont && isRobotoName(currentFont.fontName)) {
-          doc._robotoFontLoaded = true;
+          const currentFont = doc.getFont();
+          if (hasRoboto && currentFont && isRobotoName(currentFont.fontName)) {
+            doc._robotoFontLoaded = true;
             doc._robotoFontLoadFailed = false;
-        } else {
+          } else {
             throw new Error("Font test başarısız: " + textWriteError);
           }
         } catch (finalError) {
@@ -1060,7 +1060,7 @@ const safeSetFont = (doc: jsPDFWithFontStatus, style: "normal" | "bold" = "norma
   }
 
   // Roboto font'unu zorla ayarla - daha agresif yaklaşım
-  
+
   let attempts = 0;
   let fontSet = false;
   const maxAttempts = 3;
@@ -1069,7 +1069,7 @@ const safeSetFont = (doc: jsPDFWithFontStatus, style: "normal" | "bold" = "norma
     try {
       // Roboto font'unu kullanmayı dene
       doc.setFont("Roboto", style);
-      
+
       // Font'un gerçekten ayarlandığını kontrol et - daha sıkı kontrol
       const currentFont = doc.getFont();
       if (currentFont && isRobotoName(currentFont.fontName)) {
@@ -1090,7 +1090,7 @@ const safeSetFont = (doc: jsPDFWithFontStatus, style: "normal" | "bold" = "norma
           }
         }
       }
-      
+
       attempts++;
       if (attempts < maxAttempts) {
         // Kısa bir bekleme (synchronous delay simülasyonu)
@@ -1127,7 +1127,7 @@ const safeSetFont = (doc: jsPDFWithFontStatus, style: "normal" | "bold" = "norma
 // Güçlendirilmiş Tipografi Ayarları
 const applyDocumentTypography = (doc: jsPDFWithFontStatus) => {
   doc.setLineHeightFactor(1.5); // Profesyonel satır aralığı (1.4 → 1.5)
-  
+
   // Font'u ÇOK AGRESİF şekilde ayarla - MUTLAKA Roboto kullan
   if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
     // Font'u 10 kez deneyerek zorla Roboto olarak ayarla
@@ -1144,7 +1144,7 @@ const applyDocumentTypography = (doc: jsPDFWithFontStatus) => {
         // Tekrar dene
       }
     }
-    
+
     if (!fontSet) {
       // Font ayarlanamadı, Helvetica'ya geç
       doc.setFont("helvetica", "normal");
@@ -1159,7 +1159,7 @@ const applyDocumentTypography = (doc: jsPDFWithFontStatus) => {
   } else {
     doc.setFont("helvetica", "normal");
   }
-  
+
   doc.setFontSize(11); // Profesyonel font boyutu
 };
 
@@ -1191,7 +1191,7 @@ const getFontName = (doc?: jsPDFWithFontStatus): string => {
       if (currentFont && isRobotoName(currentFont.fontName)) {
         return "Roboto";
       }
-      
+
       // Font listesini kontrol et
       const fontList = doc?.getFontList();
       if (fontList && Object.keys(fontList).some((key) => isRobotoName(key))) {
@@ -1231,7 +1231,7 @@ interface CellHookData {
       font?: string;
       fontStyle?: string;
       fontSize?: number;
-  };
+    };
     x?: number;
     y?: number;
     width?: number;
@@ -1252,23 +1252,23 @@ interface CellHookData {
 const createWillDrawCell = (doc: jsPDFWithFontStatus) => {
   return (data: CellHookData) => {
     if (!data.cell) return;
-    
+
     const cell = data.cell;
-    
+
     // Font style'ı belirle
     const fontStyle = (cell.fontStyle === "bold" || cell.styles?.fontStyle === "bold" || cell.styles?.font === "bold") ? "bold" : "normal";
-    
+
     // Eğer Roboto font yüklüyse, font'u zorla ayarla
     if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
       try {
         // Font'u güvenli şekilde ayarla - daha agresif
         safeSetFont(doc, fontStyle);
-        
+
         // Font'un gerçekten Roboto olduğunu kontrol et - daha sıkı kontrol
         let attempts = 0;
         let fontVerified = false;
         const maxAttempts = 10;
-        
+
         while (attempts < maxAttempts && !fontVerified) {
           try {
             doc.setFont("Roboto", fontStyle);
@@ -1283,17 +1283,17 @@ const createWillDrawCell = (doc: jsPDFWithFontStatus) => {
             if (attempts >= maxAttempts) break;
           }
         }
-        
+
         // cell.styles'i mutlaka ayarla
         if (!cell.styles) {
           cell.styles = {};
         }
-        
+
         if (fontVerified) {
           // Font Roboto - cell.styles.font kullan (willDrawCell'de bu daha etkili)
           cell.styles.font = "Roboto";
           cell.styles.fontStyle = fontStyle;
-          
+
           // jsPDF'in Roboto font'u ile Türkçe karakter desteği sınırlı
           // Bu yüzden her zaman transliterate ediyoruz
           if (cell.text && typeof cell.text === 'string') {
@@ -1367,7 +1367,7 @@ const createWillDrawCell = (doc: jsPDFWithFontStatus) => {
           // Font Roboto değilse, Helvetica'ya geç
           cell.styles.font = "helvetica";
           cell.styles.fontStyle = fontStyle;
-          
+
           // Helvetica Türkçe karakterleri desteklemiyor, transliterate et
           if (cell.text && typeof cell.text === 'string') {
             try {
@@ -1380,12 +1380,12 @@ const createWillDrawCell = (doc: jsPDFWithFontStatus) => {
               cell.text = (cell.text as string[]).map((item: unknown): string => {
                 if (typeof item === 'string') {
                   return transliterateTurkish(item);
-          }
+                }
                 return String(item);
               });
             } catch {
               // Text değiştirilemez, devam et
-        }
+            }
           }
         }
       } catch {
@@ -1403,15 +1403,15 @@ const createWillDrawCell = (doc: jsPDFWithFontStatus) => {
       }
       cell.styles.font = "helvetica";
       cell.styles.fontStyle = fontStyle;
-      
+
       // Helvetica Türkçe karakterleri desteklemiyor, transliterate et
       if (cell.text) {
         if (typeof cell.text === 'string') {
-        try {
-          cell.text = transliterateTurkish(cell.text);
-        } catch {
-          // Text değiştirilemez, devam et
-        }
+          try {
+            cell.text = transliterateTurkish(cell.text);
+          } catch {
+            // Text değiştirilemez, devam et
+          }
         } else if (Array.isArray(cell.text)) {
           try {
             cell.text = (cell.text as string[]).map((item: unknown): string => {
@@ -1461,20 +1461,20 @@ const formatDate = (dateStr: string) => {
     const day = date.getDate();
     const monthIndex = date.getMonth();
     const year = date.getFullYear();
-    
+
     // Geçerli değerler kontrolü - tüm değerlerin geçerli olduğundan emin ol
-    if (isNaN(day) || isNaN(monthIndex) || isNaN(year) || 
-        monthIndex < 0 || monthIndex > 11 || 
-        day < 1 || day > 31 || 
-        year < 1900 || year > 2100) {
+    if (isNaN(day) || isNaN(monthIndex) || isNaN(year) ||
+      monthIndex < 0 || monthIndex > 11 ||
+      day < 1 || day > 31 ||
+      year < 1900 || year > 2100) {
       return "-";
     }
-    
+
     const month = months[monthIndex];
     if (!month) {
       return "-";
     }
-    
+
     return `${day} ${month} ${year}`;
   } catch (error) {
     return "-";
@@ -1502,17 +1502,17 @@ const ensureSpace = (
 ) => {
   const pageHeight = doc.internal.pageSize.getHeight();
   const footerHeight = PDF_CONSTANTS.footerHeight;
-  
+
   // Daha fazla boşluk bırak (70pt ekstra - 50pt'den artırıldı)
   const minSpaceNeeded = requiredHeight + 70;
   if (currentY + minSpaceNeeded > pageHeight - footerHeight - margin) {
     doc.addPage();
     let nextY = margin + 30; // Üstten 30pt daha fazla boşluk (20pt'den artırıldı)
-    
+
     // Yeni sayfada template'i uygula
     const template = createPDFTemplate(doc as jsPDFWithFontStatus);
     drawPDFBackground(doc as jsPDFWithFontStatus, template);
-    
+
     if (titleForNextPage) {
       const safeText = createSafeText(doc as jsPDFWithFontStatus);
       safeSetFont(doc as jsPDFWithFontStatus, "bold");
@@ -1542,9 +1542,9 @@ const safeNumber = (value: unknown): number => {
 const safeFormatCurrency = (value: number): string => {
   const safeVal = safeNumber(value);
   // Daha okunabilir format: binlik ayırıcılar ve 2 ondalık basamak
-  const formatted = safeVal.toLocaleString("tr-TR", { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
+  const formatted = safeVal.toLocaleString("tr-TR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   });
   return `₺${formatted}`;
 };
@@ -1667,7 +1667,7 @@ const drawSummaryBlock = (
 
   rows.forEach((row) => {
     safeText(row.label, x + padding, cursorY, 10, true);
-    
+
     const valueWidth = doc.getTextWidth(row.value);
     safeText(row.value, x + width - padding - valueWidth, cursorY, row.isAccent ? 11 : 11, row.isAccent);
     cursorY += 20;
@@ -1694,11 +1694,11 @@ const drawPDFHeader = (doc: jsPDFWithFontStatus, template: PDFTemplateLayout, ti
   const logoSize = PDF_CONSTANTS.logoSize;
   const [primaryR, primaryG, primaryB] = PDF_CONSTANTS.primaryColor;
   const [mutedR, mutedG, mutedB] = PDF_CONSTANTS.mutedColor;
-  
+
   // Header çizgisi header içeriğinden SONRA çizilecek (drawPDFHeader içinde)
-  
+
   const safeText = createSafeText(doc);
-  
+
   // Font'u Roboto olarak ayarla
   if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
     for (let i = 0; i < 10; i++) {
@@ -1713,15 +1713,15 @@ const drawPDFHeader = (doc: jsPDFWithFontStatus, template: PDFTemplateLayout, ti
       }
     }
   }
-  
+
   // YENİ HEADER TASARIMI: Logo sol, Başlık orta, Tarih/Şirket bilgileri sağ
-  
-  // === SOL TARAF: Logo ve REVIUM (en solda, margin içinde) ===
+
+  // === SOL TARAF: Logo ve TURKUAST (en solda, margin içinde) ===
   const logoX = mar; // En solda, margin'den başlar
   const logoY = 35; // Üstten 35px (25 → 35, üstte ek boşluk)
   const logoFramePadding = 2; // Çerçeve padding'i
   const logoFrameSize = logoSize + (logoFramePadding * 2); // Çerçeve boyutu
-  
+
   // Logo için arka plan kutusu - minimal
   doc.setFillColor(255, 255, 255);
   doc.roundedRect(logoX - logoFramePadding, logoY - logoFramePadding, logoFrameSize, logoFrameSize, 4, 4, "F");
@@ -1730,16 +1730,16 @@ const drawPDFHeader = (doc: jsPDFWithFontStatus, template: PDFTemplateLayout, ti
   doc.setLineWidth(1);
   doc.roundedRect(logoX - logoFramePadding, logoY - logoFramePadding, logoFrameSize, logoFrameSize, 4, 4, "S");
   doc.setGState(doc.GState({ opacity: 1 }));
-  
+
   try {
-    doc.addImage(REV_LOGO_DATA_URI, 'PNG', logoX, logoY, logoSize, logoSize);
+    doc.addImage(TURKUAST_LOGO_BASE64, 'PNG', logoX, logoY, logoSize, logoSize);
   } catch (error) {
     // Logo eklenemezse sessizce devam et
   }
-  
-  // REVIUM brand name - logonun ÇERÇEVESİNİN altında ORTALANMIŞ
+
+  // TURKUAST brand name - logonun ÇERÇEVESİNİN altında ORTALANMIŞ
   doc.setTextColor(primaryR, primaryG, primaryB);
-  // REVIUM text genişliğini hesapla ve logonun çerçevesinin ortasına hizala
+  // TURKUAST text genişliğini hesapla ve logonun çerçevesinin ortasına hizala
   if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
     doc.setFont("Roboto", "bold");
     doc.setFontSize(14);
@@ -1747,16 +1747,16 @@ const drawPDFHeader = (doc: jsPDFWithFontStatus, template: PDFTemplateLayout, ti
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
   }
-  const reviumTextWidth = doc.getTextWidth("REVIUM");
-  const reviumX = logoX - logoFramePadding + (logoFrameSize / 2) - (reviumTextWidth / 2); // Çerçeve ortasına hizala
-  const reviumY = logoY + logoSize + logoFramePadding + 12; // Logo + çerçeve altından 12px aşağı (6 → 12, daha aşağı)
-  safeText("REVIUM", reviumX, reviumY, 14, true);
+  const turkuastTextWidth = doc.getTextWidth("TURKUAST");
+  const turkuastX = logoX - logoFramePadding + (logoFrameSize / 2) - (turkuastTextWidth / 2); // Çerçeve ortasına hizala
+  const turkuastY = logoY + logoSize + logoFramePadding + 12; // Logo + çerçeve altından 12px aşağı (6 → 12, daha aşağı)
+  safeText("TURKUAST", turkuastX, turkuastY, 14, true);
   doc.setTextColor(0, 0, 0);
-  
+
   // === ORTA TARAF: Başlık (sayfa genişliğinde ortalanmış) ===
   // Başlığı sayfa genişliğinde ortala
   const titleY = 45; // Üstten 45px (35 → 45, üstte ek boşluk)
-  
+
   // Report title - dinamik (sayfa genişliğinde ortada)
   doc.setTextColor(primaryR, primaryG, primaryB);
   if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
@@ -1776,13 +1776,13 @@ const drawPDFHeader = (doc: jsPDFWithFontStatus, template: PDFTemplateLayout, ti
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
   }
-  
+
   // Başlık genişliğini hesapla ve sayfa genişliğinde ortala
   const titleWidth = doc.getTextWidth(title);
   const titleStartX = (pageWidth - titleWidth) / 2; // Sayfa genişliğinin ortası
-  
+
   safeText(title, titleStartX, titleY, 22, true);
-  
+
   // Title altında ince çizgi
   doc.setDrawColor(primaryR, primaryG, primaryB);
   doc.setGState(doc.GState({ opacity: 0.2 }));
@@ -1790,11 +1790,11 @@ const drawPDFHeader = (doc: jsPDFWithFontStatus, template: PDFTemplateLayout, ti
   doc.line(titleStartX, titleY + 7, titleStartX + titleWidth, titleY + 7);
   doc.setGState(doc.GState({ opacity: 1 }));
   doc.setTextColor(0, 0, 0);
-  
+
   // === SAĞ TARAF: Tarih (en üst) ve Şirket Bilgileri (altında) ===
   const rightSectionX = pageWidth - mar - 200; // Sağdan 200px içeride (taşmaması için)
   let rightSectionY = 30; // En üstten başlar (20 → 30, üstte ek boşluk)
-  
+
   // Telefon numarası genişliğini hesapla (referans pozisyon için - önce hesapla)
   if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
     doc.setFont("Roboto", "normal");
@@ -1806,7 +1806,7 @@ const drawPDFHeader = (doc: jsPDFWithFontStatus, template: PDFTemplateLayout, ti
   const phoneText = "+90 (551) 829-1613";
   const phoneTextWidth = doc.getTextWidth(phoneText);
   const phoneX = pageWidth - mar - phoneTextWidth; // Sağa hizalı - referans pozisyon
-  
+
   // "2025" metninin genişliğini hesapla (sağa kaydırma miktarı için)
   if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
     doc.setFont("Roboto", "normal");
@@ -1818,31 +1818,31 @@ const drawPDFHeader = (doc: jsPDFWithFontStatus, template: PDFTemplateLayout, ti
   const year2025Width = doc.getTextWidth("2025");
   // Tüm bilgileri "2025" genişliği kadar sağa kaydır
   const rightInfoX = phoneX - year2025Width;
-  
+
   // 1. TARİH BİLGİLERİ - Telefon numarasıyla aynı hizaya alındı, "2025" genişliği kadar sağa kaydırıldı
   doc.setTextColor(mutedR, mutedG, mutedB);
-  
+
   if (startDate && endDate) {
     // Dönem bilgisi - sağa kaydırılmış pozisyon
     safeText(`Dönem: ${formatDateShort(startDate)} - ${formatDateShort(endDate)}`, rightInfoX, rightSectionY, 9, false);
-    
+
     // Rapor tarihi (altında, sağa kaydırılmış pozisyon)
     rightSectionY += 12; // Bir sonraki satır için boşluk
     safeText(`Tarih: ${reportDate}`, rightInfoX, rightSectionY, 9, true);
-    
+
     rightSectionY += 15; // Şirket bilgileri için boşluk
   } else {
     // Sadece rapor tarihi varsa
     safeText(`Tarih: ${reportDate}`, rightInfoX, rightSectionY, 9, true);
-    
+
     rightSectionY += 15; // Şirket bilgileri için boşluk
   }
-  
+
   doc.setTextColor(0, 0, 0);
-  
+
   // 2. ŞİRKET BİLGİLERİ - Tarih altında, YETERLİ BOŞLUKLA (sağa kaydırılmış pozisyon)
   let companyInfoY = rightSectionY; // Tarih bilgilerinden sonra başlar
-  
+
   // Tüm bilgiler sağa kaydırılmış X pozisyonundan hizalı
   doc.setTextColor(mutedR, mutedG, mutedB);
   // Adres - ilk satır (Milenyum Cad. alt satıra alındı)
@@ -1853,10 +1853,10 @@ const drawPDFHeader = (doc: jsPDFWithFontStatus, template: PDFTemplateLayout, ti
   safeText(COMPANY_INFO.city, rightInfoX, companyInfoY, 8, false); // Sağa kaydırılmış pozisyon
   companyInfoY += 10;
   // Email - alt satırda (sağa kaydırılmış pozisyon)
-  safeText("info@reviumtech.com", rightInfoX, companyInfoY, 8, false);
+  safeText("info@turkuast.com", rightInfoX, companyInfoY, 8, false);
   companyInfoY += 10;
   // Website - alt satırda (sağa kaydırılmış pozisyon)
-  safeText("www.reviumtech.com", rightInfoX, companyInfoY, 8, false);
+  safeText("www.turkuast.com", rightInfoX, companyInfoY, 8, false);
   companyInfoY += 10;
   // Telefon numarası - sağa kaydırılmış pozisyon (ama telefon numarası kendisi sağa hizalı kalacak)
   // Telefon numarasını sağa hizalı tutmak için, rightInfoX'ten başlayıp genişliğini hesaplayarak sağa hizala
@@ -1870,23 +1870,23 @@ const drawPDFHeader = (doc: jsPDFWithFontStatus, template: PDFTemplateLayout, ti
   const phoneXAligned = rightInfoX; // Sağa kaydırılmış pozisyon, ama telefon numarası kendisi sağa hizalı değil, soldan başlıyor
   safeText(phoneText, phoneXAligned, companyInfoY, 8, false);
   doc.setTextColor(0, 0, 0);
-  
-  // Header'ın son pozisyonunu hesapla (sol taraftaki logo+REVIUM veya sağ taraftaki şirket bilgileri, hangisi daha aşağıdaysa)
-  const leftSectionEndY = reviumY + 8; // REVIUM yazısı + boşluk (daha aşağıda olduğu için)
+
+  // Header'ın son pozisyonunu hesapla (sol taraftaki logo+TURKUAST veya sağ taraftaki şirket bilgileri, hangisi daha aşağıdaysa)
+  const leftSectionEndY = turkuastY + 8; // TURKUAST yazısı + boşluk (daha aşağıda olduğu için)
   const headerEndY = Math.max(leftSectionEndY, companyInfoY + 8); // Her iki taraftan da en aşağıdaki pozisyon
-  
+
   // Header alt çizgisi - header içeriğinden SONRA çiz (istatistiklerin üstünde olması için)
   doc.setDrawColor(primaryR, primaryG, primaryB);
   doc.setLineWidth(2);
   doc.line(mar, headerEndY + 5, pageWidth - mar, headerEndY + 5); // Header içeriğinden 5px aşağıda
-  
+
   // Dekoratif çizgi - sabit (daha hafif)
   doc.setDrawColor(primaryR, primaryG, primaryB);
   doc.setGState(doc.GState({ opacity: 0.2 }));
   doc.setLineWidth(1);
   doc.line(mar, headerEndY + 8, pageWidth - mar, headerEndY + 8); // Ana çizgiden 3px aşağıda
   doc.setGState(doc.GState({ opacity: 1 }));
-  
+
   // Template'in contentStartY'sini güncelle - header'dan sonra yeterli boşluk (altında ek boşluk)
   return headerEndY + 50; // Header'dan sonra 50px boşluk (30 → 50, altında ek boşluk, içerik aşağı kaydırıldı)
 };
@@ -1899,34 +1899,34 @@ const drawPDFFooter = (doc: jsPDFWithFontStatus, template: PDFTemplateLayout, pa
   const footerLogoSize = PDF_CONSTANTS.footerLogoSize;
   const [primaryR, primaryG, primaryB] = PDF_CONSTANTS.primaryColor;
   const [mutedR, mutedG, mutedB] = PDF_CONSTANTS.mutedColor;
-  
+
   // Footer üst çizgisi - sabit (daha ince ve profesyonel)
   doc.setDrawColor(primaryR, primaryG, primaryB);
   doc.setLineWidth(1.5); // Daha ince: 2 → 1.5
   doc.line(mar, footerY - 18, pageWidth - mar, footerY - 18);
-  
+
   // Dekoratif çizgi - sabit (daha hafif)
   doc.setDrawColor(primaryR, primaryG, primaryB);
   doc.setGState(doc.GState({ opacity: 0.2 })); // Daha hafif: 0.3 → 0.2
   doc.setLineWidth(1);
   doc.line(mar, footerY - 15, pageWidth - mar, footerY - 15);
   doc.setGState(doc.GState({ opacity: 1 }));
-  
+
   const safeText = createSafeText(doc);
-  
+
   // Footer bilgileri - sol taraf - sabit bilgiler, cache'lenmiş
   doc.setTextColor(mutedR, mutedG, mutedB);
   safeText(COMPANY_INFO.name, mar, footerY, 10, true);
   safeText(COMPANY_INFO.fullAddress, mar, footerY + 12, 9, false);
   safeText(COMPANY_INFO.contactInfo, mar, footerY + 24, 9, false);
   doc.setTextColor(0, 0, 0);
-  
+
   // Sayfa numarası kaldırıldı - kullanıcı isteği
-  
+
   // Footer logo - sabit komponent
   const footerLogoX = pageWidth - mar - footerLogoSize - 120;
   const footerLogoY = footerY - 3;
-  
+
   // Logo için arka plan kutusu - sabit
   try {
     doc.setFillColor(255, 255, 255);
@@ -1936,15 +1936,15 @@ const drawPDFFooter = (doc: jsPDFWithFontStatus, template: PDFTemplateLayout, pa
     doc.setLineWidth(1);
     doc.roundedRect(footerLogoX - 3, footerLogoY - 3, footerLogoSize + 6, footerLogoSize + 6, 4, 4, "S");
     doc.setGState(doc.GState({ opacity: 1 }));
-    
+
     try {
-      doc.addImage(REV_LOGO_DATA_URI, 'PNG', footerLogoX, footerLogoY, footerLogoSize, footerLogoSize);
+      doc.addImage(TURKUAST_LOGO_BASE64, 'PNG', footerLogoX, footerLogoY, footerLogoSize, footerLogoSize);
     } catch (error) {
       // Logo eklenemezse sessizce devam et
     }
-    
+
     doc.setTextColor(primaryR, primaryG, primaryB);
-    safeText("REVIUM", footerLogoX + footerLogoSize + 8, footerY + 10, 12, true);
+    safeText("TURKUAST", footerLogoX + footerLogoSize + 8, footerY + 10, 12, true);
     doc.setTextColor(0, 0, 0);
   } catch (logoError) {
   }
@@ -1960,16 +1960,16 @@ const applyPDFTemplate = (
 ): PDFTemplateLayout => {
   // Template layout'u oluştur
   const template = createPDFTemplate(doc);
-  
+
   // Arka planı çiz (sabit)
   drawPDFBackground(doc, template);
-  
+
   // Header'ı çiz (sabit + dinamik)
   const contentStartY = drawPDFHeader(doc, template, title, reportDate, startDate, endDate);
-  
+
   // Content area'yı güncelle (header'dan sonraki gerçek başlangıç pozisyonu)
   template.contentArea.startY = contentStartY;
-  
+
   return template;
 };
 
@@ -1977,26 +1977,26 @@ const applyPDFTemplate = (
 const applyPDFTemplateToNewPage = (doc: jsPDFWithFontStatus, template: PDFTemplateLayout) => {
   // Yeni sayfa için template'i yeniden hesapla
   const newTemplate = createPDFTemplate(doc);
-  
+
   // Arka planı çiz
   drawPDFBackground(doc, newTemplate);
-  
+
   // Header'ı çiz (sadece sabit kısımlar, dinamik içerik yok)
   const mar = PDF_CONSTANTS.margin;
   const pageWidth = doc.internal.pageSize.getWidth();
   const logoSize = PDF_CONSTANTS.logoSize;
   const [primaryR, primaryG, primaryB] = PDF_CONSTANTS.primaryColor;
   const [mutedR, mutedG, mutedB] = PDF_CONSTANTS.mutedColor;
-  
+
   // Header alt çizgisi
   doc.setDrawColor(primaryR, primaryG, primaryB);
   doc.setLineWidth(3);
   doc.line(mar, newTemplate.header.endY, pageWidth - mar, newTemplate.header.endY);
-  
+
   // Logo ve şirket bilgileri (sadece sabit kısımlar)
   const rightX = pageWidth - mar - 200;
   const logoY = 28;
-  
+
   doc.setFillColor(255, 255, 255);
   doc.roundedRect(rightX - 5, logoY - 5, logoSize + 10, logoSize + 10, 4, 4, "F");
   doc.setDrawColor(primaryR, primaryG, primaryB);
@@ -2004,22 +2004,22 @@ const applyPDFTemplateToNewPage = (doc: jsPDFWithFontStatus, template: PDFTempla
   doc.setLineWidth(1);
   doc.roundedRect(rightX - 5, logoY - 5, logoSize + 10, logoSize + 10, 4, 4, "S");
   doc.setGState(doc.GState({ opacity: 1 }));
-  
+
   try {
-    doc.addImage(REV_LOGO_DATA_URI, 'PNG', rightX, logoY, logoSize, logoSize);
+    doc.addImage(TURKUAST_LOGO_BASE64, 'PNG', rightX, logoY, logoSize, logoSize);
   } catch (error) {
     // Logo eklenemezse sessizce devam et
   }
-  
+
   const safeText = createSafeText(doc);
   doc.setTextColor(primaryR, primaryG, primaryB);
-  safeText("REVIUM", rightX + logoSize + 10, 58, 24, true);
+  safeText("TURKUAST", rightX + logoSize + 10, 58, 24, true);
   doc.setTextColor(mutedR, mutedG, mutedB);
   safeText(COMPANY_INFO.headerAddress, rightX, 75, 10, false);
   safeText(COMPANY_INFO.city, rightX, 87, 10, false);
   safeText(COMPANY_INFO.contactInfo, rightX, 99, 10, false);
   doc.setTextColor(0, 0, 0);
-  
+
   return newTemplate;
 };
 
@@ -2044,10 +2044,10 @@ interface SalesReportData {
 
 export const generateSalesReportPDF = async (data: SalesReportData, startDate: string, endDate: string) => {
   const doc = createPdf({ format: "a4", unit: "pt" });
-  
+
   // Font'u MUTLAKA yükle - daha agresif yaklaşım
   try {
-  await registerFonts(doc);
+    await registerFonts(doc);
   } catch (fontError) {
     // Font yükleme hatası, tekrar dene
     try {
@@ -2056,7 +2056,7 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
       // İkinci deneme de başarısız, devam et
     }
   }
-  
+
   // Font'un gerçekten yüklendiğini doğrula - daha agresif kontrol
   if (!doc._robotoFontLoaded || doc._robotoFontLoadFailed) {
     // Font yüklenemedi, tekrar dene
@@ -2066,35 +2066,13 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
       // Font yüklenemedi, devam et
     }
   }
-  
+
   // Font'u zorla Roboto olarak ayarla
   if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
     for (let i = 0; i < 10; i++) {
       try {
         doc.setFont("Roboto", "normal");
-      const currentFont = doc.getFont();
-      if (currentFont && isRobotoName(currentFont.fontName)) {
-        break;
-      }
-      } catch {
-        // Tekrar dene
-    }
-    }
-  }
-  
-  applyDocumentTypography(doc);
-  
-  const reportDate = formatDate(new Date().toISOString());
-  
-  // PDF Template'i uygula - sabit layout + dinamik içerik
-  const template = applyPDFTemplate(doc, "SATIŞ RAPORU", reportDate, startDate, endDate);
-  
-  // Font'u tekrar kontrol et ve ayarla
-  if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
-    for (let i = 0; i < 5; i++) {
-      try {
-        doc.setFont("Roboto", "normal");
-    const currentFont = doc.getFont();
+        const currentFont = doc.getFont();
         if (currentFont && isRobotoName(currentFont.fontName)) {
           break;
         }
@@ -2103,23 +2081,45 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
       }
     }
   }
-  
+
+  applyDocumentTypography(doc);
+
+  const reportDate = formatDate(new Date().toISOString());
+
+  // PDF Template'i uygula - sabit layout + dinamik içerik
+  const template = applyPDFTemplate(doc, "SATIŞ RAPORU", reportDate, startDate, endDate);
+
+  // Font'u tekrar kontrol et ve ayarla
+  if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
+    for (let i = 0; i < 5; i++) {
+      try {
+        doc.setFont("Roboto", "normal");
+        const currentFont = doc.getFont();
+        if (currentFont && isRobotoName(currentFont.fontName)) {
+          break;
+        }
+      } catch {
+        // Tekrar dene
+      }
+    }
+  }
+
   // Dinamik içerik alanından başla (iyileştirilmiş spacing)
   let currentY = template.contentArea.startY + 5; // Header'dan sonra ekstra 5px boşluk
   const contentWidth = template.contentArea.width;
   const mar = template.contentArea.leftMargin;
-  
+
   const safeText = createSafeText(doc);
   const [primaryR, primaryG, primaryB] = PDF_CONSTANTS.primaryColor;
   const [mutedR, mutedG, mutedB] = PDF_CONSTANTS.mutedColor;
-  
+
   // İstatistik Kartları - Sabit tasarım, dinamik değerler (standardize edilmiş)
   const cardDimensions = calculateCardDimensions(contentWidth, 3);
   const cardWidth = cardDimensions.width;
   const cardGap = cardDimensions.gap;
   const cardHeight = PDF_CONSTANTS.cardHeight;
   let cardX = mar;
-  
+
   // Kart 1: Toplam Gelir - Web sayfasındaki gibi (aynı veriler)
   const totalRevenue = safeNumber(data.totalRevenue);
   // Web sayfasında avgOrderValue zaten hesaplanmış geliyor, aynısını kullan
@@ -2135,7 +2135,7 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
       value: TAILWIND_COLORS.primaryCardValue,
     },
   });
-  
+
   // Kart 2: Toplam Sipariş - profesyonel ve minimal (info)
   cardX += cardWidth + cardGap;
   const totalOrders = safeNumber(data.totalOrders);
@@ -2150,7 +2150,7 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
       value: TAILWIND_COLORS.infoCardValue,
     },
   });
-  
+
   // Kart 3: Aktif Müşteri - profesyonel ve minimal (success)
   cardX += cardWidth + cardGap;
   const activeCustomers = safeNumber(data.activeCustomers);
@@ -2165,9 +2165,9 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
       value: TAILWIND_COLORS.successCardValue,
     },
   });
-  
+
   currentY += cardHeight + PDF_CONSTANTS.sectionSpacing + 5; // Kartlar ve tablolar arası boşluk - iyileştirilmiş (ekstra 5px)
-  
+
   // Sipariş Durumu Dağılımı Tablosu - sabit başlık tasarımı (iyileştirilmiş)
   if (data.orders && data.orders.length > 0) {
     // Tablolar arası boşluk kontrolü
@@ -2178,7 +2178,7 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
       textColor: PDF_CONSTANTS.primaryColor, // Web: text-primary
       borderColor: [229, 231, 235], // Web: border-b (gray200)
     });
-    
+
     const statusMap = new Map<string, { count: number; total: number }>();
     data.orders?.forEach((order) => {
       const status = order.status || "Bilinmeyen";
@@ -2190,7 +2190,7 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
       stat.count += 1;
       stat.total += total;
     });
-    
+
     const statusLabels: Record<string, string> = {
       draft: "Taslak",
       pending: "Beklemede",
@@ -2205,7 +2205,7 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
       delivered: "Teslim Edildi",
       cancelled: "İptal",
     };
-    
+
     const totalOrders = data.orders.length;
     const statusTableData = Array.from(statusMap.entries())
       .sort((a, b) => b[1].count - a[1].count)
@@ -2215,7 +2215,7 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
         safeFormatCurrency(data.total),
         totalOrders > 0 ? `${((data.count / totalOrders) * 100).toFixed(1)}%` : "0%"
       ]);
-    
+
     // Profesyonel tablo stilleri kullan - Web sayfasındaki gibi
     const tableStyles = createProfessionalTableStyles(doc, {
       headerFontSize: 12,
@@ -2225,17 +2225,17 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
     // Web sayfasındaki tablo stilleri (zaten createProfessionalTableStyles'da ayarlandı)
     tableStyles.bodyStyles.overflow = 'linebreak';
     tableStyles.styles.overflow = 'linebreak';
-    
+
     // Sayfa sığma kontrolü
     currentY = ensureTableFitsPage(doc, currentY, 200, mar, "Sipariş Durumu Dağılımı");
-    
+
     // Tablo genişliğini sayfa genişliğine göre ayarla
     const currentPageWidth = doc.internal.pageSize.getWidth();
     const tableWidth = currentPageWidth - (mar * 2);
-    
+
     // Font'u zorla Roboto olarak ayarla (autoTable öncesi)
     forceRobotoFont(doc, "normal");
-    
+
     autoTable(doc, {
       startY: currentY,
       head: transliterateTableData([['Durum', 'Sipariş Sayısı', 'Toplam Tutar', 'Oran']]),
@@ -2251,7 +2251,7 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
         3: { cellWidth: tableWidth * 0.20, halign: "center", fontStyle: "bold", textColor: [107, 114, 128] }, // Ortalanmış
       },
     });
-    
+
     // Tablo sonrası currentY'yi güvenli şekilde güncelle - yeterli boşluk
     const tableEndY = doc.lastAutoTable?.finalY;
     if (tableEndY && tableEndY > currentY) {
@@ -2260,7 +2260,7 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
       currentY += PDF_CONSTANTS.tableSpacing; // Fallback: eğer lastAutoTable yoksa
     }
   }
-  
+
   // En Çok Satan Ürünler Tablosu - sabit başlık tasarımı
   if (data.topProducts && data.topProducts.length > 0) {
     // Tablolar arası boşluk kontrolü
@@ -2271,7 +2271,7 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
       textColor: PDF_CONSTANTS.primaryColor, // Web: text-primary
       borderColor: [229, 231, 235], // Web: border-b (gray200)
     });
-    
+
     // Web sayfasındaki gibi - sadece ilk 10 ürün, TOPLAM satırı yok
     const topProductsData = data.topProducts?.slice(0, 10).map((p, index: number) => [
       `#${index + 1}`,
@@ -2279,7 +2279,7 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
       safeNumber(p.quantity).toString(),
       safeFormatCurrency(safeNumber(p.revenue))
     ]) || [];
-    
+
     // Profesyonel tablo stilleri kullan - Web sayfasındaki gibi
     const tableStyles2 = createProfessionalTableStyles(doc, {
       headerFontSize: 12,
@@ -2289,17 +2289,17 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
     // Web sayfasındaki tablo stilleri (zaten createProfessionalTableStyles'da ayarlandı)
     tableStyles2.bodyStyles.overflow = 'linebreak';
     tableStyles2.styles.overflow = 'linebreak';
-    
+
     // Sayfa sığma kontrolü
     currentY = ensureTableFitsPage(doc, currentY, 200, mar, "En Çok Satan Ürünler");
-    
+
     // Tablo genişliğini sayfa genişliğine göre ayarla
     const currentPageWidth2 = doc.internal.pageSize.getWidth();
     const tableWidth2 = currentPageWidth2 - (mar * 2);
-    
+
     // Font'u zorla Roboto olarak ayarla (autoTable öncesi)
     forceRobotoFont(doc, "normal");
-    
+
     autoTable(doc, {
       startY: currentY,
       head: transliterateTableData([['Sıra', 'Ürün Adı', 'Adet', 'Gelir']]),
@@ -2315,7 +2315,7 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
         3: { cellWidth: tableWidth2 * 0.25, halign: "center", fontStyle: "bold", textColor: PDF_CONSTANTS.primaryColor }, // Ortalanmış
       },
     });
-    
+
     // Tablo sonrası currentY'yi güvenli şekilde güncelle
     const tableEndY2 = doc.lastAutoTable?.finalY;
     if (tableEndY2 && tableEndY2 > currentY) {
@@ -2324,10 +2324,10 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
       currentY += PDF_CONSTANTS.tableSpacing;
     }
   }
-  
+
   // Web sayfasında sadece 3 bölüm var: Kartlar, Sipariş Durumu Dağılımı, En Çok Satan Ürünler
   // Ekstra bölümler (Müşteri Bazlı Analiz, Zaman Bazlı Analiz, Özet) kaldırıldı
-  
+
   // Sayfa numaralarını ekle - template footer kullan
   try {
     const totalPages = doc.internal.pages.length - 1;
@@ -2345,7 +2345,7 @@ export const generateSalesReportPDF = async (data: SalesReportData, startDate: s
   } catch (footerError) {
     // Footer hatası kritik değil, PDF'i yine de döndür
   }
-  
+
   // PDF'i güvenli bir şekilde oluştur
   try {
     const blob = doc.output('blob');
@@ -2372,10 +2372,10 @@ interface ProductionReportData {
 
 export const generateProductionReportPDF = async (data: ProductionReportData, startDate: string, endDate: string) => {
   const doc = createPdf({ format: "a4", unit: "pt" });
-  
+
   // Font'u MUTLAKA yükle - daha agresif yaklaşım
   try {
-  await registerFonts(doc);
+    await registerFonts(doc);
   } catch (fontError) {
     // Font yükleme hatası, tekrar dene
     try {
@@ -2384,7 +2384,7 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
       // İkinci deneme de başarısız, devam et
     }
   }
-  
+
   // Font'un gerçekten yüklendiğini doğrula - daha agresif kontrol
   if (!doc._robotoFontLoaded || doc._robotoFontLoadFailed) {
     // Font yüklenemedi, tekrar dene
@@ -2394,35 +2394,13 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
       // Font yüklenemedi, devam et
     }
   }
-  
+
   // Font'u zorla Roboto olarak ayarla
   if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
     for (let i = 0; i < 10; i++) {
       try {
         doc.setFont("Roboto", "normal");
-      const currentFont = doc.getFont();
-      if (currentFont && isRobotoName(currentFont.fontName)) {
-        break;
-      }
-      } catch {
-        // Tekrar dene
-    }
-    }
-  }
-  
-  applyDocumentTypography(doc);
-  
-  const reportDate = formatDate(new Date().toISOString()); // Dinamik
-  
-  // PDF Template'i uygula
-  const template = applyPDFTemplate(doc, "ÜRETİM RAPORU", reportDate, startDate, endDate);
-  
-  // Font'u tekrar kontrol et ve ayarla
-  if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
-    for (let i = 0; i < 5; i++) {
-      try {
-        doc.setFont("Roboto", "normal");
-    const currentFont = doc.getFont();
+        const currentFont = doc.getFont();
         if (currentFont && isRobotoName(currentFont.fontName)) {
           break;
         }
@@ -2431,22 +2409,44 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
       }
     }
   }
-  
+
+  applyDocumentTypography(doc);
+
+  const reportDate = formatDate(new Date().toISOString()); // Dinamik
+
+  // PDF Template'i uygula
+  const template = applyPDFTemplate(doc, "ÜRETİM RAPORU", reportDate, startDate, endDate);
+
+  // Font'u tekrar kontrol et ve ayarla
+  if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
+    for (let i = 0; i < 5; i++) {
+      try {
+        doc.setFont("Roboto", "normal");
+        const currentFont = doc.getFont();
+        if (currentFont && isRobotoName(currentFont.fontName)) {
+          break;
+        }
+      } catch {
+        // Tekrar dene
+      }
+    }
+  }
+
   // Dinamik içerik alanından başla
   let currentY = template.contentArea.startY;
   const contentWidth = template.contentArea.width;
   const mar = template.contentArea.leftMargin;
-  
+
   const safeText = createSafeText(doc);
   const [primaryR, primaryG, primaryB] = PDF_CONSTANTS.primaryColor;
   const [mutedR, mutedG, mutedB] = PDF_CONSTANTS.mutedColor;
-  
+
   // İstatistik Kartları - Profesyonel tasarım, dinamik değerler
   const cardWidth = (contentWidth - 32) / 3;
   const cardHeight = 110; // Daha ferah: 100 → 110
   const cardGap = 16;
   let cardX = mar;
-  
+
   // Kart 1: Toplam Sipariş - profesyonel ve sade
   const totalOrders = safeNumber(data.totalOrders);
   drawStatCard(doc, cardX, currentY, cardWidth, cardHeight, {
@@ -2460,7 +2460,7 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
       value: TAILWIND_COLORS.infoCardValue,
     },
   });
-  
+
   // Kart 2: Tamamlanan - profesyonel ve sade
   cardX += cardWidth + cardGap;
   const completed = safeNumber(data.completed);
@@ -2475,7 +2475,7 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
       value: TAILWIND_COLORS.successCardValue,
     },
   });
-  
+
   // Kart 3: Tamamlanma Oranı - profesyonel ve sade
   cardX += cardWidth + cardGap;
   const completionRate = safeNumber(data.completionRate);
@@ -2490,9 +2490,9 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
       value: TAILWIND_COLORS.primaryCardValue,
     },
   });
-  
+
   currentY += cardHeight + PDF_CONSTANTS.sectionSpacing; // Kartlar ve tablolar arası boşluk - standardize edilmiş
-  
+
   // Durum Dağılımı Tablosu - sabit başlık tasarımı
   if (data.statusDistribution) {
     // Tablolar arası boşluk kontrolü
@@ -2503,7 +2503,7 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
       textColor: PDF_CONSTANTS.primaryColor,
       borderColor: PDF_CONSTANTS.primaryColor,
     });
-    
+
     const statusLabels: Record<string, string> = {
       planned: "Planlandı",
       in_production: "Üretimde",
@@ -2511,7 +2511,7 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
       completed: "Tamamlandı",
       on_hold: "Beklemede"
     };
-    
+
     const totalOrders = safeNumber(data.totalOrders);
     const statusData = Object.entries(data.statusDistribution)
       .filter(([_, value]) => safeNumber(value as number) > 0)
@@ -2525,7 +2525,7 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
           percentage
         ];
       });
-    
+
     // Profesyonel tablo stilleri kullan
     const tableStyles = createProfessionalTableStyles(doc, {
       headerFontSize: 12,
@@ -2539,17 +2539,17 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
     tableStyles.headStyles.halign = "center";
     tableStyles.bodyStyles.overflow = 'linebreak';
     tableStyles.styles.overflow = 'linebreak';
-    
+
     // Sayfa sığma kontrolü
     currentY = ensureTableFitsPage(doc, currentY, 200, mar, "Durum Dağılımı");
-    
+
     // Tablo genişliğini sayfa genişliğine göre ayarla
     const currentPageWidth = doc.internal.pageSize.getWidth();
     const tableWidth = currentPageWidth - (mar * 2);
-    
+
     // Font'u zorla Roboto olarak ayarla (autoTable öncesi)
     forceRobotoFont(doc, "normal");
-    
+
     autoTable(doc, {
       startY: currentY,
       head: transliterateTableData([['Durum', 'Sipariş Sayısı', 'Oran']]),
@@ -2564,7 +2564,7 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
         2: { cellWidth: tableWidth * 0.25, halign: "right", fontStyle: "bold", textColor: [107, 114, 128] }, // %25
       },
     });
-    
+
     // Tablo sonrası currentY'yi güvenli şekilde güncelle - yeterli boşluk
     const tableEndY = doc.lastAutoTable?.finalY;
     if (tableEndY && tableEndY > currentY) {
@@ -2573,13 +2573,13 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
       currentY += PDF_CONSTANTS.tableSpacing; // Fallback: eğer lastAutoTable yoksa
     }
   }
-  
+
   // En Çok Üretilen Ürünler - daha vurgulu başlık
   if (data.topProducts && data.topProducts.length > 0) {
     // Tablo genişliğini sayfa genişliğine göre ayarla
     const pageWidthProd = doc.internal.pageSize.getWidth();
     const tableWidthProd = pageWidthProd - (mar * 2);
-    
+
     // Tablolar arası boşluk kontrolü
     currentY = ensureSpace(doc, currentY, 200, mar, "En Çok Üretilen Ürünler");
     currentY = drawTableHeader(doc, mar, currentY, tableWidthProd, {
@@ -2588,14 +2588,14 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
       textColor: PDF_CONSTANTS.primaryColor,
       borderColor: PDF_CONSTANTS.primaryColor,
     });
-    
+
     const topProductsData = data.topProducts?.slice(0, 10).map((p, index: number) => [
       `#${index + 1}`,
       p.name || '-',
       safeNumber(p.quantity).toString(),
       safeNumber(p.orders).toString()
     ]);
-    
+
     // Özet satırı ekle
     const totalQuantity = data.topProducts?.slice(0, 10).reduce((sum: number, p) => sum + safeNumber(p.quantity), 0) || 0;
     const totalOrders = data.topProducts?.slice(0, 10).reduce((sum: number, p) => sum + safeNumber(p.orders), 0) || 0;
@@ -2605,7 +2605,7 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
       totalQuantity.toString(),
       totalOrders.toString()
     ]);
-    
+
     // Profesyonel tablo stilleri kullan
     const tableStyles2 = createProfessionalTableStyles(doc, {
       headerFontSize: 12,
@@ -2617,17 +2617,17 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
     tableStyles2.headStyles.halign = "center";
     tableStyles2.bodyStyles.overflow = 'linebreak';
     tableStyles2.styles.overflow = 'linebreak';
-    
+
     // Sayfa sığma kontrolü
     currentY = ensureTableFitsPage(doc, currentY, 200, mar, "En Çok Üretilen Ürünler");
-    
+
     // Tablo genişliğini sayfa genişliğine göre ayarla
     const currentPageWidth2 = doc.internal.pageSize.getWidth();
     const tableWidth2 = currentPageWidth2 - (mar * 2);
-    
+
     // Font'u zorla Roboto olarak ayarla (autoTable öncesi)
     forceRobotoFont(doc, "normal");
-    
+
     autoTable(doc, {
       startY: currentY,
       head: transliterateTableData([['Sıra', 'Ürün Adı', 'Miktar', 'Sipariş Sayısı']]),
@@ -2643,7 +2643,7 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
         3: { cellWidth: tableWidth2 * 0.20, halign: "right", fontStyle: "bold" }, // %20
       },
     });
-    
+
     // Tablo sonrası currentY'yi güvenli şekilde güncelle - yeterli boşluk
     const tableEndY = doc.lastAutoTable?.finalY;
     if (tableEndY && tableEndY > currentY) {
@@ -2652,11 +2652,11 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
       currentY += PDF_CONSTANTS.tableSpacing; // Fallback: eğer lastAutoTable yoksa
     }
   }
-  
+
   // Üretim Verimliliği Analizi - Yeni detaylı bölüm
   if (data.topProducts && data.topProducts.length > 0) {
     currentY = ensureSpace(doc, currentY, 200, mar, "Üretim Verimliliği");
-    
+
     const efficiencyData = data.topProducts?.slice(0, 10).map((p, index: number) => {
       const quantity = safeNumber(p.quantity);
       const orders = safeNumber(p.orders);
@@ -2670,11 +2670,11 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
         avgPerOrder
       ];
     });
-    
+
     // Tablo genişliğini sayfa genişliğine göre ayarla
     const pageWidth3 = doc.internal.pageSize.getWidth();
     const tableWidth3 = pageWidth3 - (mar * 2);
-    
+
     // Tablolar arası boşluk kontrolü
     currentY = ensureSpace(doc, currentY, 200, mar, "Ürün Bazlı Üretim Verimliliği");
     currentY = drawTableHeader(doc, mar, currentY, tableWidth3, {
@@ -2683,7 +2683,7 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
       textColor: PDF_CONSTANTS.primaryColor,
       borderColor: PDF_CONSTANTS.primaryColor,
     });
-    
+
     // Profesyonel tablo stilleri kullan
     const tableStyles3 = createProfessionalTableStyles(doc, {
       headerFontSize: 12,
@@ -2695,14 +2695,14 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
     tableStyles3.headStyles.halign = "center";
     tableStyles3.bodyStyles.overflow = 'linebreak';
     tableStyles3.styles.overflow = 'linebreak';
-    
+
     // Sayfa sığma kontrolü
     currentY = ensureTableFitsPage(doc, currentY, 200, mar, "Ürün Bazlı Üretim Verimliliği");
-    
+
     // Tablo genişliğini sayfa genişliğine göre ayarla
     const currentPageWidth3 = doc.internal.pageSize.getWidth();
     const currentTableWidth3 = currentPageWidth3 - (mar * 2);
-    
+
     autoTable(doc, {
       startY: currentY,
       head: transliterateTableData([['Sıra', 'Ürün', 'Toplam Miktar', 'Sipariş', 'Ortalama/Sipariş']]),
@@ -2719,7 +2719,7 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
         4: { cellWidth: currentTableWidth3 * 0.19, halign: "right", textColor: [107, 114, 128] }, // %19
       },
     });
-    
+
     // Tablo sonrası currentY'yi güvenli şekilde güncelle - yeterli boşluk
     const tableEndY = doc.lastAutoTable?.finalY;
     if (tableEndY && tableEndY > currentY) {
@@ -2728,16 +2728,16 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
       currentY += PDF_CONSTANTS.tableSpacing; // Fallback: eğer lastAutoTable yoksa
     }
   }
-  
+
   // Özet Bölümü - sabit tasarım, dinamik veriler
   currentY = (doc.lastAutoTable?.finalY || currentY) + 50; // Optimize edilmiş boşluk: 50pt
   currentY = ensureSpace(doc, currentY, 100, mar, "Özet");
-  
+
   const onHold = safeNumber((data as any).onHold || 0);
   const inProduction = safeNumber((data as any).inProduction || 0);
   const planned = safeNumber(data.statusDistribution?.planned || 0);
   const qualityCheck = safeNumber(data.statusDistribution?.quality_check || 0);
-  
+
   const summaryData: Array<[string, string]> = [
     ['Toplam Sipariş', totalOrders.toString()],
     ['Tamamlanan', completed.toString()],
@@ -2748,9 +2748,9 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
     ['Kalite Kontrol', qualityCheck.toString()],
     ['En Çok Üretilen Ürün Sayısı', data.topProducts ? data.topProducts.length.toString() : "0"],
   ];
-  
+
   currentY = drawSummarySection(doc, mar, currentY, contentWidth, "Rapor Özeti", summaryData, [37, 99, 235]);
-  
+
   // Sayfa numaralarını ekle - template footer kullan
   try {
     const totalPages = doc.internal.pages.length - 1;
@@ -2768,7 +2768,7 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
   } catch (footerError) {
     // Footer hatası kritik değil, PDF'i yine de döndür
   }
-  
+
   // PDF'i güvenli bir şekilde oluştur
   try {
     const blob = doc.output('blob');
@@ -2800,10 +2800,10 @@ interface CustomerReportData {
 
 export const generateCustomerReportPDF = async (data: CustomerReportData, startDate: string, endDate: string) => {
   const doc = createPdf({ format: "a4", unit: "pt" });
-  
+
   // Font'u MUTLAKA yükle - daha agresif yaklaşım
   try {
-  await registerFonts(doc);
+    await registerFonts(doc);
   } catch (fontError) {
     // Font yükleme hatası, tekrar dene
     try {
@@ -2812,7 +2812,7 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
       // İkinci deneme de başarısız, devam et
     }
   }
-  
+
   // Font'un gerçekten yüklendiğini doğrula - daha agresif kontrol
   if (!doc._robotoFontLoaded || doc._robotoFontLoadFailed) {
     // Font yüklenemedi, tekrar dene
@@ -2822,35 +2822,13 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
       // Font yüklenemedi, devam et
     }
   }
-  
+
   // Font'u zorla Roboto olarak ayarla
   if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
     for (let i = 0; i < 10; i++) {
       try {
         doc.setFont("Roboto", "normal");
-      const currentFont = doc.getFont();
-      if (currentFont && isRobotoName(currentFont.fontName)) {
-        break;
-      }
-      } catch {
-        // Tekrar dene
-    }
-    }
-  }
-  
-  applyDocumentTypography(doc);
-  
-  const reportDate = formatDate(new Date().toISOString()); // Dinamik
-  
-  // PDF Template'i uygula - Türkçe karakterler için font kontrolü
-  const template = applyPDFTemplate(doc, "MÜŞTERİ RAPORU", reportDate, startDate, endDate);
-  
-  // Font'u tekrar kontrol et ve ayarla
-  if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
-    for (let i = 0; i < 5; i++) {
-      try {
-        doc.setFont("Roboto", "normal");
-    const currentFont = doc.getFont();
+        const currentFont = doc.getFont();
         if (currentFont && isRobotoName(currentFont.fontName)) {
           break;
         }
@@ -2859,22 +2837,44 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
       }
     }
   }
-  
+
+  applyDocumentTypography(doc);
+
+  const reportDate = formatDate(new Date().toISOString()); // Dinamik
+
+  // PDF Template'i uygula - Türkçe karakterler için font kontrolü
+  const template = applyPDFTemplate(doc, "MÜŞTERİ RAPORU", reportDate, startDate, endDate);
+
+  // Font'u tekrar kontrol et ve ayarla
+  if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
+    for (let i = 0; i < 5; i++) {
+      try {
+        doc.setFont("Roboto", "normal");
+        const currentFont = doc.getFont();
+        if (currentFont && isRobotoName(currentFont.fontName)) {
+          break;
+        }
+      } catch {
+        // Tekrar dene
+      }
+    }
+  }
+
   // Dinamik içerik alanından başla
   let currentY = template.contentArea.startY;
   const contentWidth = template.contentArea.width;
   const mar = template.contentArea.leftMargin;
-  
+
   const safeText = createSafeText(doc);
   const [primaryR, primaryG, primaryB] = PDF_CONSTANTS.primaryColor;
   const [mutedR, mutedG, mutedB] = PDF_CONSTANTS.mutedColor;
-  
+
   // İstatistik Kartları - Profesyonel tasarım, dinamik değerler
   const cardWidth = (contentWidth - 32) / 3;
   const cardHeight = 110; // Daha ferah: 100 → 110
   const cardGap = 16;
   let cardX = mar;
-  
+
   // Kart 1: Toplam Müşteri - profesyonel ve sade
   const totalCustomers = safeNumber(data.totalCustomers);
   drawStatCard(doc, cardX, currentY, cardWidth, cardHeight, {
@@ -2888,7 +2888,7 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
       value: TAILWIND_COLORS.gray700,
     },
   });
-  
+
   // Kart 2: Aktif Müşteri - profesyonel ve sade
   cardX += cardWidth + cardGap;
   const activeCustomers = safeNumber(data.activeCustomers);
@@ -2903,7 +2903,7 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
       value: TAILWIND_COLORS.successCardValue,
     },
   });
-  
+
   // Kart 3: Yeni Müşteri - profesyonel ve sade
   cardX += cardWidth + cardGap;
   const newCustomers = safeNumber(data.newCustomers);
@@ -2918,15 +2918,15 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
       value: TAILWIND_COLORS.infoCardValue,
     },
   });
-  
+
   currentY += cardHeight + PDF_CONSTANTS.sectionSpacing; // Kartlar ve tablolar arası boşluk - standardize edilmiş
-  
+
   // Müşteri Segmentasyonu Tablosu - sayfadaki sıralamayla uyumlu (önce Segmentasyonu, sonra En Değerli Müşteriler)
   if ((data as any).segments) {
     // Tablo genişliğini sayfa genişliğine göre ayarla
     const pageWidthSeg = doc.internal.pageSize.getWidth();
     const tableWidthSeg = pageWidthSeg - (mar * 2);
-    
+
     // Tablolar arası boşluk kontrolü
     currentY = ensureSpace(doc, currentY, 200, mar, "Müşteri Segmentasyonu");
     currentY = drawTableHeader(doc, mar, currentY, tableWidthSeg, {
@@ -2935,7 +2935,7 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
       textColor: PDF_CONSTANTS.primaryColor,
       borderColor: PDF_CONSTANTS.primaryColor,
     });
-    
+
     // Profesyonel tablo stilleri kullan
     const tableStyles2 = createProfessionalTableStyles(doc, {
       headerFontSize: 12,
@@ -2947,17 +2947,17 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
     tableStyles2.headStyles.halign = "center";
     tableStyles2.bodyStyles.overflow = 'linebreak';
     tableStyles2.styles.overflow = 'linebreak';
-    
+
     // Sayfa sığma kontrolü
     currentY = ensureTableFitsPage(doc, currentY, 150, mar, "Müşteri Segmentasyonu");
-    
+
     // Tablo genişliğini sayfa genişliğine göre ayarla
     const currentPageWidthSeg = doc.internal.pageSize.getWidth();
     const currentTableWidthSeg = currentPageWidthSeg - (mar * 2);
-    
+
     // Font'u zorla Roboto olarak ayarla (autoTable öncesi)
     forceRobotoFont(doc, "normal");
-    
+
     autoTable(doc, {
       startY: currentY,
       head: transliterateTableData([['Segment', 'Müşteri Sayısı']]),
@@ -2975,7 +2975,7 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
         1: { cellWidth: currentTableWidthSeg * 0.30, halign: "right", fontStyle: "bold" }, // %30
       },
     });
-    
+
     // Tablo sonrası currentY'yi güvenli şekilde güncelle
     const tableEndY2 = doc.lastAutoTable?.finalY;
     if (tableEndY2 && tableEndY2 > currentY) {
@@ -2984,13 +2984,13 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
       currentY += PDF_CONSTANTS.tableSpacing; // Fallback: eğer lastAutoTable yoksa
     }
   }
-  
+
   // En Değerli Müşteriler Tablosu - sayfadaki sıralamayla uyumlu (Müşteri Segmentasyonu'ndan sonra)
   if (data.topCustomers && data.topCustomers.length > 0) {
     // Tablo genişliğini sayfa genişliğine göre ayarla
     const pageWidth = doc.internal.pageSize.getWidth();
     const tableWidth = pageWidth - (mar * 2);
-    
+
     // Tablolar arası boşluk kontrolü
     currentY = ensureSpace(doc, currentY, 200, mar, "En Değerli Müşteriler");
     currentY = drawTableHeader(doc, mar, currentY, tableWidth, {
@@ -2999,7 +2999,7 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
       textColor: PDF_CONSTANTS.primaryColor,
       borderColor: PDF_CONSTANTS.primaryColor,
     });
-    
+
     // Profesyonel tablo stilleri kullan
     const tableStyles = createProfessionalTableStyles(doc, {
       headerFontSize: 12,
@@ -3011,26 +3011,26 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
     tableStyles.headStyles.halign = "center";
     tableStyles.bodyStyles.overflow = 'linebreak';
     tableStyles.styles.overflow = 'linebreak';
-    
+
     // Sayfa sığma kontrolü
     currentY = ensureTableFitsPage(doc, currentY, 200, mar, "En Değerli Müşteriler");
-    
+
     // Tablo genişliğini sayfa genişliğine göre ayarla
     const currentPageWidth = doc.internal.pageSize.getWidth();
     const currentTableWidth = currentPageWidth - (mar * 2);
-    
+
     // Font'u zorla Roboto olarak ayarla (autoTable öncesi)
     forceRobotoFont(doc, "normal");
-    
+
     autoTable(doc, {
       startY: currentY,
       head: transliterateTableData([['Sıra', 'Müşteri', 'Sipariş Sayısı', 'Toplam Harcama']]),
       body: transliterateTableData(
         data.topCustomers?.slice(0, 10).map((c, index: number) => [
-        `#${index + 1}`,
-        c.name || '-',
-        safeNumber(c.orders).toString(),
-        safeFormatCurrency(safeNumber(c.total))
+          `#${index + 1}`,
+          c.name || '-',
+          safeNumber(c.orders).toString(),
+          safeFormatCurrency(safeNumber(c.total))
         ]) || []
       ),
       margin: { left: mar, right: mar },
@@ -3044,7 +3044,7 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
         3: { cellWidth: currentTableWidth * 0.30, halign: "right", fontStyle: "bold", textColor: PDF_CONSTANTS.primaryColor }, // %30
       },
     });
-    
+
     // Tablo sonrası currentY'yi güvenli şekilde güncelle
     const tableEndY = doc.lastAutoTable?.finalY;
     if (tableEndY && tableEndY > currentY) {
@@ -3053,7 +3053,7 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
       currentY += PDF_CONSTANTS.tableSpacing; // Fallback: eğer lastAutoTable yoksa
     }
   }
-  
+
   // Müşteri Detay Analizi - Yeni detaylı bölüm
   if (data.topCustomers && data.topCustomers.length > 0) {
     // Tablo sonrası currentY'yi güvenli şekilde güncelle - minimum 30pt boşluk
@@ -3064,14 +3064,14 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
       currentY += PDF_CONSTANTS.tableSpacing; // Fallback: eğer lastAutoTable yoksa
     }
     currentY = ensureSpace(doc, currentY, 200, mar, "Müşteri Detay Analizi");
-    
+
     // Müşteri bazlı sipariş frekansı ve değer analizi
     const customerDetailData = data.topCustomers?.slice(0, 15).map((c, index: number) => {
       const orders = safeNumber(c.orders);
       const total = safeNumber(c.total);
       const avgOrderValue = orders > 0 ? (total / orders) : 0;
       const customerName = (c.name || '-').length > 30 ? (c.name || '-').substring(0, 30) + "..." : (c.name || '-');
-      
+
       return [
         `#${index + 1}`,
         customerName,
@@ -3081,11 +3081,11 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
         total >= 50000 ? "Yüksek" : total >= 10000 ? "Orta" : "Düşük"
       ];
     });
-    
+
     // Tablo genişliğini sayfa genişliğine göre ayarla
     const pageWidth5 = doc.internal.pageSize.getWidth();
     const tableWidth5 = pageWidth5 - (mar * 2);
-    
+
     // Tablolar arası boşluk kontrolü
     currentY = ensureSpace(doc, currentY, 300, mar, "Müşteri Detay Analizi");
     currentY = drawTableHeader(doc, mar, currentY, tableWidth5, {
@@ -3094,7 +3094,7 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
       textColor: PDF_CONSTANTS.primaryColor,
       borderColor: PDF_CONSTANTS.primaryColor,
     });
-    
+
     // Profesyonel tablo stilleri kullan
     const tableStyles3 = createProfessionalTableStyles(doc, {
       headerFontSize: 12,
@@ -3106,10 +3106,10 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
     tableStyles3.headStyles.halign = "center";
     tableStyles3.bodyStyles.overflow = 'linebreak';
     tableStyles3.styles.overflow = 'linebreak';
-    
+
     // Sayfa sığma kontrolü
     currentY = ensureTableFitsPage(doc, currentY, 200, mar, "Müşteri Detay Analizi");
-    
+
     autoTable(doc, {
       startY: currentY,
       head: transliterateTableData([['Sıra', 'Müşteri', 'Sipariş', 'Toplam', 'Ortalama', 'Segment']]),
@@ -3153,7 +3153,7 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
         }
       },
     });
-    
+
     // Tablo sonrası currentY'yi güvenli şekilde güncelle - minimum 30pt boşluk
     const tableEndY3 = doc.lastAutoTable?.finalY;
     if (tableEndY3 && tableEndY3 > currentY) {
@@ -3162,18 +3162,18 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
       currentY += 30; // Fallback: eğer lastAutoTable yoksa
     }
   }
-  
+
   // Müşteri Trend Analizi - Yeni bölüm
   if (data.newCustomers !== undefined) {
     currentY = ensureSpace(doc, currentY, 150, mar, "Müşteri Trend Analizi");
-    
-    const retentionRate = safeNumber(data.totalCustomers) > 0 
+
+    const retentionRate = safeNumber(data.totalCustomers) > 0
       ? ((safeNumber(data.totalCustomers) - safeNumber(data.newCustomers)) / safeNumber(data.totalCustomers) * 100).toFixed(1)
       : "0";
     const activeRate = safeNumber(data.totalCustomers) > 0
       ? (safeNumber(data.activeCustomers) / safeNumber(data.totalCustomers) * 100).toFixed(1)
       : "0";
-    
+
     const trendData: Array<[string, string]> = [
       ['Yeni Müşteri Oranı', `${(safeNumber(data.newCustomers) / Math.max(safeNumber(data.totalCustomers), 1) * 100).toFixed(1)}%`],
       ['Müşteri Tutma Oranı', `${retentionRate}%`],
@@ -3182,14 +3182,14 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
       ['Segment Dağılımı (Orta)', `${safeNumber((data as any).segments?.medium || 0)} müşteri`],
       ['Segment Dağılımı (Düşük)', `${safeNumber((data as any).segments?.low || 0)} müşteri`],
     ];
-    
+
     currentY = drawSummarySection(doc, mar, currentY, contentWidth, "Müşteri Trend Analizi", trendData, [147, 51, 234]);
   }
-  
+
   // Özet Bölümü - sabit tasarım, dinamik veriler
   currentY = (doc.lastAutoTable?.finalY || currentY) + 50; // Optimize edilmiş boşluk: 50pt
   currentY = ensureSpace(doc, currentY, 100, mar, "Özet");
-  
+
   const summaryData: Array<[string, string]> = [
     ['Toplam Müşteri', safeNumber(data.totalCustomers).toString()],
     ['Aktif Müşteri', safeNumber(data.activeCustomers).toString()],
@@ -3199,9 +3199,9 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
     ['Düşük Değerli Müşteri', safeNumber((data as any).segments?.low || 0).toString()],
     ['En Değerli Müşteri Sayısı', data.topCustomers ? data.topCustomers.length.toString() : "0"],
   ];
-  
+
   currentY = drawSummarySection(doc, mar, currentY, contentWidth, "Rapor Özeti", summaryData, [147, 51, 234]);
-  
+
   // Sayfa numaralarını ekle - template footer kullan
   try {
     const totalPages = doc.internal.pages.length - 1;
@@ -3219,7 +3219,7 @@ export const generateCustomerReportPDF = async (data: CustomerReportData, startD
   } catch (footerError) {
     // Footer hatası kritik değil, PDF'i yine de döndür
   }
-  
+
   // PDF'i güvenli bir şekilde oluştur
   try {
     const blob = doc.output('blob');
@@ -3262,10 +3262,10 @@ interface FinancialReportData {
 
 export const generateFinancialReportPDF = async (data: FinancialReportData, startDate: string, endDate: string) => {
   const doc = createPdf({ format: "a4", unit: "pt" });
-  
+
   // Font'u MUTLAKA yükle - daha agresif yaklaşım
   try {
-  await registerFonts(doc);
+    await registerFonts(doc);
   } catch (fontError) {
     // Font yükleme hatası, tekrar dene
     try {
@@ -3274,7 +3274,7 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
       // İkinci deneme de başarısız, devam et
     }
   }
-  
+
   // Font'un gerçekten yüklendiğini doğrula - daha agresif kontrol
   if (!doc._robotoFontLoaded || doc._robotoFontLoadFailed) {
     // Font yüklenemedi, tekrar dene
@@ -3284,35 +3284,13 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
       // Font yüklenemedi, devam et
     }
   }
-  
+
   // Font'u zorla Roboto olarak ayarla
   if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
     for (let i = 0; i < 10; i++) {
       try {
         doc.setFont("Roboto", "normal");
-      const currentFont = doc.getFont();
-      if (currentFont && isRobotoName(currentFont.fontName)) {
-        break;
-      }
-      } catch {
-        // Tekrar dene
-    }
-    }
-  }
-  
-  applyDocumentTypography(doc);
-  
-  const reportDate = formatDate(new Date().toISOString()); // Dinamik
-  
-  // PDF Template'i uygula - Türkçe karakterler için font kontrolü
-  const template = applyPDFTemplate(doc, "MALİ RAPOR", reportDate, startDate, endDate);
-  
-  // Font'u tekrar kontrol et ve ayarla
-  if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
-    for (let i = 0; i < 5; i++) {
-      try {
-        doc.setFont("Roboto", "normal");
-    const currentFont = doc.getFont();
+        const currentFont = doc.getFont();
         if (currentFont && isRobotoName(currentFont.fontName)) {
           break;
         }
@@ -3321,23 +3299,45 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
       }
     }
   }
-  
+
+  applyDocumentTypography(doc);
+
+  const reportDate = formatDate(new Date().toISOString()); // Dinamik
+
+  // PDF Template'i uygula - Türkçe karakterler için font kontrolü
+  const template = applyPDFTemplate(doc, "MALİ RAPOR", reportDate, startDate, endDate);
+
+  // Font'u tekrar kontrol et ve ayarla
+  if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
+    for (let i = 0; i < 5; i++) {
+      try {
+        doc.setFont("Roboto", "normal");
+        const currentFont = doc.getFont();
+        if (currentFont && isRobotoName(currentFont.fontName)) {
+          break;
+        }
+      } catch {
+        // Tekrar dene
+      }
+    }
+  }
+
   // Dinamik içerik alanından başla
   let currentY = template.contentArea.startY;
   const contentWidth = template.contentArea.width;
   const mar = template.contentArea.leftMargin;
-  
+
   const safeText = createSafeText(doc);
   const [primaryR, primaryG, primaryB] = PDF_CONSTANTS.primaryColor;
   const [mutedR, mutedG, mutedB] = PDF_CONSTANTS.mutedColor;
-  
+
   // İstatistik Kartları - Profesyonel tasarım (4 kart) - standardize edilmiş
   const cardDimensions = calculateCardDimensions(contentWidth, 4);
   const cardWidth = cardDimensions.width;
   const cardGap = cardDimensions.gap;
   const cardHeight = PDF_CONSTANTS.cardHeight;
   let cardX = mar;
-  
+
   // Kart 1: Toplam Gelir (Green) - profesyonel ve sade
   const totalRevenue = safeNumber(data.totalRevenue);
   drawStatCard(doc, cardX, currentY, cardWidth, cardHeight, {
@@ -3351,7 +3351,7 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
       value: TAILWIND_COLORS.successCardValue,
     },
   });
-  
+
   // Kart 2: Toplam Gider (Red) - profesyonel ve sade
   cardX += cardWidth + cardGap;
   const totalCost = safeNumber(data.totalCost);
@@ -3366,7 +3366,7 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
       value: TAILWIND_COLORS.errorCardValue,
     },
   });
-  
+
   // Kart 3: Brüt Kar (Emerald) - profesyonel ve sade
   cardX += cardWidth + cardGap;
   const grossProfit = safeNumber(data.grossProfit);
@@ -3381,7 +3381,7 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
       value: TAILWIND_COLORS.successCardValue,
     },
   });
-  
+
   // Kart 4: Kar Marjı (Primary) - profesyonel ve sade
   cardX += cardWidth + cardGap;
   const profitMargin = safeNumber(data.profitMargin);
@@ -3396,15 +3396,15 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
       value: TAILWIND_COLORS.primaryCardValue,
     },
   });
-  
+
   currentY += cardHeight + PDF_CONSTANTS.sectionSpacing; // Kartlar ve tablolar arası boşluk - standardize edilmiş
-  
+
   // Aylık Trend Tablosu - sayfadaki sıralamayla uyumlu (önce Aylık Trend, sonra En Karlı Ürünler)
   if (data.monthlyTrend && data.monthlyTrend.length > 0) {
     // Tablo genişliğini sayfa genişliğine göre ayarla
     const pageWidthTrend = doc.internal.pageSize.getWidth();
     const tableWidthTrend = pageWidthTrend - (mar * 2);
-    
+
     // Tablolar arası boşluk kontrolü
     currentY = ensureSpace(doc, currentY, 200, mar, "Aylık Trend");
     currentY = drawTableHeader(doc, mar, currentY, tableWidthTrend, {
@@ -3413,13 +3413,13 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
       textColor: PDF_CONSTANTS.primaryColor,
       borderColor: PDF_CONSTANTS.primaryColor,
     });
-    
+
     const monthLabels: Record<string, string> = {
       '01': 'Ocak', '02': 'Şubat', '03': 'Mart', '04': 'Nisan',
       '05': 'Mayıs', '06': 'Haziran', '07': 'Temmuz', '08': 'Ağustos',
       '09': 'Eylül', '10': 'Ekim', '11': 'Kasım', '12': 'Aralık'
     };
-    
+
     const trendData = data.monthlyTrend?.map((item) => {
       const [year, month] = item.month.split('-');
       const monthLabel = monthLabels[month] || month;
@@ -3430,7 +3430,7 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
         safeFormatCurrency(safeNumber(item.profit || 0))
       ];
     });
-    
+
     // Profesyonel tablo stilleri kullan (özel header rengi ile)
     const tableStyles2 = createProfessionalTableStyles(doc, {
       headerFontSize: 12,
@@ -3442,17 +3442,17 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
     tableStyles2.headStyles.halign = "center";
     tableStyles2.bodyStyles.overflow = 'linebreak';
     tableStyles2.styles.overflow = 'linebreak';
-    
+
     // Sayfa sığma kontrolü
     currentY = ensureTableFitsPage(doc, currentY, 200, mar, "Aylık Gelir-Gider-Kar Trendi");
-    
+
     // Tablo genişliğini sayfa genişliğine göre ayarla
     const currentPageWidth2 = doc.internal.pageSize.getWidth();
     const currentTableWidth2 = currentPageWidth2 - (mar * 2);
-    
+
     // Font'u zorla Roboto olarak ayarla (autoTable öncesi)
     forceRobotoFont(doc, "normal");
-    
+
     autoTable(doc, {
       startY: currentY,
       head: transliterateTableData([['Ay', 'Gelir', 'Gider', 'Kar']]),
@@ -3468,7 +3468,7 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
         3: { cellWidth: currentTableWidth2 * 0.25, halign: "right" }, // %25
       },
     });
-    
+
     // Tablo sonrası currentY'yi güvenli şekilde güncelle
     const trendTableEndY = doc.lastAutoTable?.finalY;
     if (trendTableEndY && trendTableEndY > currentY) {
@@ -3477,13 +3477,13 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
       currentY += PDF_CONSTANTS.tableSpacing; // Fallback: eğer lastAutoTable yoksa
     }
   }
-  
+
   // En Karlı Ürünler Tablosu - sayfadaki sıralamayla uyumlu (Aylık Trend'den sonra)
   if (data.topProfitableProducts && data.topProfitableProducts.length > 0) {
     // Tablo genişliğini sayfa genişliğine göre ayarla
     const pageWidth = doc.internal.pageSize.getWidth();
     const tableWidth = pageWidth - (mar * 2);
-    
+
     // Tablolar arası boşluk kontrolü
     currentY = ensureSpace(doc, currentY, 200, mar, "En Karlı Ürünler");
     currentY = drawTableHeader(doc, mar, currentY, tableWidth, {
@@ -3492,7 +3492,7 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
       textColor: PDF_CONSTANTS.primaryColor,
       borderColor: PDF_CONSTANTS.primaryColor,
     });
-    
+
     // Profesyonel tablo stilleri kullan
     const tableStyles = createProfessionalTableStyles(doc, {
       headerFontSize: 12,
@@ -3504,27 +3504,27 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
     tableStyles.headStyles.halign = "center";
     tableStyles.bodyStyles.overflow = 'linebreak';
     tableStyles.styles.overflow = 'linebreak';
-    
+
     // Sayfa sığma kontrolü
     currentY = ensureTableFitsPage(doc, currentY, 200, mar, "En Karlı Ürünler");
-    
+
     // Tablo genişliğini sayfa genişliğine göre ayarla
     const currentPageWidth = doc.internal.pageSize.getWidth();
     const currentTableWidth = currentPageWidth - (mar * 2);
-    
+
     // Font'u zorla Roboto olarak ayarla (autoTable öncesi)
     forceRobotoFont(doc, "normal");
-    
+
     autoTable(doc, {
       startY: currentY,
       head: transliterateTableData([['Sıra', 'Ürün', 'Gelir', 'Gider', 'Kar']]),
       body: transliterateTableData(
         data.topProfitableProducts?.slice(0, 10).map((p, index: number) => [
-        `#${index + 1}`,
-        p.name || '-',
-        safeFormatCurrency(safeNumber(p.revenue)),
-        safeFormatCurrency(safeNumber(p.cost)),
-        safeFormatCurrency(safeNumber(p.profit))
+          `#${index + 1}`,
+          p.name || '-',
+          safeFormatCurrency(safeNumber(p.revenue)),
+          safeFormatCurrency(safeNumber(p.cost)),
+          safeFormatCurrency(safeNumber(p.profit))
         ]) || []
       ),
       margin: { left: mar, right: mar },
@@ -3539,7 +3539,7 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
         4: { cellWidth: currentTableWidth * 0.18, halign: "right", fontStyle: "bold", textColor: PDF_CONSTANTS.successColor }, // %18
       },
     });
-    
+
     // Tablo sonrası currentY'yi güvenli şekilde güncelle
     const productsTableEndY = doc.lastAutoTable?.finalY;
     if (productsTableEndY && productsTableEndY > currentY) {
@@ -3548,7 +3548,7 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
       currentY += PDF_CONSTANTS.tableSpacing; // Fallback: eğer lastAutoTable yoksa
     }
   }
-  
+
   // Gider Kalemleri Analizi - Yeni detaylı bölüm
   if ((data as any).costBreakdown || (data as any).expenseCategories) {
     // Tablo sonrası currentY'yi güvenli şekilde güncelle - yeterli boşluk
@@ -3559,16 +3559,16 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
       currentY += PDF_CONSTANTS.tableSpacing; // Fallback: eğer lastAutoTable yoksa
     }
     currentY = ensureSpace(doc, currentY, 200, mar, "Gider Kalemleri Analizi");
-    
+
     const costData = (data as any).costBreakdown || (data as any).expenseCategories || [];
     if (costData.length > 0) {
       // En Karlı Ürünler tablosu gibi sıra numarası ile
       const costTableData = costData.map((item: { category?: string; name?: string; amount?: number; total?: number; percentage?: number }, index: number) => {
         const category = item.category || item.name || "Bilinmeyen";
         const amount = safeNumber(item.amount || item.total || 0);
-        const percentage = item.percentage !== undefined 
+        const percentage = item.percentage !== undefined
           ? item.percentage.toFixed(1)
-          : (safeNumber(data.totalCost) > 0 
+          : (safeNumber(data.totalCost) > 0
             ? ((amount / safeNumber(data.totalCost)) * 100).toFixed(1)
             : "0");
         return [
@@ -3578,11 +3578,11 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
           `${percentage}%`
         ];
       });
-      
+
       // Tablo genişliğini sayfa genişliğine göre ayarla
       const pageWidth3 = doc.internal.pageSize.getWidth();
       const tableWidth3 = pageWidth3 - (mar * 2);
-      
+
       // Tablolar arası boşluk kontrolü
       currentY = ensureSpace(doc, currentY, 200, mar, "Gider Kalemleri Analizi");
       currentY = drawTableHeader(doc, mar, currentY, tableWidth3, {
@@ -3591,7 +3591,7 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
         textColor: PDF_CONSTANTS.primaryColor,
         borderColor: PDF_CONSTANTS.primaryColor,
       });
-      
+
       // Profesyonel tablo stilleri kullan
       const tableStyles3 = createProfessionalTableStyles(doc, {
         headerFontSize: 12,
@@ -3603,14 +3603,14 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
       tableStyles3.headStyles.halign = "center";
       tableStyles3.bodyStyles.overflow = 'linebreak';
       tableStyles3.styles.overflow = 'linebreak';
-      
+
       // Sayfa sığma kontrolü
       currentY = ensureTableFitsPage(doc, currentY, 200, mar, "Gider Kalemleri Analizi");
-      
+
       // Tablo genişliğini sayfa genişliğine göre ayarla
       const currentPageWidth3 = doc.internal.pageSize.getWidth();
       const currentTableWidth3 = currentPageWidth3 - (mar * 2);
-      
+
       // Font'u zorla Roboto olarak ayarla (autoTable öncesi)
       forceRobotoFont(doc, "normal");
 
@@ -3629,26 +3629,26 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
           3: { cellWidth: currentTableWidth3 * 0.22, halign: "right", textColor: TAILWIND_COLORS.gray500 }, // %22 - Oran
         },
       });
-      
+
       // Tablo sonrası currentY'yi güvenli şekilde güncelle - yeterli boşluk
-    const tableEndY = doc.lastAutoTable?.finalY;
-    if (tableEndY && tableEndY > currentY) {
-      currentY = tableEndY + PDF_CONSTANTS.tableSpacing; // Tablo sonrası boşluk - standardize edilmiş
-    } else {
-      currentY += PDF_CONSTANTS.tableSpacing; // Fallback: eğer lastAutoTable yoksa
-    }
+      const tableEndY = doc.lastAutoTable?.finalY;
+      if (tableEndY && tableEndY > currentY) {
+        currentY = tableEndY + PDF_CONSTANTS.tableSpacing; // Tablo sonrası boşluk - standardize edilmiş
+      } else {
+        currentY += PDF_CONSTANTS.tableSpacing; // Fallback: eğer lastAutoTable yoksa
+      }
     }
   }
-  
+
   // Kar Analizi Detayı - Yeni bölüm
   currentY = ensureSpace(doc, currentY, 150, mar, "Kar Analizi Detayı");
-  
+
   const profitMarginValue = safeNumber(data.profitMargin);
   const revenue = safeNumber(data.totalRevenue);
   const cost = safeNumber(data.totalCost);
   const profit = safeNumber(data.grossProfit);
-  const avgMonthlyRevenue = data.monthlyTrend && data.monthlyTrend.length > 0 
-    ? safeNumber(data.totalRevenue) / data.monthlyTrend.length 
+  const avgMonthlyRevenue = data.monthlyTrend && data.monthlyTrend.length > 0
+    ? safeNumber(data.totalRevenue) / data.monthlyTrend.length
     : 0;
   const avgMonthlyCost = data.monthlyTrend && data.monthlyTrend.length > 0
     ? safeNumber(data.totalCost) / data.monthlyTrend.length
@@ -3657,7 +3657,7 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
   const profitGrowth = data.monthlyTrend && data.monthlyTrend.length >= 2
     ? ((data.monthlyTrend[data.monthlyTrend.length - 1].profit || 0) - (data.monthlyTrend[0].profit || 0))
     : 0;
-  
+
   const profitAnalysisData: Array<[string, string]> = [
     ['Toplam Gelir', safeFormatCurrency(revenue)],
     ['Toplam Gider', safeFormatCurrency(cost)],
@@ -3668,27 +3668,27 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
     ['Ortalama Aylık Kar', safeFormatCurrency(avgMonthlyProfit)],
     ['Kar Büyümesi', profitGrowth > 0 ? `+${safeFormatCurrency(profitGrowth)}` : safeFormatCurrency(profitGrowth)],
   ];
-  
+
   currentY = drawSummarySection(doc, mar, currentY, contentWidth, "Kar Analizi Detayı", profitAnalysisData, [5, 150, 105]);
-  
+
   // Özet Bölümü - sabit tasarım, dinamik veriler
   currentY = (doc.lastAutoTable?.finalY || currentY) + 50; // Optimize edilmiş boşluk: 50pt
   currentY = ensureSpace(doc, currentY, 100, mar, "Özet");
-  
+
   const summaryData: Array<[string, string]> = [
     ['Toplam Gelir', safeFormatCurrency(safeNumber(data.totalRevenue))],
     ['Toplam Gider', safeFormatCurrency(safeNumber(data.totalCost))],
     ['Brüt Kar', safeFormatCurrency(safeNumber(data.grossProfit))],
     ['Kar Marjı', `${safeNumber(data.profitMargin).toFixed(1)}%`],
-    ['Ortalama Aylık Gelir', data.monthlyTrend && data.monthlyTrend.length > 0 
-      ? safeFormatCurrency(safeNumber(data.totalRevenue) / data.monthlyTrend.length) 
+    ['Ortalama Aylık Gelir', data.monthlyTrend && data.monthlyTrend.length > 0
+      ? safeFormatCurrency(safeNumber(data.totalRevenue) / data.monthlyTrend.length)
       : safeFormatCurrency(0)],
     ['Aylık Trend Verisi', data.monthlyTrend ? `${data.monthlyTrend.length} ay` : "0 ay"],
     ['En Karlı Ürün Sayısı', data.topProfitableProducts ? data.topProfitableProducts.length.toString() : "0"],
   ];
-  
+
   currentY = drawSummarySection(doc, mar, currentY, contentWidth, "Rapor Özeti", summaryData, [5, 150, 105]);
-  
+
   // Sayfa numaralarını ekle - template footer kullan
   try {
     const totalPages = doc.internal.pages.length - 1;
@@ -3706,7 +3706,7 @@ export const generateFinancialReportPDF = async (data: FinancialReportData, star
   } catch (footerError) {
     // Footer hatası kritik değil, PDF'i yine de döndür
   }
-  
+
   // PDF'i güvenli bir şekilde oluştur
   try {
     const blob = doc.output('blob');
@@ -3768,7 +3768,7 @@ interface UserStatsReportData {
 export const generateUserStatsPDF = async (userStats: UserStatsReportData): Promise<Blob> => {
   const doc = createPdf({ format: "a4", unit: "pt" });
   await registerFonts(doc);
-  
+
   // Font'un gerçekten yüklendiğini doğrula
   if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
     const currentFont = doc.getFont();
@@ -3776,7 +3776,7 @@ export const generateUserStatsPDF = async (userStats: UserStatsReportData): Prom
       await registerFonts(doc);
     }
   }
-  
+
   const reportDate = formatDate(new Date().toISOString());
 
   // PDF Template'i uygula
@@ -3785,7 +3785,7 @@ export const generateUserStatsPDF = async (userStats: UserStatsReportData): Prom
   const mar = template.contentArea.leftMargin;
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  
+
   const safeTextUser = createSafeText(doc);
   const safeSetFontUser = (bold: boolean = false) => {
     safeSetFont(doc, bold ? "bold" : "normal");
@@ -3799,17 +3799,17 @@ export const generateUserStatsPDF = async (userStats: UserStatsReportData): Prom
   doc.setLineWidth(1.5);
   doc.roundedRect(mar, cardY, pageWidth - 2 * mar, cardHeight, 6, 6, "F");
   doc.roundedRect(mar, cardY, pageWidth - 2 * mar, cardHeight, 6, 6, "S");
-  
+
   safeSetFontUser(true);
   doc.setTextColor(31, 41, 55);
   safeTextUser("Kullanıcı Bilgileri", mar + 15, cardY + 20, 16);
-  
+
   safeSetFontUser(false);
   doc.setTextColor(75, 85, 99);
   safeTextUser(`Kullanıcı Adı: ${userStats.userName}`, mar + 15, cardY + 45, 12);
   safeTextUser(`E-posta: ${userStats.userEmail}`, mar + 15, cardY + 65, 12);
   safeTextUser(`Rapor Tarihi: ${new Date().toLocaleDateString("tr-TR", { day: "2-digit", month: "long", year: "numeric" })}`, mar + 15, cardY + 85, 12);
-  
+
   yPos = cardY + cardHeight + 30;
 
   // İstatistik kartları (3 sütun)
@@ -3828,19 +3828,19 @@ export const generateUserStatsPDF = async (userStats: UserStatsReportData): Prom
   statCards.forEach((stat, index) => {
     const cardX = mar + index * (cardWidth + 10);
     const statCardHeight = 90;
-    
+
     // Gradient efekti simülasyonu
     doc.setFillColor(stat.color[0], stat.color[1], stat.color[2], 0.1);
     doc.setDrawColor(stat.color[0], stat.color[1], stat.color[2], 0.3);
     doc.setLineWidth(1.5);
     doc.roundedRect(cardX, yPos, cardWidth, statCardHeight, 6, 6, "F");
     doc.roundedRect(cardX, yPos, cardWidth, statCardHeight, 6, 6, "S");
-    
+
     // İkon ve değer
     safeSetFontUser(true);
     doc.setTextColor(stat.color[0], stat.color[1], stat.color[2]);
     safeTextUser(stat.value.toString(), cardX + 15, yPos + 25, 28);
-    
+
     safeSetFontUser(false);
     doc.setTextColor(75, 85, 99);
     safeTextUser(stat.label, cardX + 15, yPos + 55, 11);
@@ -3880,10 +3880,10 @@ export const generateUserStatsPDF = async (userStats: UserStatsReportData): Prom
   detailedTableStyles.headStyles.halign = "center";
   detailedTableStyles.bodyStyles.halign = "center";
   detailedTableStyles.bodyStyles.textColor = [31, 41, 55];
-  
+
   const currentPageWidth = doc.internal.pageSize.getWidth();
   const detailedTableWidth = currentPageWidth - (mar * 2);
-  
+
   autoTable(doc, {
     startY: yPos,
     head: [detailedStats[0]],
@@ -3955,14 +3955,14 @@ export const generateUserStatsPDF = async (userStats: UserStatsReportData): Prom
     tableStyles.bodyStyles.halign = "left";
     tableStyles.bodyStyles.overflow = 'linebreak';
     tableStyles.styles.overflow = 'linebreak';
-    
+
     // Sayfa sığma kontrolü
     yPos = ensureTableFitsPage(doc, yPos, 200, mar, "Görev Detayları");
-    
+
     // Tablo genişliğini sayfa genişliğine göre ayarla
     const currentPageWidth = doc.internal.pageSize.getWidth();
     const tableWidth = currentPageWidth - (mar * 2);
-    
+
     autoTable(doc, {
       startY: yPos,
       head: [["Görev Başlığı", "Durum", "Atanma Tarihi", "Tamamlanma Tarihi"]],
@@ -3984,18 +3984,18 @@ export const generateUserStatsPDF = async (userStats: UserStatsReportData): Prom
   const finalY = doc.lastAutoTable?.finalY || yPos;
   if (finalY < pageHeight - 120) {
     yPos = finalY + 30;
-    
+
     // Özet metnini hazırla
     const completionRate = userStats.total > 0 ? Math.round((userStats.completed / userStats.total) * 100) : 0;
     const summaryText = `${userStats.userName} kullanıcısı toplam ${userStats.total} görev almış, ${userStats.completed} görevi tamamlamıştır. Tamamlanma oranı: %${completionRate}`;
-    
+
     // Metni satırlara böl (maksimum genişlik kontrolü)
     const currentPageWidth = doc.internal.pageSize.getWidth();
     const maxWidth = currentPageWidth - 2 * mar - 30; // 30pt padding
     const lines = doc.splitTextToSize(summaryText, maxWidth);
     const lineHeight = 14;
     const summaryHeight = Math.max(70, 20 + (lines.length * lineHeight) + 10); // Minimum 70pt, dinamik yükseklik
-    
+
     // Sayfa sığmazsa yeni sayfa ekle
     if (yPos + summaryHeight > pageHeight - 100) {
       doc.addPage();
@@ -4003,7 +4003,7 @@ export const generateUserStatsPDF = async (userStats: UserStatsReportData): Prom
       drawPDFBackground(doc, template);
       yPos = mar + 30;
     }
-    
+
     safeSetFontUser(true);
     doc.setTextColor(255, 255, 255);
     doc.setFillColor(59, 130, 246);
@@ -4012,9 +4012,9 @@ export const generateUserStatsPDF = async (userStats: UserStatsReportData): Prom
     const summaryPageWidth = doc.internal.pageSize.getWidth();
     doc.roundedRect(mar, yPos, summaryPageWidth - 2 * mar, summaryHeight, 6, 6, "F");
     doc.roundedRect(mar, yPos, summaryPageWidth - 2 * mar, summaryHeight, 6, 6, "S");
-    
+
     safeTextUser("Özet", mar + 15, yPos + 20, 16);
-    
+
     safeSetFontUser(false);
     doc.setTextColor(255, 255, 255);
     // Metni satır satır yaz
@@ -4030,7 +4030,7 @@ export const generateUserStatsPDF = async (userStats: UserStatsReportData): Prom
   } catch (footerError) {
     // Footer hatası kritik değil, PDF'i yine de döndür
   }
-  
+
   // PDF'i güvenli bir şekilde oluştur
   try {
     const blob = doc.output("blob");
@@ -4067,7 +4067,7 @@ export const generateUserStatsPDF = async (userStats: UserStatsReportData): Prom
 export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
   const doc = createPdf({ format: "a4", unit: "pt" });
   await registerFonts(doc);
-  
+
   // Font'un gerçekten yüklendiğini doğrula
   if (doc._robotoFontLoaded && !doc._robotoFontLoadFailed) {
     const currentFont = doc.getFont();
@@ -4075,15 +4075,15 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
       await registerFonts(doc);
     }
   }
-  
+
   applyDocumentTypography(doc);
-  
+
   // A4 dimensions and margins - FIXED VALUES
   const mar = 40; // Margin on all sides
   const pageWidth = 595; // A4 width in pt
   const pageHeight = 842; // A4 height in pt
   const contentWidth = pageWidth - (mar * 2); // 515pt usable width
-  
+
   // Verify actual page size matches expected A4
   const actualWidth = doc.internal.pageSize.getWidth();
   const actualHeight = doc.internal.pageSize.getHeight();
@@ -4095,19 +4095,19 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
   const logoWidth = 40;
   const logoHeight = 40;
   const logoX = pageWidth - mar - 160; // Logo ve text için alan ayır
-  
+
   // Helper functions
   const safeNumber = (value: unknown): number => {
     const num = Number(value);
     return (isNaN(num) || !isFinite(num)) ? 0 : num;
   };
-  
+
   const safeFormatCurrency = (value: number, currency: string): string => {
     const safeVal = safeNumber(value);
     // Türkçe locale kullan (web UI ile uyumlu)
     return `${currency}${safeVal.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
-  
+
   // Create safeText helper with color support - createSafeText kullan
   const baseSafeText = createSafeText(doc);
   const safeText = (text: string, x: number, y: number, fontSize: number, isBold: boolean = false, color?: [number, number, number]) => {
@@ -4116,10 +4116,10 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
       if (color) {
         doc.setTextColor(color[0], color[1], color[2]);
       }
-      
+
       // createSafeText kullan (Türkçe karakter desteği ile)
       baseSafeText(text, x, y, fontSize, isBold);
-      
+
       // Renk sıfırla
       if (color) {
         doc.setTextColor(0, 0, 0);
@@ -4141,47 +4141,47 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
       }
     }
   };
-  
+
   // Background: Light grey diagonal/triangular panel on the left side
   try {
     doc.setFillColor(243, 244, 246); // gray-100 - light grey
     doc.setGState(doc.GState({ opacity: 0.3 }));
-    
+
     // Diagonal triangular shape on the left
     // Create a polygon-like shape using multiple rectangles
     const bgStartX = 0;
     const bgStartY = 0;
     const bgWidth = 200; // Width of the grey panel
     const bgHeight = pageHeight;
-    
+
     // Draw diagonal shape
     doc.rect(bgStartX, bgStartY, bgWidth, bgHeight, "F");
-    
+
     // Reset opacity
     doc.setGState(doc.GState({ opacity: 1 }));
   } catch (error) {
   }
-  
+
   // Header Y position - Optimized for A4 (top 20% of page = ~170pt max)
   const headerY = 45; // Reduced from 50
-  
+
   // Left Side: Title - Two lines: "SATIŞ TEKLİFİ" and "FORMU"
   // Reduced font size slightly for better fit
   safeText("SATIŞ TEKLİFİ", mar, headerY, 30, true); // Reduced from 32
   safeText("FORMU", mar, headerY + 36, 30, true); // Reduced from 32, adjusted spacing
-  
+
   // Customer Info Block - Left side, aligned with title
   const customerBlockY = headerY + 90; // Reduced from 100 for tighter spacing
   safeText("Müşteri", mar, customerBlockY, 14, true);
-  
+
   const customerName = payload.customerName || "";
   const customerCompany = payload.customerCompany || "";
   const customerAddress = payload.customerAddress || "";
   const customerPhone = payload.customerPhone || "";
   const customerEmail = payload.customerEmail || "";
-  
+
   let customerY = customerBlockY + 24;
-  
+
   // Customer name/company (prioritize customerName over customerCompany)
   const customerText = customerName || customerCompany || "";
   if (customerText) {
@@ -4195,13 +4195,13 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
       customerY += 18;
     });
   }
-  
+
   // Additional customer details (address, phone, email) - each on a new line
   const customerDetails: string[] = [];
   if (customerAddress) customerDetails.push(customerAddress);
   if (customerPhone) customerDetails.push(customerPhone);
   if (customerEmail) customerDetails.push(customerEmail);
-  
+
   customerDetails.forEach((detail) => {
     doc.setTextColor(107, 114, 128); // gray-500
     safeSetFont(doc, "normal");
@@ -4218,14 +4218,14 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
   const rightContentX = pageWidth - mar;
   const companyInfoY = headerY;
   const headerLogoSize = 40; // 50 → 40 (daha küçük logo)
-  
+
   // Logo - sağ üst köşede, doğru pozisyonda
   try {
     const logoX = rightContentX - headerLogoSize;
-    doc.addImage(REV_LOGO_DATA_URI, 'PNG', logoX, companyInfoY, headerLogoSize, headerLogoSize);
+    doc.addImage(TURKUAST_LOGO_BASE64, 'PNG', logoX, companyInfoY, headerLogoSize, headerLogoSize);
   } catch (error) {
   }
-  
+
   // Company address block - under logo, right-aligned (daha kompakt)
   const addressLines = [
     COMPANY_INFO.address,
@@ -4234,7 +4234,7 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
     COMPANY_INFO.website,
     COMPANY_INFO.phone
   ];
-  
+
   let addrY = companyInfoY + headerLogoSize + 10; // 14 → 10 (daha az boşluk)
   safeSetFont(doc, "normal");
   doc.setFontSize(9); // 10 → 9 (daha küçük font)
@@ -4253,7 +4253,7 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
   // Date Info - Right side, şirket bilgilerinden sonra (üst üste binmeyi önlemek için)
   // Şirket bilgileri: addrY başlangıç + (5 satır * 11pt) = companyInfoY + headerLogoSize + 10 + 55 = companyInfoY + 105
   const dateInfoY = companyInfoY + headerLogoSize + 10 + (addressLines.length * 11) + 12; // Şirket bilgilerinden sonra 12pt boşluk
-  
+
   // Format dates in Turkish format: "20 Ağustos 2025"
   const formatDateTurkish = (dateStr: string | Date): string => {
     try {
@@ -4271,7 +4271,7 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
       return formatDate(String(dateStr));
     }
   };
-  
+
   // Tarih - sağa yaslı
   const dateLabel = "Tarih:";
   let dateValue: string = "-";
@@ -4280,7 +4280,7 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
   } catch (error) {
     dateValue = "-";
   }
-  
+
   safeSetFont(doc, "bold");
   doc.setFontSize(14);
   const dateLabelWidth = doc.getTextWidth(dateLabel);
@@ -4292,7 +4292,7 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
   doc.setTextColor(55, 65, 81); // gray-700
   safeText(dateValue, dateX, dateInfoY, 14, false);
   doc.setTextColor(0, 0, 0);
-  
+
   // Geçerlilik Tarihi - sağa yaslı, altında
   const validLabel = "Geçerlilik Tarihi:";
   let validValue: string = "-";
@@ -4301,7 +4301,7 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
   } catch (error) {
     validValue = "-";
   }
-  
+
   safeSetFont(doc, "bold");
   doc.setFontSize(14);
   const validLabelWidth = doc.getTextWidth(validLabel);
@@ -4313,21 +4313,21 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
   doc.setTextColor(55, 65, 81); // gray-700
   safeText(validValue, validX, dateInfoY + 22, 14, false);
   doc.setTextColor(0, 0, 0);
-  
+
   // Table starts after customer/date blocks - ensure enough space
   // Optimized spacing for A4 layout
   const maxBottomY = Math.max(customerY, dateInfoY + 40); // Reduced from 45
   let currentY = maxBottomY + 30; // Reduced from 35 for tighter layout
-  
+
   // Products Table - Full width with columns: No, Ürün Adı, Adet, Birim Fiyat, Toplam
   const items = Array.isArray(payload.items) ? payload.items.filter(item => item.description && item.description.trim() !== "") : [];
-  
+
   const tableBody = items.map((item, index) => {
     const unitPrice = safeNumber(item.unitPrice);
     const quantity = safeNumber(item.quantity);
     const discount = safeNumber(item.discount || 0);
     const lineTotal = (quantity * unitPrice) - discount;
-    
+
     return [
       (index + 1).toString(), // No (1-based)
       item.description || "-", // Ürün Adı (supports multi-line)
@@ -4338,17 +4338,17 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
   });
 
   const tableHead = [["No", "Ürün Adı", "Adet", "Birim Fiyat", "Toplam"]];
-  
+
   let startY = currentY;
   const baseDidParseCell = createDidParseCell(doc);
-  
+
   // Alternatif satır renkleri için özel didParseCell
   const didParseCell = (data: { row?: { index?: number }; cell?: { styles?: { fillColor?: number[] } } }) => {
     // Base fonksiyonu çağır
     if (baseDidParseCell) {
       baseDidParseCell(data);
     }
-    
+
     // Body satırları için alternatif renk (header hariç, index 0 header)
     if (data.row && data.row.index !== undefined && data.cell && data.cell.styles) {
       const rowIndex = data.row.index;
@@ -4363,18 +4363,18 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
       }
     }
   };
-  
+
   // Dinamik tablo genişliği hesaplama (diğer tablolarla tutarlı)
   const dynamicPageWidth = doc.internal.pageSize.getWidth();
   const tableWidth = dynamicPageWidth - (mar * 2);
-  
+
   // Profesyonel tablo stilleri kullan (modern UI/UX kurallarına uygun)
   const tableStyles = createProfessionalTableStyles(doc, {
     headerFontSize: 11,
     bodyFontSize: 10,
     cellPadding: { top: 12, right: 14, bottom: 12, left: 14 }
   });
-  
+
   // Modern, profesyonel renk paleti
   tableStyles.headStyles.fillColor = [15, 23, 42]; // slate-900 - daha koyu, profesyonel
   tableStyles.headStyles.textColor = [255, 255, 255]; // White
@@ -4385,7 +4385,7 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
   tableStyles.headStyles.lineWidth = { top: 0, bottom: 2, left: 0, right: 0 }; // Kalın alt border
   tableStyles.headStyles.cellPadding = { top: 12, right: 14, bottom: 12, left: 14 };
   tableStyles.headStyles.minCellHeight = 36;
-  
+
   // Body stilleri - daha temiz ve okunabilir
   tableStyles.bodyStyles.fillColor = [255, 255, 255]; // Beyaz
   tableStyles.bodyStyles.textColor = [30, 41, 59]; // slate-700 - daha koyu, okunabilir
@@ -4396,17 +4396,17 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
   tableStyles.bodyStyles.cellPadding = { top: 12, right: 14, bottom: 12, left: 14 };
   tableStyles.bodyStyles.minCellHeight = 32;
   tableStyles.bodyStyles.overflow = 'linebreak';
-  
+
   // Alternatif satır renkleri (zebra striping) - daha profesyonel
   tableStyles.alternateRowStyles.fillColor = [248, 250, 252]; // slate-50 - çok açık gri
   tableStyles.styles.overflow = 'linebreak';
-  
+
   // Sayfa sığma kontrolü
   startY = ensureTableFitsPage(doc, startY, 300, mar, "Ürün Listesi");
-  
+
   // Font'u zorla Roboto olarak ayarla (autoTable öncesi)
   forceRobotoFont(doc, "normal");
-  
+
   autoTable(doc, {
     head: transliterateTableData(tableHead),
     body: transliterateTableData(tableBody.length === 0
@@ -4418,33 +4418,33 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
     tableWidth: tableWidth, // Dinamik genişlik kullan
     ...tableStyles,
     columnStyles: {
-      0: { 
-        cellWidth: tableWidth * 0.08, 
+      0: {
+        cellWidth: tableWidth * 0.08,
         halign: "center",
         textColor: [71, 85, 105], // slate-600 - daha yumuşak
         fontStyle: "normal"
       }, // %8 - No
-      1: { 
-        cellWidth: tableWidth * 0.48, 
-        halign: "left", 
+      1: {
+        cellWidth: tableWidth * 0.48,
+        halign: "left",
         overflow: 'linebreak',
         textColor: [15, 23, 42], // slate-900 - ürün adı daha koyu
         fontStyle: "normal"
       }, // %48 - Ürün Adı
-      2: { 
-        cellWidth: tableWidth * 0.10, 
+      2: {
+        cellWidth: tableWidth * 0.10,
         halign: "center",
         textColor: [30, 41, 59], // slate-700
         fontStyle: "normal"
       }, // %10 - Adet
-      3: { 
-        cellWidth: tableWidth * 0.17, 
+      3: {
+        cellWidth: tableWidth * 0.17,
         halign: "right",
         textColor: [30, 41, 59], // slate-700
         fontStyle: "normal"
       }, // %17 - Birim Fiyat
-      4: { 
-        cellWidth: tableWidth * 0.17, 
+      4: {
+        cellWidth: tableWidth * 0.17,
         halign: "right",
         textColor: [15, 23, 42], // slate-900 - toplam daha vurgulu
         fontStyle: "bold" // Toplam sütunu bold
@@ -4456,7 +4456,7 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
   let tableEndY = (doc.lastAutoTable?.finalY || startY);
   if (doc.lastAutoTable?.finalY) {
     tableEndY = doc.lastAutoTable.finalY + 50; // Optimize edilmiş boşluk: 50pt
-    } else {
+  } else {
     tableEndY = startY + 50; // Fallback: eğer lastAutoTable yoksa
   }
 
@@ -4465,7 +4465,7 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
   const footerReservedSpace = 70; // Space reserved for footer (reduced from 80)
   const minSpaceForNotesAndTotals = 180; // Minimum space needed (reduced from 200)
   const availableSpace = pageHeight - tableEndY - footerReservedSpace;
-  
+
   // Check if we need a new page for notes/totals
   let notesStartY = tableEndY + 25; // Reduced from 30
   if (availableSpace < minSpaceForNotesAndTotals) {
@@ -4473,12 +4473,12 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
     notesStartY = 45; // Reduced from 50
     tableEndY = notesStartY - 25; // Reset for new page
   }
-  
+
   // Left Column: Notes area (bottom left)
   // Optimized for A4: exactly half width minus gap
   let notesY = notesStartY;
   const notesWidth = (contentWidth / 2) - 15; // Gap between columns: 15pt
-  
+
   // Collect all notes/terms
   const allNotes: string[] = [];
   if (payload.notes && payload.notes.trim() !== "") {
@@ -4493,7 +4493,7 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
   if (payload.terms && payload.terms.length > 0) {
     allNotes.push(...payload.terms);
   }
-  
+
   // Render notes with bullet points
   allNotes.forEach((note) => {
     try {
@@ -4502,7 +4502,7 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
       doc.setTextColor(107, 114, 128); // gray-500
       safeText("•", mar, notesY, 11, false);
       doc.setTextColor(0, 0, 0);
-      
+
       // Wrap text
       const noteLines = doc.splitTextToSize(note, notesWidth - 15);
       let noteLineY = notesY;
@@ -4517,24 +4517,24 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
       notesY += 16;
     }
   });
-  
+
   // Right Column: Totals (bottom right, aligned)
   const totals = payload.totals || { subtotal: 0, discount: 0, tax: 0, grandTotal: 0 };
   const currency = payload.currency || "$";
-  
+
   const safeSubtotal = safeNumber(totals.subtotal);
   const safeDiscount = safeNumber(totals.discount);
   const safeTax = safeNumber(totals.tax);
   const safeGrandTotal = safeNumber(totals.grandTotal);
   const safeTaxRate = safeNumber(payload.taxRate || 20);
-  
+
   // Right column X position - ensure proper alignment
   // Start at middle of page + gap
   const rightColX = mar + (contentWidth / 2) + 15; // Gap: 15pt (matches notesWidth gap)
-  
+
   // Start totals from same Y as notes
   let totalsY = notesStartY;
-  
+
   // Helper for right aligned totals row
   // Optimized font sizes for A4
   const drawTotalRow = (label: string, value: string, isBold = false, isGrandTotal = false) => {
@@ -4542,40 +4542,40 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
       const fontSize = isGrandTotal ? 14 : 12; // Reduced: 16→14, 14→12
       safeSetFont(doc, isBold || isGrandTotal ? "bold" : "normal");
       doc.setFontSize(fontSize);
-      
+
       const valueWidth = doc.getTextWidth(value);
-      
+
       // Label on left side of totals area, value on right
       safeText(label, rightColX, totalsY, fontSize, isBold || isGrandTotal);
       safeText(value, rightContentX - valueWidth, totalsY, fontSize, isBold || isGrandTotal);
-      
+
       totalsY += isGrandTotal ? 22 : 18; // Reduced spacing: 26→22, 20→18
     } catch (error) {
       totalsY += isGrandTotal ? 20 : 18; // Reduced spacing
     }
   };
-  
+
   // Discount (if any)
   if (safeDiscount > 0) {
     drawTotalRow("Toplam İskonto:", `-${safeFormatCurrency(safeDiscount, currency)}`);
   }
-  
+
   // Ara Toplam
   drawTotalRow("Ara Toplam:", safeFormatCurrency(safeSubtotal, currency));
-  
+
   // KDV
   drawTotalRow(`KDV (%${safeTaxRate.toFixed(0)}):`, safeFormatCurrency(safeTax, currency));
-  
+
   // Separator line
   doc.setDrawColor(107, 114, 128); // gray-500
   doc.setLineWidth(1.5);
   doc.line(rightColX, totalsY - 6, rightContentX, totalsY - 6);
   totalsY += 10;
-  
+
   // GENEL TOPLAM (bold, bigger) - Optimized for A4
   const grandTotalLabel = "GENEL TOPLAM:";
   const grandTotalValue = safeFormatCurrency(safeGrandTotal, currency);
-  
+
   safeSetFont(doc, "bold");
   doc.setFontSize(14); // Reduced from 16 for better fit
   const grandTotalValueWidth = doc.getTextWidth(grandTotalValue);
@@ -4587,41 +4587,41 @@ export const generateSalesOfferPDF = async (payload: SalesOfferPayload) => {
   const maxContentY = Math.max(notesY, totalsY) + 15; // Reduced from 20
   const footerHeight = 55; // Reduced from 60
   const footerBottomY = pageHeight - footerHeight;
-  
+
   // Check if content overlaps footer area
   if (maxContentY > footerBottomY - 25) { // Reduced threshold from 30
     // Content too close to footer, add new page for footer
     doc.addPage();
   }
-  
+
   // Draw footer on current page (or new page if added)
   const currentPageHeight = doc.internal.pageSize.getHeight();
   const footerY = currentPageHeight - footerHeight;
-  
+
   // Footer separator line
   doc.setDrawColor(209, 213, 219); // gray-300
   doc.setLineWidth(1);
   doc.line(mar, footerY - 10, rightContentX, footerY - 10);
-  
+
   // Left: Company legal info
   safeSetFont(doc, "bold");
   doc.setFontSize(10);
   doc.setTextColor(31, 41, 55); // gray-800
   safeText(COMPANY_INFO.name, mar, footerY, 10, true);
   doc.setTextColor(0, 0, 0);
-  
+
   safeSetFont(doc, "normal");
   doc.setFontSize(9);
   doc.setTextColor(75, 85, 99); // gray-600
   safeText(COMPANY_INFO.fullAddress, mar, footerY + 12, 9, false);
   safeText(`${COMPANY_INFO.email} | ${COMPANY_INFO.website} | ${COMPANY_INFO.phone}`, mar, footerY + 22, 9, false);
   doc.setTextColor(0, 0, 0);
-  
+
   // Right: Logo (smaller size, bottom-right aligned)
   try {
     const footerLogoSize = 28;
     const logoX = rightContentX - footerLogoSize;
-    doc.addImage(REV_LOGO_DATA_URI, 'PNG', logoX, footerY, footerLogoSize, footerLogoSize);
+    doc.addImage(TURKUAST_LOGO_BASE64, 'PNG', logoX, footerY, footerLogoSize, footerLogoSize);
   } catch (error) {
   }
 

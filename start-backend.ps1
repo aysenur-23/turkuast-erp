@@ -22,9 +22,9 @@ if (-not (Test-Path ".env")) {
     Write-Host "PORT=3000" -ForegroundColor Gray
     Write-Host "SMTP_HOST=smtp.hostinger.com" -ForegroundColor Gray
     Write-Host "SMTP_PORT=465" -ForegroundColor Gray
-    Write-Host "SMTP_USER=mail@revpad.net" -ForegroundColor Gray
+    Write-Host "SMTP_USER=mail@turkuast.com" -ForegroundColor Gray
     Write-Host "SMTP_PASSWORD=your-password" -ForegroundColor Gray
-    Write-Host "SMTP_FROM=Revium ERP <mail@revpad.net>" -ForegroundColor Gray
+    Write-Host "SMTP_FROM=Turkuast ERP <mail@turkuast.com>" -ForegroundColor Gray
     Write-Host ""
     Set-Location -Path ".."
     exit 1

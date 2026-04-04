@@ -101,7 +101,7 @@ export const getWarrantyRecords = async (filters?: {
 export const getWarrantyRecordById = async (warrantyId: string): Promise<WarrantyRecord | null> => {
   try {
     const warrantyDoc = await getDoc(doc(firestore, WARRANTY_COLLECTION, warrantyId));
-    
+
     if (!warrantyDoc.exists()) {
       return null;
     }
@@ -130,10 +130,10 @@ export const createWarrantyRecord = async (
     const warrantyDoc: Partial<WarrantyRecord> & { receivedDate: Timestamp; createdAt: ReturnType<typeof serverTimestamp>; updatedAt: ReturnType<typeof serverTimestamp> } = {
       ...warrantyData,
       receivedDate: warrantyData.receivedDate || Timestamp.now(),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      createdAt: serverTimestamp() as any,
+      updatedAt: serverTimestamp() as any,
     };
-    
+
     const docRef = await addDoc(collection(firestore, WARRANTY_COLLECTION), warrantyDoc);
 
     const createdWarranty = await getWarrantyRecordById(docRef.id);
@@ -151,7 +151,7 @@ export const createWarrantyRecord = async (
         const userProfile = await getUserProfile(warrantyData.createdBy);
         const userName = userProfile?.fullName || userProfile?.displayName || userProfile?.email;
         const userEmail = userProfile?.email;
-        
+
         await addWarrantyActivity(
           docRef.id,
           warrantyData.createdBy,
@@ -192,25 +192,25 @@ export const updateWarrantyRecord = async (
   try {
     // Eski veriyi al
     const oldWarranty = await getWarrantyRecordById(warrantyId);
-    
+
     const updateData: Partial<WarrantyRecord> & { updatedAt: ReturnType<typeof serverTimestamp> } = {
       ...updates,
-      updatedAt: serverTimestamp(),
+      updatedAt: serverTimestamp() as any,
     };
 
     // Status güncellemelerinde tarih alanlarını güncelle
     if (updates.status === "completed" && !oldWarranty?.completedDate) {
-      updateData.completedDate = serverTimestamp();
+      updateData.completedDate = serverTimestamp() as any;
     }
     if (updates.status === "returned" && !oldWarranty?.returnedDate) {
-      updateData.returnedDate = serverTimestamp();
+      updateData.returnedDate = serverTimestamp() as any;
     }
-    
+
     await updateDoc(doc(firestore, WARRANTY_COLLECTION, warrantyId), updateData);
-    
+
     // Yeni veriyi al
     const newWarranty = await getWarrantyRecordById(warrantyId);
-    
+
     // Audit log
     if (userId) {
       await logAudit("UPDATE", "warranty", warrantyId, userId, oldWarranty, newWarranty);
@@ -225,11 +225,11 @@ export const updateWarrantyRecord = async (
         const userEmail = userProfile?.email;
 
         const changedFields = Object.keys(updates).filter(key => {
-          const oldValue = (oldWarranty as Record<string, unknown>)[key];
-          const newValue = (updates as Record<string, unknown>)[key];
+          const oldValue = (oldWarranty as unknown as Record<string, unknown>)[key];
+          const newValue = (updates as unknown as Record<string, unknown>)[key];
           return oldValue !== newValue;
         });
-        
+
         if (changedFields.length > 0) {
           await addWarrantyActivity(
             warrantyId,
@@ -264,7 +264,7 @@ export const deleteWarrantyRecord = async (warrantyId: string, userId?: string):
   try {
     // Eski veriyi al
     const oldWarranty = await getWarrantyRecordById(warrantyId);
-    
+
     // Aktivite log ekle (silmeden önce)
     if (userId && oldWarranty) {
       try {
@@ -272,7 +272,7 @@ export const deleteWarrantyRecord = async (warrantyId: string, userId?: string):
         const userProfile = await getUserProfile(userId);
         const userName = userProfile?.fullName || userProfile?.displayName || userProfile?.email;
         const userEmail = userProfile?.email;
-        
+
         await addWarrantyActivity(
           warrantyId,
           userId,
@@ -290,9 +290,9 @@ export const deleteWarrantyRecord = async (warrantyId: string, userId?: string):
         }
       }
     }
-    
+
     await deleteDoc(doc(firestore, WARRANTY_COLLECTION, warrantyId));
-    
+
     // Audit log
     if (userId) {
       await logAudit("DELETE", "warranty", warrantyId, userId, oldWarranty, null);

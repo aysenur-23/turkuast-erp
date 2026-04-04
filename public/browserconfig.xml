@@ -2,10 +2,10 @@
 <browserconfig>
   <msapplication>
     <tile>
-      <square70x70logo src="/rev-favicon.png"/>
-      <square150x150logo src="/rev-favicon.png"/>
-      <square310x310logo src="/rev-favicon.png"/>
-      <wide310x150logo src="/rev-favicon.png"/>
+      <square70x70logo src="/turkuast-favicon.png"/>
+      <square150x150logo src="/turkuast-favicon.png"/>
+      <square310x310logo src="/turkuast-favicon.png"/>
+      <wide310x150logo src="/turkuast-favicon.png"/>
       <TileColor>#2563eb</TileColor>
     </tile>
   </msapplication>

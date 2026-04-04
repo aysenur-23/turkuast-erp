@@ -1,22 +1,13 @@
 /**
  * CreateTaskDialog - Wrapper component
-<<<<<<< HEAD
  * Artık tüm görev oluşturma işlemleri TaskInlineForm üzerinden yapılıyor
-=======
- * Artık tüm görev oluşturma işlemleri TaskDetailModal üzerinden yapılıyor
- * Bu component geriye dönük uyumluluk için TaskDetailModal'ı açıyor
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
  */
 
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-<<<<<<< HEAD
 import { TaskInlineForm } from "./TaskInlineForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-=======
-import { TaskDetailModal } from "./TaskDetailModal";
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -31,7 +22,7 @@ export const CreateTaskDialog = ({ onTaskCreated, open, onOpenChange, hideTrigge
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   // Personnel ve İzleyici kontrolü - görev oluşturma yetkisi yok
   const isPersonnelOrViewer = useMemo(() => {
     if (!user?.roles) return false;
@@ -40,7 +31,7 @@ export const CreateTaskDialog = ({ onTaskCreated, open, onOpenChange, hideTrigge
     const hasAdminRole = user.roles.includes("super_admin") || user.roles.includes("main_admin") || user.roles.includes("team_leader");
     return (hasPersonnelRole || hasViewerRole) && !hasAdminRole;
   }, [user?.roles]);
-  
+
   // Personnel ve İzleyici için buton gösterilmez
   if (isPersonnelOrViewer) {
     return null;
@@ -70,8 +61,8 @@ export const CreateTaskDialog = ({ onTaskCreated, open, onOpenChange, hideTrigge
     return (
       <>
         {!hideTrigger && (
-          <Button 
-            className="gap-2" 
+          <Button
+            className="gap-2"
             onClick={() => {
               navigate("/tasks?new=true");
               // Tasks sayfasındaki modal'ı açmak için state güncellemesi yapılabilir
@@ -85,48 +76,36 @@ export const CreateTaskDialog = ({ onTaskCreated, open, onOpenChange, hideTrigge
     );
   }
 
-<<<<<<< HEAD
   // Diğer sayfalarda TaskInlineForm'u Dialog içinde kullan
-=======
-  // Diğer sayfalarda TaskDetailModal'ı direkt kullan
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
   return (
     <>
       {!hideTrigger && (
-        <Button 
-          className="gap-2" 
+        <Button
+          className="gap-2"
           onClick={() => handleOpenChange(true)}
         >
           <Plus className="h-4 w-4" />
           Yeni Görev
         </Button>
       )}
-<<<<<<< HEAD
       <Dialog open={taskModalOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="app-dialog-shell max-w-4xl">
           <DialogHeader>
             <DialogTitle>Yeni Görev Oluştur</DialogTitle>
             <DialogDescription>
               Yeni bir görev oluşturun
             </DialogDescription>
           </DialogHeader>
-          <TaskInlineForm
-            mode="create"
-            onCancel={() => handleOpenChange(false)}
-            onSuccess={handleTaskCreated}
-            defaultStatus="pending"
-          />
+          <div className="app-dialog-scroll">
+            <TaskInlineForm
+              mode="create"
+              onCancel={() => handleOpenChange(false)}
+              onSuccess={handleTaskCreated}
+              defaultStatus="pending"
+            />
+          </div>
         </DialogContent>
       </Dialog>
-=======
-      <TaskDetailModal
-        taskId={null}
-        open={taskModalOpen}
-        onOpenChange={handleOpenChange}
-        onUpdate={handleTaskCreated}
-        initialStatus="pending"
-      />
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
     </>
   );
 };

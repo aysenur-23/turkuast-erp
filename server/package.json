@@ -1,5 +1,5 @@
 {
-  "name": "revium-email-server",
+  "name": "turkuast-email-server",
   "version": "1.0.0",
   "description": "Hostinger SMTP E-posta Gönderim Sunucusu",
   "main": "server.js",

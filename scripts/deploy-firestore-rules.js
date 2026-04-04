@@ -75,7 +75,7 @@ function getFirebaseProjectId() {
   }
 
   // Varsayılan proje ID (firebase.json'dan veya hardcoded)
-  return 'revpad-15232';
+  return 'turkuast-erp';
 }
 
 // Firebase CLI'nin yüklü olup olmadığını kontrol et

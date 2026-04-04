@@ -147,133 +147,135 @@ export const ProductRecipeDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl w-[80vw] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{product.name} - Reçete Yönetimi</DialogTitle>
-          <DialogDescription>Ürün reçetesini düzenleyin ve hammaddeleri yönetin</DialogDescription>
+      <DialogContent className="app-dialog-shell">
+        <DialogHeader className="p-3 sm:p-4 border-b bg-white flex-shrink-0">
+          <DialogTitle className="text-[16px] sm:text-[18px] font-semibold">{product.name} - Reçete Yönetimi</DialogTitle>
+          <DialogDescription className="sr-only">Ürün reçetesini düzenleyin ve hammaddeleri yönetin</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Mevcut Reçete */}
-          <div>
-            <h4 className="font-medium mb-3">Hammadde Listesi</h4>
-            {recipes.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">
-                Henüz hammadde eklenmemiş
-              </p>
-            ) : (
-              <>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Hammadde</TableHead>
-                      <TableHead>Miktar (Birim üretim için)</TableHead>
-                      <TableHead>Mevcut Stok</TableHead>
-                      <TableHead>Birim Maliyet</TableHead>
-                      <TableHead>Toplam Maliyet</TableHead>
-                      <TableHead className="w-[80px]">İşlem</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recipes
-                      .filter((recipe) => recipe.rawMaterial) // Sadece hammadde bilgisi olan reçeteleri göster
-                      .map((recipe) => {
-                        const material = recipe.rawMaterial;
-                        if (!material) return null; // Güvenlik kontrolü
-                        return (
-                          <TableRow key={recipe.id}>
-                            <TableCell className="font-medium">
-                              {material.name}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  value={recipe.quantityPerUnit}
-                                  onChange={(e) =>
-                                    updateQuantity(recipe.id, e.target.value)
-                                  }
-                                  className="w-24"
-                                />
-                                <span className="text-[11px] sm:text-xs text-muted-foreground">
-                                  {material.unit}
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              {material.stock} {material.unit}
-                            </TableCell>
-                            <TableCell>₺{material.cost || 0}</TableCell>
-                            <TableCell>
-                              ₺{((material.cost || 0) * recipe.quantityPerUnit).toFixed(2)}
-                            </TableCell>
-                            <TableCell>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeMaterial(recipe.id)}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                  </TableBody>
-                </Table>
-                <div className="flex justify-end mt-3 pt-3 border-t">
-                  <div className="text-right">
-                    <p className="text-[11px] sm:text-xs text-muted-foreground">
-                      Toplam Hammadde Maliyeti (Birim)
-                    </p>
-                    <p className="text-[11px] sm:text-xs font-bold">
-                      ₺{(calculateTotalCost() || 0).toFixed(2)}
-                    </p>
+        <div className="flex-1 overflow-hidden bg-gray-50/50 p-3 sm:p-4 min-h-0 app-dialog-scroll">
+          <div className="space-y-6">
+            {/* Mevcut Reçete */}
+            <div>
+              <h4 className="font-medium mb-3">Hammadde Listesi</h4>
+              {recipes.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">
+                  Henüz hammadde eklenmemiş
+                </p>
+              ) : (
+                <>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Hammadde</TableHead>
+                        <TableHead>Miktar (Birim üretim için)</TableHead>
+                        <TableHead>Mevcut Stok</TableHead>
+                        <TableHead>Birim Maliyet</TableHead>
+                        <TableHead>Toplam Maliyet</TableHead>
+                        <TableHead className="w-[80px]">İşlem</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recipes
+                        .filter((recipe) => recipe.rawMaterial) // Sadece hammadde bilgisi olan reçeteleri göster
+                        .map((recipe) => {
+                          const material = recipe.rawMaterial;
+                          if (!material) return null; // Güvenlik kontrolü
+                          return (
+                            <TableRow key={recipe.id}>
+                              <TableCell className="font-medium">
+                                {material.name}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    value={recipe.quantityPerUnit}
+                                    onChange={(e) =>
+                                      updateQuantity(recipe.id, e.target.value)
+                                    }
+                                    className="w-24"
+                                  />
+                                  <span className="text-[11px] sm:text-xs text-muted-foreground">
+                                    {material.unit}
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                {material.stock} {material.unit}
+                              </TableCell>
+                              <TableCell>₺{material.cost || 0}</TableCell>
+                              <TableCell>
+                                ₺{((material.cost || 0) * recipe.quantityPerUnit).toFixed(2)}
+                              </TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeMaterial(recipe.id)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                    </TableBody>
+                  </Table>
+                  <div className="flex justify-end mt-3 pt-3 border-t">
+                    <div className="text-right">
+                      <p className="text-[11px] sm:text-xs text-muted-foreground">
+                        Toplam Hammadde Maliyeti (Birim)
+                      </p>
+                      <p className="text-[11px] sm:text-xs font-bold">
+                        ₺{(calculateTotalCost() || 0).toFixed(2)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </>
-            )}
-          </div>
+                </>
+              )}
+            </div>
 
-          {/* Yeni Hammadde Ekle */}
-          <div className="border-t pt-4">
-            <h4 className="font-medium mb-3">Yeni Hammadde Ekle</h4>
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <Label>Hammadde</Label>
-                <Select
-                  value={selectedMaterial ?? undefined}
-                  onValueChange={setSelectedMaterial}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Hammadde seçin..." />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[400px]">
-                    {materials.map((m) => (
-                      <SelectItem key={m.id} value={m.id}>
-                        {m.name} ({m.currentStock} {m.unit} - ₺{m.unitPrice || 0}/{m.unit})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="w-32">
-                <Label>Miktar</Label>
-                <Input
-                  type="number"
-                  step="1"
-                  min="0"
-                  placeholder="Miktar"
-                  value={newQuantity}
-                  onChange={(e) => setNewQuantity(e.target.value)}
-                />
-              </div>
-              <div className="flex items-end">
-                <Button onClick={addMaterial} disabled={loading}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Ekle
-                </Button>
+            {/* Yeni Hammadde Ekle */}
+            <div className="border-t pt-4">
+              <h4 className="font-medium mb-3">Yeni Hammadde Ekle</h4>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <Label>Hammadde</Label>
+                  <Select
+                    value={selectedMaterial ?? undefined}
+                    onValueChange={setSelectedMaterial}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Hammadde seçin..." />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[400px]">
+                      {materials.map((m) => (
+                        <SelectItem key={m.id} value={m.id}>
+                          {m.name} ({m.currentStock} {m.unit} - ₺{m.unitPrice || 0}/{m.unit})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="w-32">
+                  <Label>Miktar</Label>
+                  <Input
+                    type="number"
+                    step="1"
+                    min="0"
+                    placeholder="Miktar"
+                    value={newQuantity}
+                    onChange={(e) => setNewQuantity(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button onClick={addMaterial} disabled={loading}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ekle
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

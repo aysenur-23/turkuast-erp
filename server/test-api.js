@@ -20,8 +20,8 @@ const testAPI = async () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        to: 'mail@revpad.net',
-        subject: 'API Test E-postası - Revium ERP',
+        to: 'mail@turkuast.com',
+        subject: 'API Test E-postası - Turkuast ERP',
         html: '<h1>API Test</h1><p>Backend API çalışıyor!</p><p>Eğer bu e-postayı alıyorsanız, sistem tamamen hazır!</p>',
       }),
     });

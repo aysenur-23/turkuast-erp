@@ -8,10 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { updateProduct, Product } from "@/services/firebase/productService";
-<<<<<<< HEAD
 import { useAuth } from "@/contexts/AuthContext";
-=======
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
 import { Package, Loader2, X, Save } from "lucide-react";
 
 const PRODUCT_CATEGORIES = [
@@ -30,10 +27,7 @@ interface EditProductDialogProps {
 }
 
 export const EditProductDialog = ({ open, onOpenChange, onSuccess, product }: EditProductDialogProps) => {
-<<<<<<< HEAD
   const { isAdmin, isTeamLeader } = useAuth();
-=======
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -107,11 +101,7 @@ export const EditProductDialog = ({ open, onOpenChange, onSuccess, product }: Ed
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-<<<<<<< HEAD
-      <DialogContent className="!max-w-[100vw] sm:!max-w-[95vw] md:!max-w-[85vw] !w-[100vw] sm:!w-[95vw] md:!w-[85vw] !h-[100vh] sm:!h-[90vh] md:!h-[80vh] !max-h-[100vh] sm:!max-h-[90vh] md:!max-h-[80vh] !left-0 sm:!left-[2.5vw] md:!left-[7.5vw] !top-0 sm:!top-[5vh] md:!top-[10vh] !right-0 sm:!right-auto !bottom-0 sm:!bottom-auto !translate-x-0 !translate-y-0 overflow-hidden !p-0 gap-0 bg-white flex flex-col !m-0 !rounded-none sm:!rounded-lg !border-0 sm:!border">
-=======
-      <DialogContent className="!max-w-[100vw] sm:!max-w-[85vw] !w-[100vw] sm:!w-[85vw] !h-[100vh] sm:!h-[80vh] !max-h-[100vh] sm:!max-h-[80vh] !left-0 sm:!left-[7.5vw] !top-0 sm:!top-[10vh] !right-0 sm:!right-auto !bottom-0 sm:!bottom-auto !translate-x-0 !translate-y-0 overflow-hidden !p-0 gap-0 bg-white flex flex-col !m-0 !rounded-none sm:!rounded-lg !border-0 sm:!border">
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
+      <DialogContent className="app-dialog-shell">
         {/* DialogTitle ve DialogDescription DialogContent'in direkt child'ı olmalı (Radix UI gereksinimi) */}
         <DialogTitle className="sr-only">
           Ürünü Düzenle
@@ -119,7 +109,7 @@ export const EditProductDialog = ({ open, onOpenChange, onSuccess, product }: Ed
         <DialogDescription className="sr-only">
           Ürün bilgilerini düzenleyin
         </DialogDescription>
-        
+
         <div className="flex flex-col h-full min-h-0">
           {/* Header */}
           <DialogHeader className="p-3 sm:p-4 border-b bg-white flex-shrink-0 relative pr-12 sm:pr-16">
@@ -160,9 +150,9 @@ export const EditProductDialog = ({ open, onOpenChange, onSuccess, product }: Ed
               </div>
             </div>
           </DialogHeader>
-        
-          <div className="flex-1 overflow-hidden bg-gray-50/50 p-3 sm:p-4 min-h-0">
-            <div className="max-w-full mx-auto h-full overflow-y-auto">
+
+          <div className="flex-1 overflow-hidden bg-gray-50/50 p-3 sm:p-4 min-h-0 app-dialog-scroll">
+            <div className="max-w-full mx-auto">
               <form onSubmit={(e) => { e.preventDefault(); handleSubmit(e); }} className="space-y-2">
                 <Card>
                   <CardHeader>
@@ -206,7 +196,6 @@ export const EditProductDialog = ({ open, onOpenChange, onSuccess, product }: Ed
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 sm:gap-2">
                       <div className="space-y-1.5 sm:space-y-2">
                         <Label htmlFor="category" className="text-[11px] sm:text-xs">Kategori</Label>
-<<<<<<< HEAD
                         {(isAdmin || isTeamLeader) ? (
                           <div className="space-y-2">
                             <Input
@@ -238,21 +227,6 @@ export const EditProductDialog = ({ open, onOpenChange, onSuccess, product }: Ed
                             </SelectContent>
                           </Select>
                         )}
-=======
-                        <Select value={formData.category ? formData.category : "none"} onValueChange={(value) => setFormData({ ...formData, category: value === "none" ? "" : value })}>
-                          <SelectTrigger className="min-h-[44px] sm:min-h-0">
-                            <SelectValue placeholder="Kategori seçin" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Kategori Yok</SelectItem>
-                            {PRODUCT_CATEGORIES.map((cat) => (
-                              <SelectItem key={cat} value={cat}>
-                                {cat}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
                       </div>
                       <div className="space-y-1.5 sm:space-y-2">
                         <Label htmlFor="stock" className="text-[11px] sm:text-xs">Stok</Label>

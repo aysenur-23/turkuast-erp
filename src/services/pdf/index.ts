@@ -9,7 +9,7 @@ export {
     COMPANY_INFO,
     PDF_CONSTANTS,
     TAILWIND_COLORS,
-    REV_LOGO_DATA_URI,
+    TURKUAST_LOGO_BASE64,
 
     // Types
     type PDFTemplateLayout,

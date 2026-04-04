@@ -1,8 +1,8 @@
-# Revium ERP - Sistem Yetkileri ve İşlevler Dokümantasyonu
+# Turkuast ERP - Sistem Yetkileri ve İşlevler Dokümantasyonu
 
 ## Genel Bakış
 
-Revium ERP, rol tabanlı bir yetki sistemi kullanarak kullanıcıların sistem içindeki işlevlere erişimini kontrol eder. Sistem, `role_permissions` koleksiyonunda saklanan yetkiler üzerinden çalışır ve gerçek zamanlı güncellemeleri destekler.
+Turkuast ERP, rol tabanlı bir yetki sistemi kullanarak kullanıcıların sistem içindeki işlevlere erişimini kontrol eder. Sistem, `role_permissions` koleksiyonunda saklanan yetkiler üzerinden çalışır ve gerçek zamanlı güncellemeleri destekler.
 
 > Not: `admin` rolü kaldırıldı; tam yetki için `super_admin` kullanılır.
 
@@ -688,7 +688,7 @@ Revium ERP, rol tabanlı bir yetki sistemi kullanarak kullanıcıların sistem i
 
 ## Sonuç
 
-Bu dokümantasyon, Revium ERP sistemindeki tüm modüllerin yetki yapısını ve işleyişini detaylı olarak açıklamaktadır. Sistem, rol tabanlı yetki kontrolü ile güvenli ve esnek bir yapı sunar. Her modül için özel yetkiler ve alt yetkiler tanımlanmıştır, böylece kullanıcılar sadece yetkili oldukları işlemleri gerçekleştirebilir.
+Bu dokümantasyon, Turkuast ERP sistemindeki tüm modüllerin yetki yapısını ve işleyişini detaylı olarak açıklamaktadır. Sistem, rol tabanlı yetki kontrolü ile güvenli ve esnek bir yapı sunar. Her modül için özel yetkiler ve alt yetkiler tanımlanmıştır, böylece kullanıcılar sadece yetkili oldukları işlemleri gerçekleştirebilir.
 
 **Not:** Yetki değişiklikleri `role_permissions` koleksiyonundan yapılır ve anında tüm sistemde geçerli olur.
 

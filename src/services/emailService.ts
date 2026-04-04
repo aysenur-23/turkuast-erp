@@ -28,7 +28,7 @@ export const sendEmail = async (options: EmailOptions): Promise<{ success: boole
   // Production modunda environment variable yoksa direkt fallback URL kullan
   // Development modunda environment variable yoksa localhost kullan
   const isProduction = import.meta.env.PROD;
-  const fallbackUrl = isProduction ? "https://revpad.net/api/send-email/" : null;
+  const fallbackUrl = isProduction ? "https://turkuast.com/api/send-email/" : null;
   
   // Eğer primary URL yoksa
   if (!primaryUrl) {
@@ -271,11 +271,11 @@ export const testEmailService = async (testEmail: string): Promise<{ success: bo
     // Fallback URL - Primary localhost ise production URL kullan
     let fallbackUrl: string;
     if (isPrimaryLocalhost) {
-      fallbackUrl = "https://revpad.net/api/send-email";
+      fallbackUrl = "https://turkuast.com/api/send-email";
     } else {
       fallbackUrl = import.meta.env.VITE_EMAIL_API_URL || 
                     import.meta.env.VITE_API_URL?.replace(/\/$/, "") + "/send-email" ||
-                    "https://revpad.net/api/send-email";
+                    "https://turkuast.com/api/send-email";
     }
 
     if (import.meta.env.DEV) {
@@ -288,11 +288,11 @@ export const testEmailService = async (testEmail: string): Promise<{ success: bo
 
     const result = await sendEmail({
       to: testEmail,
-      subject: "Revium ERP - E-posta Servisi Test",
+      subject: "Turkuast ERP - E-posta Servisi Test",
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">Revium ERP Suite</h1>
+            <h1 style="color: white; margin: 0; font-size: 24px;">Turkuast ERP Suite</h1>
           </div>
           <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
             <h2 style="color: #333; margin-top: 0;">✅ E-posta Servisi Testi</h2>
@@ -361,7 +361,7 @@ export const sendNotificationEmail = async (
   relatedId?: string | null,
   metadata?: Record<string, unknown> | null
 ): Promise<{ success: boolean; error?: string }> => {
-  const appUrl = import.meta.env.VITE_APP_URL || "https://revpad.net";
+  const appUrl = import.meta.env.VITE_APP_URL || "https://turkuast.com";
   let actionUrl = `${appUrl}/tasks`;
 
   // Talep bildirimleri kontrolü (öncelikli - diğer kontrollerden önce)
@@ -517,7 +517,7 @@ export const sendNotificationEmail = async (
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">Revium ERP Suite</h1>
+    <h1 style="color: white; margin: 0; font-size: 24px;">Turkuast ERP Suite</h1>
   </div>
   <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
     <h2 style="color: #333; margin-top: 0; font-size: 20px; margin-bottom: 15px;">${title}</h2>
@@ -532,7 +532,7 @@ export const sendNotificationEmail = async (
     ` : ""}
     <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
     <p style="color: #999; font-size: 12px; text-align: center; margin: 0;">
-      Bu e-posta Revium ERP Suite tarafından otomatik olarak gönderilmiştir.<br>
+      Bu e-posta Turkuast ERP Suite tarafından otomatik olarak gönderilmiştir.<br>
       E-posta bildirimlerini ayarlardan yönetebilirsiniz.
     </p>
   </div>
@@ -542,7 +542,7 @@ export const sendNotificationEmail = async (
 
   const result = await sendEmail({
     to: userEmail,
-    subject: `Revium ERP - ${title}`,
+    subject: `Turkuast ERP - ${title}`,
     html: emailHtml,
   });
   
@@ -556,7 +556,7 @@ export const sendWelcomeEmail = async (
   userEmail: string,
   fullName: string
 ): Promise<{ success: boolean; error?: string }> => {
-  const appUrl = import.meta.env.VITE_APP_URL || "https://revpad.net";
+  const appUrl = import.meta.env.VITE_APP_URL || "https://turkuast.com";
   const registrationTime = new Date().toLocaleString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
   const emailHtml = `
@@ -565,11 +565,11 @@ export const sendWelcomeEmail = async (
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hoş Geldiniz - Revium ERP Suite</title>
+  <title>Hoş Geldiniz - Turkuast ERP Suite</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">Revium ERP Suite</h1>
+    <h1 style="color: white; margin: 0; font-size: 24px;">Turkuast ERP Suite</h1>
   </div>
   <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
     <h2 style="color: #333; margin-top: 0; font-size: 20px; margin-bottom: 15px;">Hoş Geldiniz!</h2>
@@ -578,7 +578,7 @@ export const sendWelcomeEmail = async (
         Merhaba <strong>${fullName}</strong>,
       </p>
       <p style="color: #374151; font-size: 16px; line-height: 1.8; margin: 0 0 15px 0;">
-        Revium ERP Suite'e kaydolduğunuz için teşekkür ederiz! Hesabınız başarıyla oluşturuldu.
+        Turkuast ERP Suite'e kaydolduğunuz için teşekkür ederiz! Hesabınız başarıyla oluşturuldu.
       </p>
       <p style="color: #374151; font-size: 16px; line-height: 1.8; margin: 0 0 15px 0;">
         Hesabınızı aktifleştirmek için lütfen e-posta adresinize gönderilen doğrulama bağlantısına tıklayın. E-posta doğrulaması yapılmadan bazı özellikleri kullanamayabilirsiniz.
@@ -597,7 +597,7 @@ export const sendWelcomeEmail = async (
     </div>
     <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
     <p style="color: #999; font-size: 12px; text-align: center; margin: 0;">
-      Bu e-posta Revium ERP Suite tarafından otomatik olarak gönderilmiştir.<br>
+      Bu e-posta Turkuast ERP Suite tarafından otomatik olarak gönderilmiştir.<br>
       Eğer bu hesabı siz oluşturmadıysanız, lütfen bu e-postayı yok sayın.
     </p>
   </div>
@@ -607,7 +607,7 @@ export const sendWelcomeEmail = async (
 
   const result = await sendEmail({
     to: userEmail,
-    subject: "Hoş Geldiniz - Revium ERP Suite",
+    subject: "Hoş Geldiniz - Turkuast ERP Suite",
     html: emailHtml,
   });
   
@@ -621,7 +621,7 @@ export const sendPasswordResetEmailCustom = async (
   userEmail: string,
   resetLink: string
 ): Promise<{ success: boolean; error?: string }> => {
-  const appUrl = import.meta.env.VITE_APP_URL || "https://revpad.net";
+  const appUrl = import.meta.env.VITE_APP_URL || "https://turkuast.com";
   const requestTime = new Date().toLocaleString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
   const emailHtml = `
@@ -630,11 +630,11 @@ export const sendPasswordResetEmailCustom = async (
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Şifre Sıfırlama - Revium ERP Suite</title>
+  <title>Şifre Sıfırlama - Turkuast ERP Suite</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">Revium ERP Suite</h1>
+    <h1 style="color: white; margin: 0; font-size: 24px;">Turkuast ERP Suite</h1>
   </div>
   <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
     <h2 style="color: #333; margin-top: 0; font-size: 20px; margin-bottom: 15px;">Şifre Sıfırlama Talebi</h2>
@@ -668,7 +668,7 @@ export const sendPasswordResetEmailCustom = async (
     </div>
     <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
     <p style="color: #999; font-size: 12px; text-align: center; margin: 0;">
-      Bu e-posta Revium ERP Suite tarafından otomatik olarak gönderilmiştir.<br>
+      Bu e-posta Turkuast ERP Suite tarafından otomatik olarak gönderilmiştir.<br>
       Bu bağlantı 1 saat içinde geçerliliğini yitirecektir.
     </p>
   </div>
@@ -678,7 +678,7 @@ export const sendPasswordResetEmailCustom = async (
 
   const result = await sendEmail({
     to: userEmail,
-    subject: "Şifre Sıfırlama - Revium ERP Suite",
+    subject: "Şifre Sıfırlama - Turkuast ERP Suite",
     html: emailHtml,
   });
   

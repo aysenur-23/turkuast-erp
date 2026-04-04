@@ -9,7 +9,7 @@ import {
     PDF_CONSTANTS,
     TAILWIND_COLORS,
     COMPANY_INFO,
-    REV_LOGO_DATA_URI,
+    TURKUAST_LOGO_BASE64,
     PDFTemplateLayout,
     StatCardConfig,
     TableHeaderConfig,
@@ -180,7 +180,7 @@ export function drawPDFHeader(
     // Logo
     try {
         doc.addImage(
-            REV_LOGO_DATA_URI,
+            TURKUAST_LOGO_BASE64,
             'PNG',
             template.header.logoX,
             template.header.logoY,
@@ -250,7 +250,7 @@ export function drawPDFFooter(
     // Footer logo (küçük)
     try {
         doc.addImage(
-            REV_LOGO_DATA_URI,
+            TURKUAST_LOGO_BASE64,
             'PNG',
             PDF_CONSTANTS.margin,
             footerY + 10,
