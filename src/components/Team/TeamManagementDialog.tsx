@@ -122,7 +122,7 @@ export const TeamManagementDialog = ({
                             </DialogTitle>
                             <DialogDescription className="text-xs sm:text-sm mt-1">
                                 {mode === "create"
-                                    ? "Sistemde yeni bir çalışma ekibi/departmanı oluşturun."
+                                    ? "Sistemde yeni bir çalışma ekibi oluşturun."
                                     : "Ekip bilgilerini güncelleyin veya sorumlu yöneticiyi değiştirin."}
                             </DialogDescription>
                         </div>

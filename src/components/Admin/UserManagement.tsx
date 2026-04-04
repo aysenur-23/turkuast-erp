@@ -94,8 +94,8 @@ export const UserManagement = () => {
               }))
               .sort((a, b) => {
                 // Kayıt olma tarihine göre sırala (en eski en üstte)
-                const aTime = a.created_at instanceof Timestamp ? a.created_at.toMillis() : (a.created_at instanceof Date ? a.created_at.getTime() : 0);
-                const bTime = b.created_at instanceof Timestamp ? b.created_at.toMillis() : (b.created_at instanceof Date ? b.created_at.getTime() : 0);
+                const aTime = (a.created_at as any) instanceof Timestamp ? (a.created_at as any).toMillis() : ((a.created_at as any) instanceof Date ? (a.created_at as any).getTime() : 0);
+                const bTime = (b.created_at as any) instanceof Timestamp ? (b.created_at as any).toMillis() : ((b.created_at as any) instanceof Date ? (b.created_at as any).getTime() : 0);
                 return aTime - bTime;
               });
 
@@ -163,8 +163,8 @@ export const UserManagement = () => {
         }))
         .sort((a, b) => {
           // Kayıt olma tarihine göre sırala (en eski en üstte)
-          const aTime = a.created_at instanceof Timestamp ? a.created_at.toMillis() : (a.created_at instanceof Date ? a.created_at.getTime() : 0);
-          const bTime = b.created_at instanceof Timestamp ? b.created_at.toMillis() : (b.created_at instanceof Date ? b.created_at.getTime() : 0);
+          const aTime = (a.created_at as any) instanceof Timestamp ? (a.created_at as any).toMillis() : ((a.created_at as any) instanceof Date ? (a.created_at as any).getTime() : 0);
+          const bTime = (b.created_at as any) instanceof Timestamp ? (b.created_at as any).toMillis() : ((b.created_at as any) instanceof Date ? (b.created_at as any).getTime() : 0);
           return aTime - bTime;
         }));
 
@@ -480,7 +480,7 @@ export const UserManagement = () => {
         departmentId: departmentId === "none" ? null : departmentId,
       }, user?.id || null);
 
-      toast.success("Kullanıcı departmanı başarıyla güncellendi");
+      toast.success("Kullanıcı ekibi başarıyla güncellendi");
       fetchData();
     } catch (error: unknown) {
       toast.error("Departman güncellenemedi: " + (error instanceof Error ? error.message : "Bilinmeyen hata"));
@@ -567,7 +567,7 @@ export const UserManagement = () => {
                   <TableRow>
                     <TableHead className="min-w-[150px]">Kullanıcı</TableHead>
                     <TableHead className="hidden md:table-cell min-w-[180px]">Email</TableHead>
-                    <TableHead className="min-w-[140px]">Departman</TableHead>
+                    <TableHead className="min-w-[140px]">Ekip</TableHead>
                     <TableHead className="min-w-[100px] max-w-[140px]">Rol</TableHead>
                     <TableHead className="hidden lg:table-cell min-w-[120px]">Son Giriş</TableHead>
                     <TableHead className="text-right min-w-[120px]">İşlemler</TableHead>

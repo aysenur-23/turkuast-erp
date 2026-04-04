@@ -117,9 +117,9 @@ const PageLoader = () => (
   <div className="fixed inset-0 w-full h-full flex flex-col items-center justify-center z-[9999]"
     style={{ background: 'radial-gradient(circle at center, #ffffff 0%, #f1f5f9 100%)' }}>
     <img
-      src="/turkuast-logo.png"
+      src="/turkuast-favicon.png"
       alt="Turkuast Logo"
-      className="w-[200px] h-auto mb-[36px] drop-shadow-[0_10px_15px_rgba(37,99,235,0.15)]"
+      className="w-[120px] h-auto mb-[36px] drop-shadow-[0_10px_15px_rgba(37,99,235,0.15)]"
       loading="eager"
     />
     <div className="w-[50px] h-[50px] border-[3px] border-[#2563eb1a] border-t-[#2563eb] rounded-full animate-spin mb-[24px]" />

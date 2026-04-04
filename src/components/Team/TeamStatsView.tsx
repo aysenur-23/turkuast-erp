@@ -271,7 +271,7 @@ export const TeamStatsView = ({
         </Card>
       )}
 
-      {/* Departman İstatistikleri */}
+      {/* Ekip İstatistikleri */}
       <Card className="border-0 shadow-sm overflow-hidden">
         <CardContent className="pt-1 px-1 pb-1">
           <div className="mb-1">

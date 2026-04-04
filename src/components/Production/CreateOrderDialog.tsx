@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { createOrder, updateOrder, getOrderItems, OrderItem, Order as FirebaseOrder } from "@/services/firebase/orderService";
 import { getCustomerById, Customer as FirebaseCustomer } from "@/services/firebase/customerService";
 import { useAuth } from "@/contexts/AuthContext";
-import { getDocs, addDoc, updateDoc, deleteDoc, collection, Timestamp } from "firebase/firestore";
+import { getDocs, addDoc, updateDoc, deleteDoc, collection, Timestamp, doc, serverTimestamp } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import { Loader2, Plus, Trash2, Package, ShoppingCart, User, CalendarIcon, ArrowLeft, ArrowRight, Save, RefreshCcw, ChevronsUpDown, Pencil, CreditCard } from "lucide-react";
 import { CustomerCombobox } from "@/components/Customers/CustomerCombobox";
@@ -180,15 +180,42 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
   const [customerDetailModalOpen, setCustomerDetailModalOpen] = useState(false);
   const [step, setStep] = useState(1);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    order_number: string;
+    customer_id: string;
+    customer_name: string;
+    due_date: string;
+    priority: number;
+    status: FirebaseOrder["status"];
+    notes: string;
+    deductMaterials: boolean;
+    price: number;
+    paidAmount: number;
+    paymentStatus: "unpaid" | "partially_paid" | "paid";
+    paymentMethod: string;
+    hasMaturity: boolean;
+    maturityMonths: number;
+    maturityDate: string;
+    invoiceStatus: "not_invoiced" | "invoiced";
+    invoiceUrl: string;
+  }>({
     order_number: "",
     customer_id: "",
     customer_name: "",
     due_date: "",
     priority: 0,
-    status: "planned" as FirebaseOrder["status"],
+    status: "planned",
     notes: "",
-    deductMaterials: true, // Hammadde düşürme varsayılan açık
+    deductMaterials: true,
+    price: 0,
+    paidAmount: 0,
+    paymentStatus: "unpaid",
+    paymentMethod: "cash",
+    hasMaturity: false,
+    maturityMonths: 0,
+    maturityDate: "",
+    invoiceStatus: "not_invoiced",
+    invoiceUrl: "",
   });
 
   const [productItems, setProductItems] = useState<ProductItem[]>([createEmptyItem()]);
@@ -228,6 +255,15 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
       status: "planned",
       notes: "",
       deductMaterials: true,
+      price: 0,
+      paidAmount: 0,
+      paymentStatus: "unpaid",
+      paymentMethod: "cash",
+      hasMaturity: false,
+      maturityMonths: 0,
+      maturityDate: "",
+      invoiceStatus: "not_invoiced",
+      invoiceUrl: "",
     });
     setProductItems([createEmptyItem()]);
     setOrderNumberTouched(false);
@@ -277,7 +313,20 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
             priority: order.priority ?? 0,
             status: order.status || "planned",
             notes: order.notes || "",
-            deductMaterials: order.deductMaterials || true,
+            deductMaterials: order.deductMaterials ?? true,
+            price: order.price || 0,
+            paidAmount: order.paidAmount || 0,
+            paymentStatus: order.paymentStatus || "unpaid",
+            paymentMethod: order.paymentMethod || "cash",
+            hasMaturity: order.hasMaturity || false,
+            maturityMonths: order.maturityMonths || 0,
+            maturityDate: order.maturityDate instanceof Timestamp
+              ? format(order.maturityDate.toDate(), "yyyy-MM-dd")
+              : typeof order.maturityDate === "string"
+                ? order.maturityDate
+                : "",
+            invoiceStatus: order.invoiceStatus || "not_invoiced",
+            invoiceUrl: order.invoiceUrl || "",
           });
 
           const items = await getOrderItems(order.id);
@@ -496,6 +545,16 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
             notes: formData.notes || null,
             deductMaterials: formData.deductMaterials,
             priority: formData.priority,
+            // New Financial Tracking Fields
+            price: formData.price,
+            paidAmount: formData.paidAmount,
+            paymentStatus: formData.paymentStatus,
+            paymentMethod: formData.paymentMethod,
+            hasMaturity: formData.hasMaturity,
+            maturityMonths: formData.maturityMonths,
+            maturityDate: formData.maturityDate ? Timestamp.fromDate(new Date(formData.maturityDate)) : null,
+            invoiceStatus: formData.invoiceStatus,
+            invoiceUrl: formData.invoiceUrl,
           },
           user.id,
           true
@@ -545,6 +604,16 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
           created_by: user.id,
           deductMaterials: formData.deductMaterials,
           priority: formData.priority,
+          // New Financial Tracking Fields
+          price: formData.price,
+          paidAmount: formData.paidAmount,
+          paymentStatus: formData.paymentStatus,
+          paymentMethod: formData.paymentMethod,
+          hasMaturity: formData.hasMaturity,
+          maturityMonths: formData.maturityMonths,
+          maturityDate: formData.maturityDate ? Timestamp.fromDate(new Date(formData.maturityDate)) : null,
+          invoiceStatus: formData.invoiceStatus,
+          invoiceUrl: formData.invoiceUrl,
         }, orderItems);
 
         toast.success("Üretim siparişi oluşturuldu");
@@ -592,7 +661,7 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
                   </h2>
                 </div>
                 <Badge variant="outline" className="text-[10px] px-2 sm:px-3 py-1 flex-shrink-0 w-full sm:w-auto justify-center sm:justify-start">
-                  Adım {step}/3
+                  Adım {step}/4
                 </Badge>
               </div>
             </DialogHeader>
@@ -999,8 +1068,151 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
                   </div>
                 )}
 
-                {/* Step 3: Final Summary */}
+                {/* Step 3: Financial Information */}
                 {step === 3 && (
+                  <div className="space-y-4 sm:space-y-6">
+                    <Card className="rounded-xl shadow-lg border bg-white flex-1 flex flex-col min-h-0">
+                      <CardHeader className="p-4 sm:p-6 md:p-8 border-b flex-shrink-0">
+                        <CardTitle className="text-sm sm:text-base md:text-lg font-semibold flex items-center gap-2">
+                          <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                          Finansal Bilgiler
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-5 flex-1 overflow-y-auto overflow-x-hidden">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                          <div className="space-y-2">
+                            <Label className="text-xs sm:text-sm font-medium">Toplam Tutar (₺)</Label>
+                            <Input
+                              type="number"
+                              value={formData.price}
+                              onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                              placeholder="0.00"
+                              className="h-10 text-sm"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs sm:text-sm font-medium">Ödenen Tutar (₺)</Label>
+                            <Input
+                              type="number"
+                              value={formData.paidAmount}
+                              onChange={(e) => setFormData(prev => ({ ...prev, paidAmount: parseFloat(e.target.value) || 0 }))}
+                              placeholder="0.00"
+                              className="h-10 text-sm"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                          <div className="space-y-2">
+                            <Label className="text-xs sm:text-sm font-medium">Ödeme Durumu</Label>
+                            <Select
+                              value={formData.paymentStatus}
+                              onValueChange={(value) => setFormData(prev => ({ ...prev, paymentStatus: value as any }))}
+                            >
+                              <SelectTrigger className="h-10 text-sm">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="unpaid">Ödenmedi</SelectItem>
+                                <SelectItem value="partially_paid">Kısmi Ödendi</SelectItem>
+                                <SelectItem value="paid">Ödendi</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs sm:text-sm font-medium">Ödeme Yöntemi</Label>
+                            <Select
+                              value={formData.paymentMethod}
+                              onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value }))}
+                            >
+                              <SelectTrigger className="h-10 text-sm">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="cash">Nakit</SelectItem>
+                                <SelectItem value="credit_card">Kredi Kartı</SelectItem>
+                                <SelectItem value="bank_transfer">Banka Havalesi</SelectItem>
+                                <SelectItem value="other">Diğer</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4 pt-4 border-t">
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                              <Label className="text-sm font-medium">Vade Var mı?</Label>
+                              <p className="text-xs text-muted-foreground">Eğer varsa vade ayını ve tarihini belirtin</p>
+                            </div>
+                            <Button
+                              variant={formData.hasMaturity ? "default" : "outline"}
+                              size="sm"
+                              type="button"
+                              onClick={() => setFormData(prev => ({ ...prev, hasMaturity: !prev.hasMaturity }))}
+                            >
+                              {formData.hasMaturity ? "Evet" : "Hayır"}
+                            </Button>
+                          </div>
+
+                          {formData.hasMaturity && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 animate-in slide-in-from-top-2 duration-200">
+                              <div className="space-y-2">
+                                <Label className="text-xs sm:text-sm font-medium">Vade (Ay)</Label>
+                                <Input
+                                  type="number"
+                                  value={formData.maturityMonths}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, maturityMonths: parseInt(e.target.value) || 0 }))}
+                                  placeholder="Örn: 3"
+                                  className="h-10 text-sm"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="text-xs sm:text-sm font-medium">Vade Tarihi</Label>
+                                <Input
+                                  type="date"
+                                  value={formData.maturityDate}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, maturityDate: e.target.value }))}
+                                  className="h-10 text-sm"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 pt-4 border-t">
+                          <div className="space-y-2">
+                            <Label className="text-xs sm:text-sm font-medium">Fatura Durumu</Label>
+                            <Select
+                              value={formData.invoiceStatus}
+                              onValueChange={(value) => setFormData(prev => ({ ...prev, invoiceStatus: value as any }))}
+                            >
+                              <SelectTrigger className="h-10 text-sm">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="not_invoiced">Kesilmedi</SelectItem>
+                                <SelectItem value="invoiced">Kesildi</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs sm:text-sm font-medium">Fatura Dosyası (URL)</Label>
+                            <Input
+                              value={formData.invoiceUrl}
+                              onChange={(e) => setFormData(prev => ({ ...prev, invoiceUrl: e.target.value }))}
+                              placeholder="Fatura linki..."
+                              className="h-10 text-sm"
+                            />
+                            <p className="text-[10px] text-muted-foreground mt-1">Gelecek aşamada Drive entegrasyonu ile dosya yükleme eklenecektir.</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                {/* Step 4: Final Summary */}
+                {step === 4 && (
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 md:gap-6 h-full">
                     <div className="col-span-1 lg:col-span-10 space-y-2 sm:space-y-3 md:space-y-4 flex flex-col">
                       <Card className="rounded-xl shadow-lg border bg-white flex-1 flex flex-col min-h-0">
@@ -1022,12 +1234,51 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
                             </div>
                           </div>
 
-                          <div>
+                          <div className="pt-4 border-t space-y-4">
+                            <h4 className="font-semibold flex items-center gap-2 text-sm sm:text-base">
+                              <CreditCard className="h-4 w-4 text-primary" />
+                              Finansal Özet
+                            </h4>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground font-medium">Toplam Tutar</p>
+                                <p className="font-semibold text-sm sm:text-base">{formData.price.toLocaleString('tr-TR')} ₺</p>
+                              </div>
+                              <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground font-medium">Ödenen Tutar</p>
+                                <p className="font-semibold text-sm sm:text-base text-green-600">{formData.paidAmount.toLocaleString('tr-TR')} ₺</p>
+                              </div>
+                              <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground font-medium">Ödeme Durumu</p>
+                                <Badge variant="outline" className="text-[10px] capitalize">
+                                  {formData.paymentStatus === 'paid' ? 'Ödendi' : formData.paymentStatus === 'partially_paid' ? 'Kısmi' : 'Ödenmedi'}
+                                </Badge>
+                              </div>
+                              <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground font-medium">Ödeme Yöntemi</p>
+                                <p className="text-sm capitalize font-medium">{formData.paymentMethod === 'cash' ? 'Nakit' : formData.paymentMethod === 'credit_card' ? 'Kredi Kartı' : formData.paymentMethod === 'bank_transfer' ? 'Banka Havalesi' : 'Diğer'}</p>
+                              </div>
+                            </div>
+                            {formData.hasMaturity && (
+                              <div className="p-3 rounded-xl bg-orange-50 border border-orange-100 flex justify-between items-center">
+                                <div className="space-y-0.5">
+                                  <p className="text-[10px] font-bold text-orange-800 uppercase tracking-wider">VADE BİLGİSİ</p>
+                                  <p className="text-sm font-semibold text-orange-950">{formData.maturityMonths} Ay Vade</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-[10px] font-medium text-orange-700">Vade Tarihi</p>
+                                  <p className="text-sm font-bold text-orange-950">{formData.maturityDate || '-'}</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="pt-4 border-t">
                             <h4 className="font-semibold mb-3 flex items-center gap-2">
                               <Package className="h-4 w-4 text-primary" />
                               Ürün Listesi
                             </h4>
-                            <div className="space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden">
+                            <div className="space-y-2 max-h-[200px] overflow-y-auto">
                               {validItems.map((item, index) => (
                                 <div
                                   key={index}
@@ -1086,7 +1337,7 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
                   <ArrowLeft className="h-4 w-4" /> Geri
                 </Button>
               )}
-              {step < 3 ? (
+              {step < 4 ? (
                 <div className={cn("flex-1 flex justify-end w-full sm:w-auto", step > 1 ? "order-1 sm:order-2" : "order-1")}>
                   <Button
                     onClick={() => {
@@ -1107,6 +1358,8 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
                           return;
                         }
                         setStep(3);
+                      } else if (step === 3) {
+                        setStep(4);
                       }
                     }}
                     className="gap-2 h-10 sm:h-10 bg-primary hover:bg-primary/90 text-white transition-colors w-full sm:w-auto min-h-[44px] sm:min-h-0 text-[11px] sm:text-xs"

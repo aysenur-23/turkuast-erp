@@ -20,9 +20,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserProfile } from "@/services/firebase/authService";
-import { getDepartments } from "@/services/firebase/departmentService";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import logo from "@/assets/turkuast-logo.png";
+import logo from "@/assets/turkuast-favicon.png";
 
 interface SidebarProps {
   isMobile: boolean;
@@ -100,9 +99,8 @@ export const Sidebar = ({ isMobile, open, onOpenChange, isCollapsed = false }: S
         createdAt: null,
         updatedAt: null,
       };
-      const departments = await getDepartments();
       const [canViewTeam, canViewAdmin] = await Promise.all([
-        canViewTeamManagement(userProfile, departments),
+        canViewTeamManagement(userProfile),
         canViewAdminPanel(userProfile),
       ]);
 
@@ -240,7 +238,6 @@ export const Sidebar = ({ isMobile, open, onOpenChange, isCollapsed = false }: S
     { icon: Building2, label: "Hammaddeler", path: "/raw-materials" },
     { icon: Package, label: "Satış Sonrası Takip", path: "/warranty" },
     { icon: FileText, label: "Raporlar", path: "/reports" },
-    { icon: FileCheck, label: "Talepler", path: "/requests" },
     { icon: Settings, label: "Ayarlar", path: "/settings" }
   ];
 
@@ -261,8 +258,8 @@ export const Sidebar = ({ isMobile, open, onOpenChange, isCollapsed = false }: S
           }}
           title="Ana sayfaya git"
         >
-          <img src="/favicon.ico" alt="Turkuast ERP" className="h-6 w-6 sm:h-7 sm:w-7 object-contain flex-shrink-0" width={28} height={28} loading="eager" />
-          <span className="text-sm sm:text-base font-bold text-sidebar-foreground">Turkuast ERP</span>
+          <img src="/turkuast-favicon.png" alt="Turkuast ERP" className="h-9 w-9 sm:h-10 sm:w-10 object-contain flex-shrink-0" width={40} height={40} loading="eager" />
+          <span className="text-sm sm:text-lg font-bold text-sidebar-foreground">Turkuast ERP</span>
         </div>
       </div>
 

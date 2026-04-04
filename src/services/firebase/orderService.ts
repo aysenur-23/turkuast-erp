@@ -85,6 +85,18 @@ export interface Order {
   notes?: string | null;
   paymentTerms?: string | null;
   payment_terms?: string | null; // Alias
+
+  // Financial Tracking Fields
+  price?: number; // Total order price
+  paidAmount?: number; // Total amount paid so far
+  paymentStatus?: "unpaid" | "partially_paid" | "paid";
+  paymentMethod?: "cash" | "credit_card" | "bank_transfer" | "other" | string;
+  hasMaturity?: boolean;
+  maturityMonths?: number;
+  maturityDate?: Timestamp | Date | string | null;
+  invoiceStatus?: "not_invoiced" | "invoiced";
+  invoiceUrl?: string; // URL to the uploaded invoice file
+
   createdAt: Timestamp;
   created_at?: string; // Alias (string format)
   updatedAt: Timestamp;
@@ -105,14 +117,6 @@ export interface Order {
   delivery_notes?: string | null; // Alias
   priority?: number | null;
   deductMaterials?: boolean; // Hammadde düşürme (varsayılan: true)
-  paymentMethod?: string | null;
-  payment_method?: string | null; // Alias
-  paymentStatus?: "paid" | "unpaid" | null;
-  payment_status?: "paid" | "unpaid" | null; // Alias
-  invoiceUrl?: string | null;
-  invoice_url?: string | null; // Alias
-  invoiceIssued?: boolean | null;
-  invoice_issued?: boolean | null; // Alias
 }
 
 /**

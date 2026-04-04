@@ -639,7 +639,7 @@ export const TeamMembers = ({
 
           <div className="space-y-2 pt-3 border-t mt-auto">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Departman</span>
+              <span className="text-muted-foreground">Ekip</span>
               <span className="font-medium text-right truncate flex-1 ml-2">{getDepartmentNames(member)}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
