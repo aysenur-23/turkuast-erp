@@ -611,11 +611,11 @@ All colors MUST be HSL.
   /* SPA'larda body scroll'u engellemek normaldir, scroll main element'te olacak */
   html,
   body {
-    height: 100%;
+    min-height: 100%;
     width: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden;
+    overflow: auto;
     position: relative;
     /* Fixed causes issues on some browsers, overflow: hidden on html/body is enough */
   }
