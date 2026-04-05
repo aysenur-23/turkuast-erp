@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<browserconfig>
+  <msapplication>
+    <tile>
+      <square70x70logo src="/turkuast-favicon.png"/>
+      <square150x150logo src="/turkuast-favicon.png"/>
+      <square310x310logo src="/turkuast-favicon.png"/>
+      <wide310x150logo src="/turkuast-favicon.png"/>
+      <TileColor>#2563eb</TileColor>
+    </tile>
+  </msapplication>
+</browserconfig>
+

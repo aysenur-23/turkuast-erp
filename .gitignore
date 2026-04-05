@@ -9,7 +9,6 @@ coverage
 # Production
 dist
 build
-public_html
 
 # Environment variables
 .env
