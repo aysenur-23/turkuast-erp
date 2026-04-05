@@ -37,8 +37,10 @@ import {
     Banknote,
     PackageCheck,
     XCircle,
+    MessageSquare,
+    Coins,
+    ArrowRightLeft,
     Activity,
-    MessageSquare
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -49,11 +51,14 @@ import {
     addOrderComment,
     getOrderComments,
     getOrderActivities,
-    Order,
-    OrderItem,
     approveOrderCompletion,
     rejectOrderCompletion,
-    requestOrderCompletion
+    requestOrderCompletion,
+    addOrderPayment,
+    getOrderPayments,
+    Order,
+    OrderItem,
+    Payment
 } from "@/services/firebase/orderService";
 import { getCustomerById, Customer } from "@/services/firebase/customerService";
 import { formatPhoneForDisplay, formatPhoneForTelLink } from "@/utils/phoneNormalizer";
@@ -203,6 +208,15 @@ export const UnifiedOrderDetailModal = ({
     const [canUpdate, setCanUpdate] = useState(false);
     const [canDeleteState, setCanDeleteState] = useState(false);
     const [canApprove, setCanApprove] = useState(false);
+    const [payments, setPayments] = useState<Payment[]>([]);
+    const [fetchingPayments, setFetchingPayments] = useState(false);
+    const [showAddPayment, setShowAddPayment] = useState(false);
+    const [newPayment, setNewPayment] = useState({
+        amount: 0,
+        method: "bank_transfer",
+        notes: "",
+        date: new Date().toISOString().split("T")[0]
+    });
 
     // Form State
     const [formData, setFormData] = useState({
@@ -217,6 +231,7 @@ export const UnifiedOrderDetailModal = ({
         deliveryNotes: "",
         price: 0,
         paidAmount: 0,
+        totalAmount: 0, // Fallback for UI
         paymentStatus: "unpaid" as Order["paymentStatus"],
         paymentMethod: "",
         hasMaturity: false,
@@ -248,6 +263,7 @@ export const UnifiedOrderDetailModal = ({
                 deliveryAddress: order.deliveryAddress || order.delivery_address || order.shippingAddress || order.shipping_address || "",
                 deliveryNotes: order.deliveryNotes || order.delivery_notes || order.shippingNotes || order.shipping_notes || "",
                 price: order.price || order.totalAmount || order.total_amount || 0,
+                totalAmount: order.totalAmount || order.total_amount || 0,
                 paidAmount: order.paidAmount || 0,
                 paymentStatus: order.paymentStatus || "unpaid",
                 paymentMethod: order.paymentMethod || "bank_transfer",
@@ -287,6 +303,17 @@ export const UnifiedOrderDetailModal = ({
                 if (custId) {
                     const custData = await getCustomerById(custId);
                     setCustomer(custData);
+                }
+
+                // Fetch payments
+                setFetchingPayments(true);
+                try {
+                    const fetchedPayments = await getOrderPayments(order.id);
+                    setPayments(fetchedPayments);
+                } catch (err) {
+                    console.error("Failed to fetch payments:", err);
+                } finally {
+                    setFetchingPayments(false);
                 }
 
                 // Permission check
@@ -353,23 +380,63 @@ export const UnifiedOrderDetailModal = ({
         }
     };
 
-    const handleApproval = async (approved: boolean) => {
-        if (!order?.id || !user?.id) return;
+    const handleApproval = async (approve: boolean) => {
+        if (!user || !order?.id) return;
+        setSaving(true);
         try {
-            if (approved) {
+            if (approve) {
                 await approveOrderCompletion(order.id, user.id);
                 setCurrentStatus("completed");
                 setApprovalStatus("approved");
                 toast.success("Sipariş onaylandı.");
             } else {
                 await rejectOrderCompletion(order.id, user.id);
-                // Genelde in_production'a döner, serviste öyle tanımlı
                 setCurrentStatus("in_production");
                 setApprovalStatus("rejected");
                 toast.success("Sipariş reddedildi.");
             }
         } catch (err: any) {
             toast.error("İşlem başarısız: " + err.message);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleAddPayment = async () => {
+        if (!user || newPayment.amount <= 0 || !order?.id) return;
+        setSaving(true);
+        try {
+            await addOrderPayment(
+                order.id,
+                {
+                    amount: newPayment.amount,
+                    currency: formData.currency || "TRY",
+                    method: newPayment.method,
+                    date: newPayment.date,
+                    notes: newPayment.notes,
+                    createdBy: user.id
+                },
+                user.id
+            );
+
+            // Refresh payments and order
+            const updatedPayments = await getOrderPayments(order.id);
+            setPayments(updatedPayments);
+
+            // Reset form
+            setNewPayment({
+                amount: 0,
+                method: "bank_transfer",
+                notes: "",
+                date: new Date().toISOString().split("T")[0]
+            });
+            setShowAddPayment(false);
+            onUpdate?.();
+            toast.success("Ödeme başarıyla eklendi");
+        } catch (err: any) {
+            toast.error("Ödeme eklenirken hata: " + err.message);
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -733,198 +800,204 @@ export const UnifiedOrderDetailModal = ({
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="p-4 space-y-4">
-                                        {isEditing ? (
-                                            <>
-                                                <div className="space-y-2">
-                                                    <Label>Ödeme Durumu</Label>
-                                                    <Select value={formData.paymentStatus} onValueChange={v => setFormData(p => ({ ...p, paymentStatus: v as Order["paymentStatus"] }))}>
-                                                        <SelectTrigger><SelectValue /></SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="unpaid">Ödenmedi</SelectItem>
-                                                            <SelectItem value="partially_paid">Kısmi Ödeme</SelectItem>
-                                                            <SelectItem value="paid">Ödendi</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                                <Label className="text-[10px] text-slate-500 font-bold uppercase block mb-1">Toplam Tutar</Label>
+                                                <div className="text-lg font-bold text-slate-900">
+                                                    {(formData.price || formData.totalAmount || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} <span className="text-sm">{formData.currency}</span>
                                                 </div>
-                                                <div className="space-y-2">
-                                                    <Label>Ödenen Tutar</Label>
-                                                    <div className="relative">
-                                                        <Input type="number" value={formData.paidAmount} onChange={e => setFormData(p => ({ ...p, paidAmount: Number(e.target.value) }))} className="pr-10" />
-                                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">{formData.currency}</span>
-                                                    </div>
+                                            </div>
+                                            <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+                                                <Label className="text-[10px] text-emerald-600 font-bold uppercase block mb-1">Ödenen</Label>
+                                                <div className="text-lg font-bold text-emerald-700">
+                                                    {(formData.paidAmount || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} <span className="text-sm">{formData.currency}</span>
                                                 </div>
-                                                <div className="space-y-2">
-                                                    <Label>Ödeme Yöntemi</Label>
-                                                    <Select value={formData.paymentMethod} onValueChange={v => setFormData(p => ({ ...p, paymentMethod: v }))}>
-                                                        <SelectTrigger><SelectValue /></SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="cash">Nakit</SelectItem>
-                                                            <SelectItem value="credit_card">Kredi Kartı</SelectItem>
-                                                            <SelectItem value="bank_transfer">Banka Havalesi</SelectItem>
-                                                            <SelectItem value="other">Diğer</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <Label>Fatura Durumu</Label>
-                                                    <Select value={formData.invoiceStatus} onValueChange={v => setFormData(p => ({ ...p, invoiceStatus: v as Order["invoiceStatus"] }))}>
-                                                        <SelectTrigger><SelectValue /></SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="not_invoiced">Kesilmedi</SelectItem>
-                                                            <SelectItem value="invoiced">Kesildi</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                                <Separator />
-                                                <div className="flex items-center justify-between">
-                                                    <Label className="cursor-pointer">Vadeli Satış</Label>
-                                                    <Switch checked={formData.hasMaturity} onCheckedChange={c => setFormData(p => ({ ...p, hasMaturity: c }))} />
-                                                </div>
-                                                {formData.hasMaturity && (
-                                                    <div className="grid grid-cols-2 gap-2 anim-fade-in">
-                                                        <div className="space-y-1.5">
-                                                            <Label className="text-[10px]">Vade (Ay)</Label>
-                                                            <Input type="number" value={formData.maturityMonths} onChange={e => setFormData(p => ({ ...p, maturityMonths: Number(e.target.value) }))} />
-                                                        </div>
-                                                        <div className="space-y-1.5">
-                                                            <Label className="text-[10px]">Vade Tarihi</Label>
-                                                            <Input type="date" value={formData.maturityDate} onChange={e => setFormData(p => ({ ...p, maturityDate: e.target.value }))} />
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </>
-                                        ) : (
-                                            <div className="space-y-4">
-                                                <div className="space-y-1.5">
-                                                    <div className="flex justify-between items-center">
-                                                        <Label className="text-xs text-slate-500 font-bold uppercase">Ödeme Durumu</Label>
-                                                        {(!isPersonnel && (canUpdate || isCreator)) && (
-                                                            <Badge variant="outline" className="text-[9px] h-4 px-1 bg-primary/5 border-primary/20 text-primary">Hızlı Düzenle</Badge>
-                                                        )}
-                                                    </div>
-                                                    <Select
-                                                        disabled={saving}
-                                                        value={formData.paymentStatus}
-                                                        onValueChange={v => handleDirectUpdate({ paymentStatus: v as Order["paymentStatus"] })}
-                                                    >
-                                                        <SelectTrigger className="h-8 text-xs font-semibold">
-                                                            <SelectValue />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="unpaid">Ödenmedi</SelectItem>
-                                                            <SelectItem value="partially_paid">Kısmi Ödeme</SelectItem>
-                                                            <SelectItem value="paid">Ödendi</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
+                                            </div>
+                                        </div>
 
-                                                <div className="space-y-1.5">
-                                                    <Label className="text-xs text-slate-500 font-bold uppercase">Ödenen Miktar</Label>
-                                                    <div className="flex gap-2">
+                                        <div className="flex items-center justify-between p-3 rounded-lg bg-orange-50 border border-orange-100">
+                                            <div>
+                                                <Label className="text-[10px] text-orange-600 font-bold uppercase block">Kalan Bakiye</Label>
+                                                <div className="text-xl font-black text-orange-700">
+                                                    {Math.max(0, (formData.price || formData.totalAmount || 0) - (formData.paidAmount || 0)).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} <span className="text-sm">{formData.currency}</span>
+                                                </div>
+                                            </div>
+                                            <Badge className={
+                                                formData.paymentStatus === 'paid' ? 'bg-emerald-500' :
+                                                    formData.paymentStatus === 'partially_paid' ? 'bg-orange-500' : 'bg-slate-400'
+                                            }>
+                                                {formData.paymentStatus === 'paid' ? 'Ödendi' :
+                                                    formData.paymentStatus === 'partially_paid' ? 'Kısmi Ödeme' : 'Ödenmedi'}
+                                            </Badge>
+                                        </div>
+
+                                        <Separator />
+
+                                        {/* Payment History */}
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <Label className="text-xs font-bold text-slate-700">Ödeme Geçmişi</Label>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-7 text-[10px] font-bold text-primary hover:text-primary hover:bg-primary/5"
+                                                    onClick={() => setShowAddPayment(!showAddPayment)}
+                                                >
+                                                    {showAddPayment ? "Kapat" : "Ödeme Ekle"}
+                                                </Button>
+                                            </div>
+
+                                            {showAddPayment && (
+                                                <div className="p-3 border rounded-lg bg-slate-50 space-y-3 anim-fade-in">
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <div className="space-y-1">
+                                                            <Label className="text-[10px]">Tutar</Label>
+                                                            <Input
+                                                                type="number"
+                                                                value={newPayment.amount}
+                                                                onChange={e => setNewPayment(p => ({ ...p, amount: Number(e.target.value) }))}
+                                                                className="h-8 text-xs"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <Label className="text-[10px]">Tarih</Label>
+                                                            <Input
+                                                                type="date"
+                                                                value={newPayment.date}
+                                                                onChange={e => setNewPayment(p => ({ ...p, date: e.target.value }))}
+                                                                className="h-8 text-xs"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <Label className="text-[10px]">Yöntem</Label>
+                                                        <Select value={newPayment.method} onValueChange={v => setNewPayment(p => ({ ...p, method: v }))}>
+                                                            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="cash">Nakit</SelectItem>
+                                                                <SelectItem value="credit_card">Kredi Kartı</SelectItem>
+                                                                <SelectItem value="bank_transfer">Banka Havalesi</SelectItem>
+                                                                <SelectItem value="other">Diğer</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <Label className="text-[10px]">Not (Opsiyonel)</Label>
                                                         <Input
-                                                            disabled={saving}
-                                                            type="number"
-                                                            value={formData.paidAmount}
-                                                            onChange={e => setFormData(p => ({ ...p, paidAmount: Number(e.target.value) }))}
-                                                            onBlur={() => {
-                                                                if (formData.paidAmount !== order.paidAmount) {
-                                                                    handleDirectUpdate({ paidAmount: formData.paidAmount });
-                                                                }
-                                                            }}
-                                                            className="h-8 text-xs font-semibold"
+                                                            value={newPayment.notes}
+                                                            onChange={e => setNewPayment(p => ({ ...p, notes: e.target.value }))}
+                                                            className="h-8 text-xs"
+                                                            placeholder="Örn: Dekont no..."
                                                         />
-                                                        <div className="h-8 px-2 flex items-center bg-slate-100 rounded text-[10px] font-bold">{formData.currency}</div>
                                                     </div>
-                                                </div>
-
-                                                <div className="space-y-1.5">
-                                                    <Label className="text-xs text-slate-500 font-bold uppercase">Yöntem</Label>
-                                                    <Select
-                                                        disabled={saving}
-                                                        value={formData.paymentMethod}
-                                                        onValueChange={v => handleDirectUpdate({ paymentMethod: v })}
+                                                    <Button
+                                                        className="w-full h-8 text-xs"
+                                                        disabled={saving || newPayment.amount <= 0}
+                                                        onClick={handleAddPayment}
                                                     >
-                                                        <SelectTrigger className="h-8 text-xs font-semibold">
-                                                            <SelectValue />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="cash">Nakit</SelectItem>
-                                                            <SelectItem value="credit_card">Kredi Kartı</SelectItem>
-                                                            <SelectItem value="bank_transfer">Banka Havalesi</SelectItem>
-                                                            <SelectItem value="other">Diğer</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-
-                                                <div className="space-y-1.5">
-                                                    <Label className="text-xs text-slate-500 font-bold uppercase">Fatura</Label>
-                                                    <Select
-                                                        disabled={saving}
-                                                        value={formData.invoiceStatus}
-                                                        onValueChange={v => handleDirectUpdate({ invoiceStatus: v as Order["invoiceStatus"] })}
-                                                    >
-                                                        <SelectTrigger className="h-8 text-xs font-semibold">
-                                                            <SelectValue />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="not_invoiced">Kesilmedi</SelectItem>
-                                                            <SelectItem value="invoiced">Kesildi</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-
-                                                {formData.invoiceUrl && (
-                                                    <Button variant="outline" className="w-full h-9 text-xs border-primary/20 hover:bg-primary/5" onClick={() => window.open(formData.invoiceUrl, "_blank")}>
-                                                        <FileDown className="h-3.5 w-3.5 mr-2 text-primary" />
-                                                        Faturayı Görüntüle
+                                                        {saving ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : "Ödemeyi Kaydet"}
                                                     </Button>
-                                                )}
+                                                </div>
+                                            )}
 
-                                                <div className="relative">
-                                                    <input type="file" id="invoice-upload-direct" className="hidden" onChange={handleInvoiceUpload} accept=".pdf,.jpg,.png" />
-                                                    <Button variant="secondary" className="w-full h-9 text-xs group" disabled={saving} asChild>
-                                                        <label htmlFor="invoice-upload-direct" className="cursor-pointer">
-                                                            {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileUp className="h-3.5 w-3.5 mr-2 group-hover:-translate-y-0.5 transition-transform" />}
-                                                            {formData.invoiceUrl ? "Faturayı Güncelle" : "Fatura Yükle"}
+                                            <div className="space-y-2">
+                                                {fetchingPayments ? (
+                                                    <div className="flex justify-center p-4"><Loader2 className="h-4 w-4 animate-spin text-slate-300" /></div>
+                                                ) : payments.length === 0 ? (
+                                                    <div className="text-center p-6 border-2 border-dashed rounded-lg text-slate-400">
+                                                        <Banknote className="h-8 w-8 mx-auto mb-2 opacity-20" />
+                                                        <p className="text-[10px]">Henüz ödeme kaydı bulunmuyor.</p>
+                                                    </div>
+                                                ) : (
+                                                    payments.map((payment) => (
+                                                        <div key={payment.id} className="flex items-center justify-between p-2 rounded border bg-white text-xs hover:border-primary/30 transition-colors group">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="h-7 w-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                                                                    {payment.method === 'cash' ? <Coins className="h-3.5 w-3.5" /> :
+                                                                        payment.method === 'bank_transfer' ? <ArrowRightLeft className="h-3.5 w-3.5" /> :
+                                                                            <CreditCard className="h-3.5 w-3.5" />}
+                                                                </div>
+                                                                <div>
+                                                                    <div className="font-bold text-slate-800">{payment.amount.toLocaleString('tr-TR')} {payment.currency}</div>
+                                                                    <div className="text-[9px] text-slate-500 flex items-center gap-1">
+                                                                        <span>{formatDateSafe(payment.date)}</span>
+                                                                        <span>•</span>
+                                                                        <span className="capitalize">{payment.method === 'bank_transfer' ? 'Havale' :
+                                                                            payment.method === 'cash' ? 'Nakit' :
+                                                                                payment.method === 'credit_card' ? 'Kart' : 'Diğer'}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            {payment.notes && (
+                                                                <div className="max-w-[100px] truncate text-[9px] text-slate-400 italic" title={payment.notes}>
+                                                                    {payment.notes}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <Separator />
+
+                                        {/* Invoice Section */}
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <Label className="text-xs font-bold text-slate-700">Fatura Durumu</Label>
+                                                <Select
+                                                    disabled={saving}
+                                                    value={formData.invoiceStatus}
+                                                    onValueChange={v => handleDirectUpdate({ invoiceStatus: v as Order["invoiceStatus"] })}
+                                                >
+                                                    <SelectTrigger className="h-7 text-[10px] w-[100px] px-2 font-bold bg-slate-50">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="not_invoiced" className="text-[10px]">Kesilmedi</SelectItem>
+                                                        <SelectItem value="invoiced" className="text-[10px]">Kesildi</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
+                                            {formData.invoiceUrl ? (
+                                                <div className="flex gap-2">
+                                                    <Button variant="outline" className="flex-1 h-8 text-[10px] border-primary/20 hover:bg-primary/5" onClick={() => window.open(formData.invoiceUrl, "_blank")}>
+                                                        <FileDown className="h-3 w-3 mr-1.5 text-primary" />
+                                                        Faturayı Gör
+                                                    </Button>
+                                                    <input type="file" id="invoice-upload-replace" className="hidden" onChange={handleInvoiceUpload} accept=".pdf,.jpg,.png" />
+                                                    <Button variant="secondary" size="sm" className="h-8 w-8 p-0" disabled={saving} asChild title="Faturayı Güncelle">
+                                                        <label htmlFor="invoice-upload-replace" className="cursor-pointer">
+                                                            <FileUp className="h-3 w-3" />
                                                         </label>
                                                     </Button>
                                                 </div>
+                                            ) : (
+                                                <div className="relative">
+                                                    <input type="file" id="invoice-upload-direct" className="hidden" onChange={handleInvoiceUpload} accept=".pdf,.jpg,.png" />
+                                                    <Button variant="outline" className="w-full h-8 text-[10px] border-dashed border-2 group" disabled={saving} asChild>
+                                                        <label htmlFor="invoice-upload-direct" className="cursor-pointer">
+                                                            {saving ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <FileUp className="h-3 w-3 mr-1.5 group-hover:-translate-y-0.5 transition-transform" />}
+                                                            Fatura Yükle
+                                                        </label>
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </div>
 
-                                                {formData.hasMaturity && formData.maturityDate && (
-                                                    <div className="p-2 rounded-lg bg-amber-50 border border-amber-100 space-y-1">
-                                                        <div className="flex items-center gap-1.5 text-amber-700">
-                                                            <Clock className="h-3.5 w-3.5" />
-                                                            <span className="text-[10px] font-bold uppercase">Vade Bilgisi</span>
-                                                        </div>
-                                                        <div className="flex justify-between items-center text-xs">
-                                                            <span className="text-amber-600 font-medium">{formData.maturityMonths} Ay Vade</span>
-                                                            <span className="text-amber-800 font-bold">{formatDateSafe(formData.maturityDate)}</span>
-                                                        </div>
-                                                    </div>
-                                                )}
+                                        {formData.hasMaturity && formData.maturityDate && (
+                                            <div className="p-2 rounded-lg bg-amber-50 border border-amber-100 space-y-1">
+                                                <div className="flex items-center gap-1.5 text-amber-700">
+                                                    <Clock className="h-3 w-3" />
+                                                    <span className="text-[9px] font-bold uppercase">Vade Bilgisi</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-[10px]">
+                                                    <span className="text-amber-600 font-medium">{formData.maturityMonths} Ay Vade</span>
+                                                    <span className="text-amber-800 font-bold">{formatDateSafe(formData.maturityDate)}</span>
+                                                </div>
                                             </div>
                                         )}
-                                    </CardContent>
-                                </Card>
-
-                                {/* Activity Feed */}
-                                <Card className="flex-1 min-h-0 flex flex-col">
-                                    <CardHeader className="py-3 px-4 border-b bg-slate-50/50 flex flex-row items-center justify-between">
-                                        <CardTitle className="text-sm font-bold flex items-center gap-2">
-                                            <Activity className="h-4 w-4 text-slate-400" />
-                                            Geçmiş & Yorumlar
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="p-0 flex-1 overflow-hidden">
-                                        <ActivityCommentsPanel
-                                            entityId={order.id}
-                                            entityType="order"
-                                            currentUserId={user.id}
-                                            currentUserName={user.fullName || ""}
-                                            onAddComment={async (content) => { await addOrderComment(order.id, user.id, content); }}
-                                            onGetComments={() => getOrderComments(order.id)}
-                                            onGetActivities={() => getOrderActivities(order.id)}
-                                        />
                                     </CardContent>
                                 </Card>
                             </div>

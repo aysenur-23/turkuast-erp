@@ -41,6 +41,17 @@ export interface OrderItem {
   category?: string | null;
 }
 
+export interface Payment {
+  id: string;
+  amount: number;
+  currency: string;
+  date: Timestamp | Date | string;
+  method: "cash" | "credit_card" | "bank_transfer" | "other" | string;
+  notes?: string;
+  createdBy: string;
+  createdAt: Timestamp;
+}
+
 export interface Order {
   id: string;
   orderNumber: string;
@@ -98,6 +109,7 @@ export interface Order {
   invoiceUrl?: string; // URL to the uploaded invoice file
   paymentReminderSentAt?: Timestamp | null;
   payment_reminder_sent_at?: string | null;
+  payments?: Payment[]; // List of payments
 
   createdAt: Timestamp;
   created_at?: string; // Alias (string format)
@@ -1167,6 +1179,94 @@ export const getOrderActivities = async (orderId: string): Promise<OrderActivity
     })) as OrderActivity[];
   } catch (error) {
     console.error("Get order activities error:", error);
+    throw error;
+  }
+};
+
+/**
+ * Siparişe ödeme ekle
+ */
+export const addOrderPayment = async (
+  orderId: string,
+  paymentData: Omit<Payment, "id" | "createdAt">,
+  userId: string
+): Promise<string> => {
+  try {
+    const paymentDoc: Omit<Payment, "id"> = {
+      ...paymentData,
+      createdAt: Timestamp.now(),
+    };
+
+    const docRef = await addDoc(
+      collection(firestore, "orders", orderId, "payments"),
+      paymentDoc
+    );
+
+    // Siparişin toplam ödenen tutarını güncelle
+    const order = await getOrderById(orderId);
+    if (order) {
+      const currentPaid = order.paidAmount || 0;
+      const newPaid = currentPaid + paymentData.amount;
+      const totalPrice = order.price || order.totalAmount || 0;
+
+      let newStatus: Order["paymentStatus"] = "partially_paid";
+      if (newPaid >= totalPrice) {
+        newStatus = "paid";
+      } else if (newPaid <= 0) {
+        newStatus = "unpaid";
+      }
+
+      await updateDoc(doc(firestore, "orders", orderId), {
+        paidAmount: newPaid,
+        paymentStatus: newStatus,
+        updatedAt: serverTimestamp(),
+      });
+
+      // Aktivite log ekle
+      try {
+        const { getUserProfile } = await import("@/services/firebase/authService");
+        const userProfile = await getUserProfile(userId);
+        const userName = userProfile?.fullName || userProfile?.displayName || userProfile?.email;
+        const userEmail = userProfile?.email;
+
+        await addOrderActivity(
+          orderId,
+          userId,
+          "payment_added",
+          `${paymentData.amount} ${paymentData.currency} tutarında ödeme eklendi (${paymentData.method})`,
+          { amount: paymentData.amount, method: paymentData.method, currency: paymentData.currency },
+          userName,
+          userEmail
+        );
+      } catch (e) {
+        console.error("Payment activity log error:", e);
+      }
+    }
+
+    return docRef.id;
+  } catch (error) {
+    console.error("Add order payment error:", error);
+    throw error;
+  }
+};
+
+/**
+ * Sipariş ödemelerini al
+ */
+export const getOrderPayments = async (orderId: string): Promise<Payment[]> => {
+  try {
+    const snapshot = await getDocs(
+      query(
+        collection(firestore, "orders", orderId, "payments"),
+        orderBy("createdAt", "desc")
+      )
+    );
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Payment[];
+  } catch (error) {
+    console.error("Get order payments error:", error);
     throw error;
   }
 };
