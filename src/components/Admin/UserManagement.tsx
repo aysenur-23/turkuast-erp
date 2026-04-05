@@ -170,7 +170,7 @@ export const UserManagement = () => {
 
       setRoles(fetchedRoles);
 
-      // Departments collection'ı getir
+      // Ekipler (Departments) collection'ı getir
       const { getDepartments } = await import("@/services/firebase/departmentService");
       const fetchedDepartments = await getDepartments();
       setDepartments(fetchedDepartments.map((d) => ({
@@ -410,7 +410,7 @@ export const UserManagement = () => {
       // Seçilen departmanın mevcut manager'ını kontrol et
       const targetDepartment = departments.find(d => d.id === departmentId);
       if (!targetDepartment) {
-        toast.error("Departman bulunamadı");
+        toast.error("Ekip bulunamadı");
         return;
       }
 
@@ -452,7 +452,7 @@ export const UserManagement = () => {
         }
       }
 
-      toast.success(`${targetUser.full_name || targetUser.email} kullanıcısı "${targetDepartment.name}" departmanının lideri olarak atandı`);
+      toast.success(`${targetUser.full_name || targetUser.email} kullanıcısı "${targetDepartment.name}" ekibinin lideri olarak atandı`);
 
       // Kullanıcı listesini yenile (await ile bekle)
       // Real-time listener otomatik güncelleyecek ama manuel yenileme de yapalım
@@ -483,7 +483,7 @@ export const UserManagement = () => {
       toast.success("Kullanıcı ekibi başarıyla güncellendi");
       fetchData();
     } catch (error: unknown) {
-      toast.error("Departman güncellenemedi: " + (error instanceof Error ? error.message : "Bilinmeyen hata"));
+      toast.error("Ekip güncellenemedi: " + (error instanceof Error ? error.message : "Bilinmeyen hata"));
     }
   };
 
@@ -619,7 +619,7 @@ export const UserManagement = () => {
                                 if (deptId && deptId !== "none") {
                                   handleAssignTeamLeader(tableUser.id, deptId);
                                 } else {
-                                  toast.error("Lütfen önce bir departman seçin");
+                                  toast.error("Lütfen önce bir ekip seçin");
                                 }
                               }}
                               disabled={!tableUser.department_id || tableUser.department_id === "none"}

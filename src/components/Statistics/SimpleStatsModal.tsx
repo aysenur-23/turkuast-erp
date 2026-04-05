@@ -47,11 +47,11 @@ export const SimpleStatsModal = ({ open, onOpenChange, title, stats }: SimpleSta
                         <div className="p-2 rounded-lg bg-primary/10">
                           <Icon className="h-5 w-5 text-primary" />
                         </div>
-                        <CardTitle className="text-[11px] sm:text-xs font-medium">{stat.label}</CardTitle>
+                        <CardTitle className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider">{stat.label}</CardTitle>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <div className="text-[11px] sm:text-xs font-bold mb-2">{stat.value}</div>
+                    <CardContent className="pt-0">
+                      <div className="text-[18px] sm:text-[22px] font-bold mb-2 tabular-nums">{stat.value}</div>
                       {stat.trend && (
                         <div className={`flex items-center gap-1 text-[11px] sm:text-xs ${stat.trend.positive ? "text-emerald-600" : "text-red-600"
                           }`}>

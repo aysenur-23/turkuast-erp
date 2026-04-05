@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input";
 import { SearchInput } from "@/components/ui/search-input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Plus, Package, AlertTriangle, Edit, Trash2, X, User, 
+import {
+  Plus, Package, AlertTriangle, Edit, Trash2, X, User,
   TrendingDown, TrendingUp, AlertCircle, Filter, BarChart3, Loader2,
   ChevronRight, ChevronLeft
 } from "lucide-react";
@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const RawMaterials = () => {
-  const { user } = useAuth();
+  const { user, isAdmin, isTeamLeader } = useAuth();
   const navigate = useNavigate();
   const sidebarContext = useSidebarContext();
   const tableRef = useRef<HTMLDivElement>(null);
@@ -87,8 +87,8 @@ const RawMaterials = () => {
           canCreateResource(userProfile, "raw_materials"),
           canDeleteResource(userProfile, "raw_materials"),
         ]);
-        setCanCreate(canCreateMaterial);
-        setCanDelete(canDeleteMaterial);
+        setCanCreate(canCreateMaterial || isAdmin || isTeamLeader);
+        setCanDelete(canDeleteMaterial || isAdmin || isTeamLeader);
       } catch (error: unknown) {
         if (import.meta.env.DEV) {
           console.error("Error checking raw material permissions:", error);
@@ -122,7 +122,7 @@ const RawMaterials = () => {
     // Defer materials loading: İlk render'dan 100ms sonra yükle (non-blocking)
     setLoading(true);
     await new Promise(resolve => setTimeout(resolve, 100));
-    
+
     try {
       const materialsData = await getRawMaterials();
       // Kullanıcı adlarını ekle
@@ -175,11 +175,11 @@ const RawMaterials = () => {
   const getStockStatus = (stock: number, min_stock: number) => {
     const stockNum = Number(stock) || 0;
     const minStockNum = Number(min_stock) || 0;
-    
+
     if (isNaN(stockNum) || isNaN(minStockNum)) {
       return { label: "Bilinmiyor", variant: "outline" as const, color: "text-gray-600", bgColor: "bg-gray-50" };
     }
-    
+
     if (stockNum === 0) return { label: "Tükendi", variant: "destructive" as const, color: "text-red-600", bgColor: "bg-red-50" };
     if (stockNum < minStockNum) return { label: "Düşük", variant: "secondary" as const, color: "text-yellow-600", bgColor: "bg-yellow-50" };
     return { label: "Normal", variant: "default" as const, color: "text-green-600", bgColor: "bg-green-50" };
@@ -202,7 +202,7 @@ const RawMaterials = () => {
       const stock = Number(m.currentStock !== undefined ? m.currentStock : m.stock) || 0;
       const minStock = Number(m.minStock !== undefined ? m.minStock : m.min_stock) || 0;
       const { isLow, isOut, isNormal } = getStockFlags(stock, minStock);
-      
+
       if (stockView === "low" && !isLow) return false;
       if (stockView === "out" && !isOut) return false;
       if (stockView === "normal" && !isNormal) return false;
@@ -240,7 +240,7 @@ const RawMaterials = () => {
       const value = stock * cost;
       return sum + (isNaN(value) ? 0 : value);
     }, 0);
-    
+
     return { total, lowStock, outOfStock, normalStock, totalValue };
   }, [materials]);
 
@@ -334,14 +334,14 @@ const RawMaterials = () => {
 
   const handleDelete = async () => {
     if (!materialToDelete) return;
-    
+
     // Yetki kontrolü
     if (!canDelete) {
       toast.error("Hammadde silme yetkiniz yok.");
       setDeleteDialogOpen(false);
       return;
     }
-    
+
     try {
       await deleteRawMaterial(materialToDelete.id);
       toast.success("Hammadde silindi");
@@ -363,18 +363,18 @@ const RawMaterials = () => {
   // İçerik sığmıyorsa sidebar'ı otomatik kapat
   useEffect(() => {
     if (!sidebarContext || loading) return;
-    
+
     let timeoutId: NodeJS.Timeout;
     let resizeTimeoutId: NodeJS.Timeout;
     let resizeObserver: ResizeObserver | null = null;
-    
+
     const checkOverflow = () => {
       if (!tableRef.current || typeof window === "undefined") return;
-      
+
       // ResponsiveTable kullanıldığı için container genişliğini kontrol et
       const containerWidth = tableRef.current.clientWidth;
       const scrollWidth = tableRef.current.scrollWidth;
-      
+
       // Eğer içerik genişliği container genişliğinden büyükse sidebar'ı kapat
       if (scrollWidth > containerWidth + 10) { // 10px tolerans
         sidebarContext.closeSidebar();
@@ -383,7 +383,7 @@ const RawMaterials = () => {
 
     // İlk yüklemede kontrol et
     timeoutId = setTimeout(checkOverflow, 300);
-    
+
     // ResizeObserver ile container değişikliklerini izle
     if (typeof ResizeObserver !== "undefined" && tableRef.current) {
       resizeObserver = new ResizeObserver(() => {
@@ -392,15 +392,15 @@ const RawMaterials = () => {
       });
       resizeObserver.observe(tableRef.current);
     }
-    
+
     // Window resize event'i
     const handleResize = () => {
       clearTimeout(resizeTimeoutId);
       resizeTimeoutId = setTimeout(checkOverflow, 150);
     };
-    
+
     window.addEventListener('resize', handleResize);
-    
+
     return () => {
       clearTimeout(timeoutId);
       clearTimeout(resizeTimeoutId);
@@ -415,9 +415,9 @@ const RawMaterials = () => {
     const stockNum = Number(stock) || 0;
     const minStockNum = Number(min_stock) || 0;
     const maxStockNum = max_stock ? (Number(max_stock) || 0) : undefined;
-    
+
     if (isNaN(stockNum) || isNaN(minStockNum)) return 0;
-    
+
     if (maxStockNum && !isNaN(maxStockNum) && maxStockNum > 0) {
       const percentage = (stockNum / maxStockNum) * 100;
       return isNaN(percentage) ? 0 : Math.min(100, Math.max(0, percentage));
@@ -464,8 +464,8 @@ const RawMaterials = () => {
             </div>
           </div>
           {canCreate && (
-            <Button 
-              className="gap-1 w-full sm:w-auto min-h-[36px] sm:min-h-8 text-xs sm:text-sm" 
+            <Button
+              className="gap-1 w-full sm:w-auto min-h-[36px] sm:min-h-8 text-xs sm:text-sm"
               onClick={() => {
                 setCreateDialogOpen(true);
               }}
@@ -490,7 +490,7 @@ const RawMaterials = () => {
               };
               const variant = variantMap[item.key] || "default";
               const value = typeof item.value === 'function' ? item.value() : item.value;
-              
+
               return (
                 <StatCard
                   key={item.key}
@@ -519,7 +519,7 @@ const RawMaterials = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              
+
               {/* Filtreleri Temizle */}
               {(searchQuery || stockView !== "all") && (
                 <Button
@@ -573,21 +573,21 @@ const RawMaterials = () => {
                         key: "name",
                         header: "Malzeme Adı",
                         accessor: (material) => (
-                              <div className="flex items-center justify-start gap-1.5 min-w-0 w-full">
-                                <Package className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <span className="truncate text-xs font-semibold" title={material.name}>
-                                        {material.name}
-                                      </span>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>{material.name}</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              </div>
+                          <div className="flex items-center justify-start gap-1.5 min-w-0 w-full">
+                            <Package className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="truncate text-xs font-semibold" title={material.name}>
+                                    {material.name}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{material.name}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
                         ),
                         priority: "high",
                         sticky: true,
@@ -599,20 +599,20 @@ const RawMaterials = () => {
                         key: "description",
                         header: "Açıklamalar",
                         accessor: (material) => (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <p className="text-xs text-muted-foreground line-clamp-2 truncate text-left w-full" title={material.description || material.notes || "-"}>
-                                      {material.description || material.notes || "-"}
-                                    </p>
-                                  </TooltipTrigger>
-                                  {(material.description || material.notes) && (
-                                    <TooltipContent className="max-w-xs">
-                                      <p>{material.description || material.notes}</p>
-                                    </TooltipContent>
-                                  )}
-                                </Tooltip>
-                              </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <p className="text-xs text-muted-foreground line-clamp-2 truncate text-left w-full" title={material.description || material.notes || "-"}>
+                                  {material.description || material.notes || "-"}
+                                </p>
+                              </TooltipTrigger>
+                              {(material.description || material.notes) && (
+                                <TooltipContent className="max-w-xs">
+                                  <p>{material.description || material.notes}</p>
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          </TooltipProvider>
                         ),
                         priority: "medium",
                         minWidth: 200,
@@ -627,22 +627,22 @@ const RawMaterials = () => {
                           const minStock = Number(material.minStock !== undefined ? material.minStock : material.min_stock) || 0;
                           const stockStatus = getStockStatus(currentStock, minStock);
                           return (
-                              <div className="flex items-center justify-start gap-1.5 w-full">
+                            <div className="flex items-center justify-start gap-1.5 w-full">
                               <span className={cn(stockStatus.color, "text-xs font-semibold whitespace-nowrap")}>
-                                  {currentStock} {material.unit}
-                                </span>
-                                <Badge
-                                  variant={stockStatus.variant}
-                                  className={cn(
-                                    "font-medium text-xs px-1.5 py-0.5 flex-shrink-0",
-                                    stockStatus.variant === "destructive" && "bg-red-500 hover:bg-red-600 text-white",
-                                    stockStatus.variant === "secondary" && "bg-yellow-500 hover:bg-yellow-600 text-white",
-                                    stockStatus.variant === "default" && "bg-green-500 hover:bg-green-600 text-white"
-                                  )}
-                                >
-                                  {stockStatus.label}
-                                </Badge>
-                              </div>
+                                {currentStock} {material.unit}
+                              </span>
+                              <Badge
+                                variant={stockStatus.variant}
+                                className={cn(
+                                  "font-medium text-xs px-1.5 py-0.5 flex-shrink-0",
+                                  stockStatus.variant === "destructive" && "bg-red-500 hover:bg-red-600 text-white",
+                                  stockStatus.variant === "secondary" && "bg-yellow-500 hover:bg-yellow-600 text-white",
+                                  stockStatus.variant === "default" && "bg-green-500 hover:bg-green-600 text-white"
+                                )}
+                              >
+                                {stockStatus.label}
+                              </Badge>
+                            </div>
                           );
                         },
                         priority: "high",
@@ -655,17 +655,17 @@ const RawMaterials = () => {
                         header: "Oluşturan",
                         accessor: (material) => (
                           material.createdBy ? (
-                                <div className="flex items-center justify-start gap-1 w-full">
-                                  <User className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                                  <span className="text-xs text-muted-foreground truncate">
-                                    {users.find(u => u.id === material.createdBy)?.fullName || 
-                                     users.find(u => u.id === material.createdBy)?.displayName || 
-                                     users.find(u => u.id === material.createdBy)?.email || 
-                                     "Bilinmeyen"}
-                                  </span>
-                                </div>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">-</span>
+                            <div className="flex items-center justify-start gap-1 w-full">
+                              <User className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                              <span className="text-xs text-muted-foreground truncate">
+                                {users.find(u => u.id === material.createdBy)?.fullName ||
+                                  users.find(u => u.id === material.createdBy)?.displayName ||
+                                  users.find(u => u.id === material.createdBy)?.email ||
+                                  "Bilinmeyen"}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">-</span>
                           )
                         ),
                         priority: "low",
@@ -680,50 +680,50 @@ const RawMaterials = () => {
                         cellClassName: "text-left",
                         accessor: (material) => (
                           <div className="flex items-center justify-start gap-1 w-full" onClick={(e) => e.stopPropagation()}>
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-7 w-7 sm:h-8 sm:w-8 p-0"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setSelectedMaterial(material);
-                                          setEditDialogOpen(true);
-                                        }}
-                                      >
-                                        <Edit className="h-3.5 w-3.5" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Düzenle</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 w-7 sm:h-8 sm:w-8 p-0"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedMaterial(material);
+                                      setEditDialogOpen(true);
+                                    }}
+                                  >
+                                    <Edit className="h-3.5 w-3.5" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Düzenle</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                             {canDelete && (
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteClick(material);
-                                          }}
-                                        >
-                                          <Trash2 className="h-3.5 w-3.5" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Sil</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteClick(material);
+                                      }}
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Sil</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             )}
-                              </div>
+                          </div>
                         ),
                         priority: "high",
                         minWidth: 200,
@@ -739,7 +739,7 @@ const RawMaterials = () => {
                       const minStock = Number(material.minStock !== undefined ? material.minStock : material.min_stock) || 0;
                       const stockStatus = getStockStatus(currentStock, minStock);
                       return (
-                        <Card 
+                        <Card
                           className={cn(
                             "cursor-pointer hover:shadow-lg transition-all",
                             stockStatus.bgColor
@@ -785,10 +785,10 @@ const RawMaterials = () => {
                                 <div className="flex items-center justify-between text-xs sm:text-sm">
                                   <span className="text-muted-foreground">Oluşturan:</span>
                                   <span className="truncate ml-2">
-                                    {users.find(u => u.id === material.createdBy)?.fullName || 
-                                     users.find(u => u.id === material.createdBy)?.displayName || 
-                                     users.find(u => u.id === material.createdBy)?.email || 
-                                     "Bilinmeyen"}
+                                    {users.find(u => u.id === material.createdBy)?.fullName ||
+                                      users.find(u => u.id === material.createdBy)?.displayName ||
+                                      users.find(u => u.id === material.createdBy)?.email ||
+                                      "Bilinmeyen"}
                                   </span>
                                 </div>
                               )}
@@ -826,9 +826,9 @@ const RawMaterials = () => {
                     }}
                   />
                 </div>
-                
+
                 {totalPages > 1 && (
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t">
                     <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
                       Toplam {filteredMaterials.length} hammadde gösteriliyor
                     </div>

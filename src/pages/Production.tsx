@@ -41,8 +41,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { CreateOrderDialog } from "@/components/Production/CreateOrderDialog";
-import { OrderDetailModal } from "@/components/Production/OrderDetailModal";
+import { UnifiedCreateOrderDialog } from "@/components/Orders/UnifiedCreateOrderDialog";
+import { UnifiedOrderDetailModal } from "@/components/Orders/UnifiedOrderDetailModal";
 import { LoadingState } from "@/components/ui/loading-state";
 
 interface ProductionOrder {
@@ -89,7 +89,7 @@ const Production = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("created_at");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
-  
+
   const handleSort = (key: SortKey) => {
     if (sortBy === key) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -141,9 +141,9 @@ const Production = () => {
           canUpdateResource(userProfile, "orders"),
           canDeleteResource(userProfile, "orders"),
         ]);
-        setCanCreate(createAllowed);
-        setCanUpdate(updateAllowed);
-        setCanDelete(deleteAllowed);
+        setCanCreate(createAllowed || isAdmin || isTeamLeader);
+        setCanUpdate(updateAllowed || isAdmin || isTeamLeader);
+        setCanDelete(deleteAllowed || isAdmin || isTeamLeader);
       } catch (error) {
         if (import.meta.env.DEV) {
           console.error("Production permission check error:", error);
@@ -161,113 +161,113 @@ const Production = () => {
     // Defer subscription: İlk render'dan 100ms sonra başlat (non-blocking)
     const timer = setTimeout(() => {
       setLoading(true);
-      
+
       const filters: { status?: string } = {};
       if (statusFilter !== 'all') {
         filters.status = statusFilter;
       }
-      
+
       // Gerçek zamanlı dinleme başlat
       const unsubscribe = subscribeToOrders(filters, async (firebaseOrders) => {
-      try {
-        // Null/undefined kontrolü
-        if (!Array.isArray(firebaseOrders)) {
-          setOrders([]);
-          setTotalPages(1);
-          setLoading(false);
-          return;
-        }
-        
-        // Search ve sort işlemleri frontend'de yapılacak
-        let filtered = firebaseOrders;
-        
-        if (searchQuery) {
-          const query = searchQuery.toLocaleLowerCase('tr-TR');
-          filtered = filtered.filter((order: Order) => {
-            const orderNum = (order.order_number || order.orderNumber || "").toLocaleLowerCase('tr-TR');
-            const customerName = (order.customer_name || order.customerName || "").toLocaleLowerCase('tr-TR');
-            // Order'da productName yok, items'da var - bu yüzden sadece orderNumber ve customerName ile arama yapıyoruz
-            return orderNum.includes(query) || customerName.includes(query);
-          });
-        }
-        
-        // Sort
-        filtered.sort((a, b) => {
-          let aValue: unknown, bValue: unknown;
-          if (sortBy === 'created_at') {
-            aValue = a.createdAt;
-            bValue = b.createdAt;
-          } else if (sortBy === 'priority') {
-            // Priority için order'da priority field'ı yok, şimdilik createdAt kullan
-            aValue = a.createdAt;
-            bValue = b.createdAt;
-          } else if (sortBy === 'due_date') {
-            aValue = a.dueDate || a.deliveryDate;
-            bValue = b.dueDate || b.deliveryDate;
-          } else {
-            aValue = a.orderNumber || '';
-            bValue = b.orderNumber || '';
+        try {
+          // Null/undefined kontrolü
+          if (!Array.isArray(firebaseOrders)) {
+            setOrders([]);
+            setTotalPages(1);
+            setLoading(false);
+            return;
           }
-          
-          if (aValue instanceof Timestamp) aValue = aValue.toMillis();
-          if (bValue instanceof Timestamp) bValue = bValue.toMillis();
-          if (aValue instanceof Date) aValue = aValue.getTime();
-          if (bValue instanceof Date) bValue = bValue.getTime();
-          
-          return sortOrder === 'asc' 
-            ? (aValue > bValue ? 1 : -1)
-            : (aValue < bValue ? 1 : -1);
-        });
-        
-        // Pagination
-        const startIndex = (page - 1) * 50;
-        const endIndex = startIndex + 50;
-        const paginatedOrders = filtered.slice(startIndex, endIndex);
-        setOrders(paginatedOrders);
-        setTotalPages(Math.ceil(filtered.length / 50));
-        
-        // İlk render için: items olmadan göster
-        setOrdersWithItems(new Map());
-        setLoading(false);
-        
-        // Defer items loading: İlk render'dan sonra yükle (200ms defer)
-        setTimeout(async () => {
-          const itemsMap = new Map<string, { productName?: string; quantity?: number; unit?: string }>();
-          await Promise.all(
-            paginatedOrders.map(async (order: Order) => {
-              try {
-                const items = await getOrderItems(order.id);
-                if (items.length > 0) {
-                  const firstItem = items[0];
-                  itemsMap.set(order.id, {
-                    productName: firstItem.productName || firstItem.product_name || undefined,
-                    quantity: firstItem.quantity,
-                    unit: "Adet", // OrderItem'da unit yok, varsayılan olarak "Adet"
-                  });
+
+          // Search ve sort işlemleri frontend'de yapılacak
+          let filtered = firebaseOrders;
+
+          if (searchQuery) {
+            const query = searchQuery.toLocaleLowerCase('tr-TR');
+            filtered = filtered.filter((order: Order) => {
+              const orderNum = (order.order_number || order.orderNumber || "").toLocaleLowerCase('tr-TR');
+              const customerName = (order.customer_name || order.customerName || "").toLocaleLowerCase('tr-TR');
+              // Order'da productName yok, items'da var - bu yüzden sadece orderNumber ve customerName ile arama yapıyoruz
+              return orderNum.includes(query) || customerName.includes(query);
+            });
+          }
+
+          // Sort
+          filtered.sort((a, b) => {
+            let aValue: unknown, bValue: unknown;
+            if (sortBy === 'created_at') {
+              aValue = a.createdAt;
+              bValue = b.createdAt;
+            } else if (sortBy === 'priority') {
+              // Priority için order'da priority field'ı yok, şimdilik createdAt kullan
+              aValue = a.createdAt;
+              bValue = b.createdAt;
+            } else if (sortBy === 'due_date') {
+              aValue = a.dueDate || a.deliveryDate;
+              bValue = b.dueDate || b.deliveryDate;
+            } else {
+              aValue = a.orderNumber || '';
+              bValue = b.orderNumber || '';
+            }
+
+            if (aValue instanceof Timestamp) aValue = aValue.toMillis();
+            if (bValue instanceof Timestamp) bValue = bValue.toMillis();
+            if (aValue instanceof Date) aValue = aValue.getTime();
+            if (bValue instanceof Date) bValue = bValue.getTime();
+
+            return sortOrder === 'asc'
+              ? (aValue > bValue ? 1 : -1)
+              : (aValue < bValue ? 1 : -1);
+          });
+
+          // Pagination
+          const startIndex = (page - 1) * 50;
+          const endIndex = startIndex + 50;
+          const paginatedOrders = filtered.slice(startIndex, endIndex);
+          setOrders(paginatedOrders);
+          setTotalPages(Math.ceil(filtered.length / 50));
+
+          // İlk render için: items olmadan göster
+          setOrdersWithItems(new Map());
+          setLoading(false);
+
+          // Defer items loading: İlk render'dan sonra yükle (200ms defer)
+          setTimeout(async () => {
+            const itemsMap = new Map<string, { productName?: string; quantity?: number; unit?: string }>();
+            await Promise.all(
+              paginatedOrders.map(async (order: Order) => {
+                try {
+                  const items = await getOrderItems(order.id);
+                  if (items.length > 0) {
+                    const firstItem = items[0];
+                    itemsMap.set(order.id, {
+                      productName: firstItem.productName || firstItem.product_name || undefined,
+                      quantity: firstItem.quantity,
+                      unit: "Adet", // OrderItem'da unit yok, varsayılan olarak "Adet"
+                    });
+                  }
+                } catch (error: unknown) {
+                  if (import.meta.env.DEV) {
+                    console.error(`Error loading items for order ${order.id}:`, error);
+                  }
                 }
-              } catch (error: unknown) {
-                if (import.meta.env.DEV) {
-                  console.error(`Error loading items for order ${order.id}:`, error);
-                }
-              }
-            })
-          );
-          setOrdersWithItems(itemsMap);
-        }, 200);
-      } catch (error: unknown) {
-        if (import.meta.env.DEV) {
-          console.error("Real-time production orders update error:", error);
+              })
+            );
+            setOrdersWithItems(itemsMap);
+          }, 200);
+        } catch (error: unknown) {
+          if (import.meta.env.DEV) {
+            console.error("Real-time production orders update error:", error);
+          }
+          setLoading(false);
         }
-        setLoading(false);
-      }
-    });
-    
-    // Cleanup: Component unmount olduğunda unsubscribe et
-    return () => {
-      unsubscribe();
-    };
+      });
+
+      // Cleanup: Component unmount olduğunda unsubscribe et
+      return () => {
+        unsubscribe();
+      };
     }, 100);
-    
+
     return () => {
       clearTimeout(timer);
     };
@@ -308,72 +308,72 @@ const Production = () => {
     return colors[status] || "bg-gray-100 text-gray-800 border-gray-300";
   };
 
-const formatDate = (value?: string | Date | Timestamp | null | undefined) => {
-  if (!value) return "-";
-  
-  let date: Date | null = null;
-  
-  if (value instanceof Date) {
-    date = value;
-  } else if (typeof value === "string") {
-    date = new Date(value);
-  } else if (value && typeof value === "object") {
-    if ("seconds" in value && typeof value.seconds === "number") {
-      date = new Date(value.seconds * 1000);
-    } else if ("toDate" in value && typeof value.toDate === "function") {
-      try {
-        date = value.toDate();
-      } catch {
-        return "-";
+  const formatDate = (value?: string | Date | Timestamp | null | undefined) => {
+    if (!value) return "-";
+
+    let date: Date | null = null;
+
+    if (value instanceof Date) {
+      date = value;
+    } else if (typeof value === "string") {
+      date = new Date(value);
+    } else if (value && typeof value === "object") {
+      if ("seconds" in value && typeof value.seconds === "number") {
+        date = new Date(value.seconds * 1000);
+      } else if ("toDate" in value && typeof value.toDate === "function") {
+        try {
+          date = value.toDate();
+        } catch {
+          return "-";
+        }
+      } else if ("_seconds" in value && typeof value._seconds === "number") {
+        date = new Date(value._seconds * 1000);
       }
-    } else if ("_seconds" in value && typeof value._seconds === "number") {
-      date = new Date(value._seconds * 1000);
     }
-  }
-  
-  if (!date || isNaN(date.getTime())) return "-";
-  
-  try {
-    return date.toLocaleDateString("tr-TR", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  } catch {
-    return "-";
-  }
-};
+
+    if (!date || isNaN(date.getTime())) return "-";
+
+    try {
+      return date.toLocaleDateString("tr-TR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return "-";
+    }
+  };
 
 
-const formatCurrency = (value?: number, currency?: Currency | string) => {
-  if (value === undefined || value === null) {
-    const symbol = currency ? (CURRENCY_SYMBOLS[currency as Currency] || "₺") : "₺";
-    return `${symbol}0,00`;
-  }
-  
-  const orderCurrency = (currency || "TRY") as Currency;
-  const currencyCode = orderCurrency === "TRY" ? "TRY" : orderCurrency;
-  const locale = orderCurrency === "TRY" ? "tr-TR" : "en-US";
-  const symbol = CURRENCY_SYMBOLS[orderCurrency] || "₺";
-  
-  try {
-    return new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency: currencyCode,
-      minimumFractionDigits: 2,
-    }).format(value);
-  } catch {
-    return `${symbol}${value.toFixed(2)}`;
-  }
-};
-const priorityOptions = [
-  { value: 0, label: "0 - Düşük" },
-  { value: 1, label: "1" },
-  { value: 2, label: "2 - Orta" },
-  { value: 3, label: "3" },
-  { value: 4, label: "4 - Yüksek" },
-  { value: 5, label: "5 - Kritik" },
-];
+  const formatCurrency = (value?: number, currency?: Currency | string) => {
+    if (value === undefined || value === null) {
+      const symbol = currency ? (CURRENCY_SYMBOLS[currency as Currency] || "₺") : "₺";
+      return `${symbol}0,00`;
+    }
+
+    const orderCurrency = (currency || "TRY") as Currency;
+    const currencyCode = orderCurrency === "TRY" ? "TRY" : orderCurrency;
+    const locale = orderCurrency === "TRY" ? "tr-TR" : "en-US";
+    const symbol = CURRENCY_SYMBOLS[orderCurrency] || "₺";
+
+    try {
+      return new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency: currencyCode,
+        minimumFractionDigits: 2,
+      }).format(value);
+    } catch {
+      return `${symbol}${value.toFixed(2)}`;
+    }
+  };
+  const priorityOptions = [
+    { value: 0, label: "0 - Düşük" },
+    { value: 1, label: "1" },
+    { value: 2, label: "2 - Orta" },
+    { value: 3, label: "3" },
+    { value: 4, label: "4 - Yüksek" },
+    { value: 5, label: "5 - Kritik" },
+  ];
 
   const handleDelete = async () => {
     if (!selectedOrder) return;
@@ -454,7 +454,7 @@ const priorityOptions = [
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              
+
               {/* Durum Filtresi */}
               <div className="w-full sm:w-auto sm:min-w-[160px] md:min-w-[180px]">
                 <Select value={statusFilter === "all" ? "all" : statusFilter} onValueChange={(value) => setStatusFilter(value as Order["status"] | "all")}>
@@ -471,7 +471,7 @@ const priorityOptions = [
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {/* Sıralama */}
               <div className="w-full sm:w-auto sm:min-w-[160px] md:min-w-[180px]">
                 <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortKey)}>
@@ -485,7 +485,7 @@ const priorityOptions = [
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {/* Sıralama Yönü */}
               <Button
                 variant="outline"
@@ -511,15 +511,15 @@ const priorityOptions = [
                     key: "order_number",
                     header: "Sipariş No",
                     accessor: (order) => (
-                          <div className="flex flex-col gap-0.5">
+                      <div className="flex flex-col gap-0.5">
                         <span className="text-xs font-medium">{order.order_number || order.orderNumber || "-"}</span>
-                            <span className="md:hidden text-xs text-muted-foreground">
-                              {order.customer_name || order.customerName || "-"}
-                            </span>
-                            <span className="lg:hidden text-xs text-muted-foreground">
-                              {formatDate(order.due_date || order.dueDate || order.created_at || order.createdAt)}
-                            </span>
-                          </div>
+                        <span className="md:hidden text-xs text-muted-foreground">
+                          {order.customer_name || order.customerName || "-"}
+                        </span>
+                        <span className="lg:hidden text-xs text-muted-foreground">
+                          {formatDate(order.due_date || order.dueDate || order.created_at || order.createdAt)}
+                        </span>
+                      </div>
                     ),
                     priority: "high",
                     sticky: true,
@@ -532,10 +532,10 @@ const priorityOptions = [
                     header: "Müşteri",
                     accessor: (order) => (
                       <span className="text-xs font-medium truncate block w-full">
-                          {order.customer_name || order.customerName || "-"}
-                          {order.customer_company && (
-                            <span className="text-muted-foreground"> - {order.customer_company}</span>
-                          )}
+                        {order.customer_name || order.customerName || "-"}
+                        {order.customer_company && (
+                          <span className="text-muted-foreground"> - {order.customer_company}</span>
+                        )}
                       </span>
                     ),
                     priority: "medium",
@@ -607,7 +607,7 @@ const priorityOptions = [
                 renderCard={(order) => {
                   const priorityMeta = getPriorityMeta(order.priority);
                   return (
-                    <Card 
+                    <Card
                       className="cursor-pointer hover:shadow-lg transition-all"
                       onClick={() => {
                         setSelectedOrder(order);
@@ -640,14 +640,14 @@ const priorityOptions = [
                           </div>
                           <div className="flex items-center justify-between text-xs sm:text-sm">
                             <span className="text-muted-foreground">Öncelik:</span>
-                          <Badge className={`${priorityMeta.className} text-xs`}>
-                            {priorityMeta.label}
-                          </Badge>
+                            <Badge className={`${priorityMeta.className} text-xs`}>
+                              {priorityMeta.label}
+                            </Badge>
                           </div>
                           <div className="flex items-center justify-between text-xs sm:text-sm">
                             <span className="text-muted-foreground">Tutar:</span>
                             <span className="font-semibold">
-                          {formatCurrency(order.totalAmount || order.total_amount || 0, order.currency)}
+                              {formatCurrency(order.totalAmount || order.total_amount || 0, order.currency)}
                             </span>
                           </div>
                         </div>
@@ -688,7 +688,7 @@ const priorityOptions = [
         </Card>
       </div>
 
-      <CreateOrderDialog
+      <UnifiedCreateOrderDialog
         open={createDialogOpen}
         onOpenChange={(open) => {
           setCreateDialogOpen(open);
@@ -706,7 +706,7 @@ const priorityOptions = [
       />
 
       {selectedOrder && (
-        <OrderDetailModal
+        <UnifiedOrderDetailModal
           open={detailModalOpen}
           onOpenChange={setDetailModalOpen}
           order={selectedOrder as unknown as Order}

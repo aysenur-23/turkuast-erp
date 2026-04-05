@@ -96,6 +96,8 @@ export interface Order {
   maturityDate?: Timestamp | Date | string | null;
   invoiceStatus?: "not_invoiced" | "invoiced";
   invoiceUrl?: string; // URL to the uploaded invoice file
+  paymentReminderSentAt?: Timestamp | null;
+  payment_reminder_sent_at?: string | null;
 
   createdAt: Timestamp;
   created_at?: string; // Alias (string format)

@@ -27,7 +27,7 @@ export interface WarrantyRecord {
   orderId?: string | null;
   reason: string; // Neden geldi
   receivedDate: Timestamp;
-  status: "received" | "in_repair" | "completed" | "returned";
+  status: "received" | "inspecting" | "waiting_parts" | "repairing" | "quality_check" | "ready" | "completed" | "returned";
   repairDescription?: string | null; // Nasıl bir işlem yapıldı
   cost: number; // Maliyet
   completedDate?: Timestamp | null;

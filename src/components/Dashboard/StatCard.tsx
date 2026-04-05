@@ -45,7 +45,7 @@ export const StatCard = memo(({ title, value, icon: Icon, trend, variant = "defa
   const isColored = variant !== "default";
 
   return (
-    <Card 
+    <Card
       className={cn(
         "overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1 group relative w-full",
         variantStyles[variant],
@@ -58,19 +58,19 @@ export const StatCard = memo(({ title, value, icon: Icon, trend, variant = "defa
       {isColored && (
         <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       )}
-      
+
       <CardContent className="p-3 sm:p-4 lg:p-3 xl:p-4 relative z-10">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <p className={cn(
-              "text-[9px] sm:text-[10px] lg:text-[9px] xl:text-[10px] font-semibold uppercase tracking-wider mb-1",
+              "text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider mb-1",
               isColored ? "text-white/90" : "text-slate-600 dark:text-slate-400",
               "truncate"
             )}>
               {title}
             </p>
             <h3 className={cn(
-              "text-xl sm:text-2xl lg:text-xl xl:text-2xl font-bold mb-1.5 sm:mb-2 transition-all duration-300 group-hover:scale-105",
+              "text-2xl sm:text-3xl font-bold mb-1.5 sm:mb-2 transition-all duration-300 group-hover:scale-105",
               isColored ? "text-white" : "text-slate-900 dark:text-slate-100",
               "truncate"
             )}>
@@ -79,10 +79,10 @@ export const StatCard = memo(({ title, value, icon: Icon, trend, variant = "defa
             {trend && (
               <div className={cn(
                 "flex items-center gap-1 text-[10px] sm:text-xs lg:text-[10px] xl:text-xs font-medium",
-                isColored 
-                  ? "text-white/95" 
-                  : trend.positive 
-                    ? "text-emerald-600 dark:text-emerald-400" 
+                isColored
+                  ? "text-white/95"
+                  : trend.positive
+                    ? "text-emerald-600 dark:text-emerald-400"
                     : "text-red-600 dark:text-red-400"
               )}>
                 {trend.positive ? (
@@ -105,7 +105,7 @@ export const StatCard = memo(({ title, value, icon: Icon, trend, variant = "defa
           </div>
         </div>
       </CardContent>
-      
+
       {/* Bottom accent line */}
       {isColored && (
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/30" />

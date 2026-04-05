@@ -39,7 +39,7 @@ const PRODUCT_CATEGORIES = [
 ] as const;
 
 const Products = () => {
-  const { user } = useAuth();
+  const { user, isAdmin, isTeamLeader } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -106,8 +106,8 @@ const Products = () => {
           canCreateResource(userProfile, "products"),
           canDeleteResource(userProfile, "products"),
         ]);
-        setCanCreate(canCreateProduct);
-        setCanDelete(canDeleteProduct);
+        setCanCreate(canCreateProduct || isAdmin || isTeamLeader);
+        setCanDelete(canDeleteProduct || isAdmin || isTeamLeader);
       } catch (error: unknown) {
         if (import.meta.env.DEV) {
           console.error("Error checking product permissions:", error);

@@ -316,10 +316,10 @@ const TeamManagement = () => {
           <div className="flex flex-row items-center gap-2">
             <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
               <SelectTrigger className="w-full sm:w-[200px] h-9 text-[11px] sm:text-xs">
-                <SelectValue placeholder="Departman Filtrele" />
+                <SelectValue placeholder="Ekip Filtrele" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tüm Departmanlar</SelectItem>
+                <SelectItem value="all">Tüm Ekipler (Departmanlar)</SelectItem>
                 {allDepartments.map((dept) => (
                   <SelectItem key={dept.id} value={dept.id}>
                     {dept.name}

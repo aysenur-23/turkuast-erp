@@ -148,7 +148,7 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
         },
     });
 
-    currentY += cardHeight + PDF_CONSTANTS.sectionSpacing;
+    currentY += cardHeight + PDF_CONSTANTS.sectionSpacing + 10;
 
     if (data.statusDistribution) {
         currentY = ensureSpace(doc, currentY, 200, mar, "Durum Dağılımı");
@@ -273,6 +273,12 @@ export const generateProductionReportPDF = async (data: ProductionReportData, st
             tableWidth: tableWidth2,
             willDrawCell: createWillDrawCell(doc),
             ...tableStyles2,
+            didDrawCell: (data) => {
+                if (data.section === 'body' && data.row.index === topProductsData.length - 1) {
+                    doc.setFont("Roboto", "bold");
+                    doc.setTextColor(...PDF_CONSTANTS.primaryColor);
+                }
+            },
             columnStyles: {
                 0: { cellWidth: tableWidth2 * 0.10, halign: "left", textColor: [107, 114, 128] },
                 1: { cellWidth: tableWidth2 * 0.50, halign: "left", overflow: 'linebreak' },

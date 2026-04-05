@@ -385,39 +385,39 @@ export const CustomerReportDialog = ({ open, onOpenChange }: CustomerReportDialo
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <Card className="bg-[rgb(250,245,255)] border-[rgb(233,213,255)] border-2">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-[14px] sm:text-[15px] font-semibold text-muted-foreground flex items-center gap-2">
-                        <Users className="h-4 w-4 text-purple-500" />
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-[11px] sm:text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                        <Users className="h-3.5 w-3.5 text-purple-500" />
                         Toplam Müşteri
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-[11px] sm:text-xs font-bold text-purple-600">{reportData.totalCustomers}</p>
-                      <p className="text-[11px] sm:text-xs text-muted-foreground mt-1">Tüm müşteriler</p>
+                    <CardContent className="pt-0">
+                      <p className="text-[18px] sm:text-[22px] font-bold text-purple-600 tabular-nums">{reportData.totalCustomers}</p>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1">Tüm müşteriler</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-[rgb(240,253,244)] border-[rgb(187,247,208)] border-2">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-[14px] sm:text-[15px] font-semibold text-muted-foreground flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-green-500" />
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-[11px] sm:text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                        <TrendingUp className="h-3.5 w-3.5 text-green-500" />
                         Aktif Müşteri
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-[11px] sm:text-xs font-bold text-green-600">{reportData.activeCustomers}</p>
-                      <p className="text-[11px] sm:text-xs text-muted-foreground mt-1">Sipariş veren müşteri</p>
+                    <CardContent className="pt-0">
+                      <p className="text-[18px] sm:text-[22px] font-bold text-green-600 tabular-nums">{reportData.activeCustomers}</p>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1">Sipariş veren müşteri</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-[rgb(239,246,255)] border-[rgb(191,219,254)] border-2">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-[14px] sm:text-[15px] font-semibold text-muted-foreground flex items-center gap-2">
-                        <UserPlus className="h-4 w-4 text-blue-500" />
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-[11px] sm:text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                        <UserPlus className="h-3.5 w-3.5 text-blue-500" />
                         Yeni Müşteri
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-[11px] sm:text-xs font-bold text-blue-600">{reportData.newCustomers}</p>
-                      <p className="text-[11px] sm:text-xs text-muted-foreground mt-1">Tarih aralığında</p>
+                    <CardContent className="pt-0">
+                      <p className="text-[18px] sm:text-[22px] font-bold text-blue-600 tabular-nums">{reportData.newCustomers}</p>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1">Tarih aralığında</p>
                     </CardContent>
                   </Card>
                 </div>

@@ -25,9 +25,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { CreateOrderDialog } from "@/components/Orders/CreateOrderDialog";
-import { OrderDetailModal } from "@/components/Orders/OrderDetailModal";
-import { CustomerDetailModal } from "@/components/Customers/CustomerDetailModal";
+import { UnifiedCreateOrderDialog } from "@/components/Orders/UnifiedCreateOrderDialog";
+import { UnifiedOrderDetailModal } from "@/components/Orders/UnifiedOrderDetailModal";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { LoadingState } from "@/components/ui/loading-state";
 import { CURRENCY_SYMBOLS, Currency } from "@/utils/currency";
@@ -38,7 +37,7 @@ import { getPriorityMeta } from "@/utils/priority";
 
 const Orders = () => {
   const isMobile = useIsMobile();
-  const { user, isTeamLeader } = useAuth();
+  const { user, isTeamLeader, isAdmin } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false); // Başlangıçta false - placeholder data ile hızlı render
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,105 +63,162 @@ const Orders = () => {
     if (statusFilter !== 'all') {
       filters.status = statusFilter;
     }
-    
+
     // Defer subscription: İlk render'dan 100ms sonra başlat (non-blocking)
     const timer = setTimeout(() => {
       setLoading(true);
-      
+
       // Gerçek zamanlı dinleme başlat
       const unsubscribe = subscribeToOrders(filters, async (firebaseOrders) => {
-      try {
-        // Null/undefined kontrolü
-        if (!Array.isArray(firebaseOrders)) {
-          setOrders([]);
-          setTotalPages(1);
-          setLoading(false);
-          return;
-        }
-        
-        // Performans için: totalAmount'u olanları önce işle, olmayanları sonra batch olarak işle
-        // Önce totalAmount'u olanları filtrele
-        const ordersWithTotal = firebaseOrders.filter(order => order?.totalAmount || order?.total_amount);
-        const ordersWithoutTotal = firebaseOrders.filter(order => !order?.totalAmount && !order?.total_amount);
-        
-        // TotalAmount'u olanları hızlıca işle
-        const processedWithTotal: Order[] = ordersWithTotal.map(order => ({
-          ...order,
-          totalAmount: order.totalAmount || order.total_amount,
-          total_amount: order.totalAmount || order.total_amount,
-        })) as Order[];
-        
-        // TotalAmount'u olmayanları batch olarak işle (performans için sadece görünen sayfa için)
-        // Sadece görünen sayfadaki siparişler için totalAmount hesapla
-        const startIndex = (page - 1) * 50;
-        const endIndex = startIndex + 50;
-        const visibleOrdersWithoutTotal = ordersWithoutTotal.slice(startIndex, endIndex);
+        try {
+          // Null/undefined kontrolü
+          if (!Array.isArray(firebaseOrders)) {
+            setOrders([]);
+            setTotalPages(1);
+            setLoading(false);
+            return;
+          }
 
-        
-        // Görünmeyen siparişleri totalAmount=0 ile ekle
-        const beforeVisible = ordersWithoutTotal.slice(0, startIndex).map(order => ({
-          ...order,
-          totalAmount: 0,
-          total_amount: 0,
-        })) as Order[];
-        const afterVisible = ordersWithoutTotal.slice(endIndex).map(order => ({
-          ...order,
-          totalAmount: 0,
-          total_amount: 0,
-        })) as Order[];
-        
-        // İlk render için: totalAmount=0 ile göster, sonra hesapla
-        const validOrdersInitial = [...processedWithTotal, ...beforeVisible, ...visibleOrdersWithoutTotal.map(o => ({ ...o, totalAmount: 0, total_amount: 0 })), ...afterVisible];
-        
-        // Defer totalAmount calculation: İlk render'dan sonra hesapla (200ms defer)
-        setTimeout(async () => {
-          const ordersWithCalculatedTotals = await Promise.allSettled(
-            visibleOrdersWithoutTotal.map(async (order) => {
-              if (!order?.id) return null;
-              try {
-                const items = await getOrderItems(order.id);
-                const calculatedTotal = (Array.isArray(items) ? items : []).reduce((sum, item) => {
-                  if (!item) return sum;
-                  const itemTotal = item.total || ((item.unitPrice || item.unit_price || 0) * (item.quantity || 0)) - (item.discount || 0);
-                  return sum + itemTotal;
-                }, 0);
-                
-                const calculatedQuantity = (Array.isArray(items) ? items : []).reduce((sum, item) => sum + (item?.quantity || 0), 0);
-                
-                const taxRate = order.taxRate || order.tax_rate || 0;
-                const subtotal = calculatedTotal;
-                const taxAmount = subtotal * (taxRate / 100);
-                const grandTotal = subtotal + taxAmount;
-                
-                return {
-                  ...order,
-                  totalAmount: grandTotal,
-                  total_amount: grandTotal,
-                  totalQuantity: calculatedQuantity,
-                  total_quantity: calculatedQuantity,
-                  subtotal: subtotal,
-                } as Order;
-              } catch (error: unknown) {
-                // Sessizce handle et - performans için
-                return {
-                  ...order,
-                  totalAmount: 0,
-                  total_amount: 0,
-                } as Order;
+          // Performans için: totalAmount'u olanları önce işle, olmayanları sonra batch olarak işle
+          // Önce totalAmount'u olanları filtrele
+          const ordersWithTotal = firebaseOrders.filter(order => order?.totalAmount || order?.total_amount);
+          const ordersWithoutTotal = firebaseOrders.filter(order => !order?.totalAmount && !order?.total_amount);
+
+          // TotalAmount'u olanları hızlıca işle
+          const processedWithTotal: Order[] = ordersWithTotal.map(order => ({
+            ...order,
+            totalAmount: order.totalAmount || order.total_amount,
+            total_amount: order.totalAmount || order.total_amount,
+          })) as Order[];
+
+          // TotalAmount'u olmayanları batch olarak işle (performans için sadece görünen sayfa için)
+          // Sadece görünen sayfadaki siparişler için totalAmount hesapla
+          const startIndex = (page - 1) * 50;
+          const endIndex = startIndex + 50;
+          const visibleOrdersWithoutTotal = ordersWithoutTotal.slice(startIndex, endIndex);
+
+
+          // Görünmeyen siparişleri totalAmount=0 ile ekle
+          const beforeVisible = ordersWithoutTotal.slice(0, startIndex).map(order => ({
+            ...order,
+            totalAmount: 0,
+            total_amount: 0,
+          })) as Order[];
+          const afterVisible = ordersWithoutTotal.slice(endIndex).map(order => ({
+            ...order,
+            totalAmount: 0,
+            total_amount: 0,
+          })) as Order[];
+
+          // İlk render için: totalAmount=0 ile göster, sonra hesapla
+          const validOrdersInitial = [...processedWithTotal, ...beforeVisible, ...visibleOrdersWithoutTotal.map(o => ({ ...o, totalAmount: 0, total_amount: 0 })), ...afterVisible];
+
+          // Defer totalAmount calculation: İlk render'dan sonra hesapla (200ms defer)
+          setTimeout(async () => {
+            const ordersWithCalculatedTotals = await Promise.allSettled(
+              visibleOrdersWithoutTotal.map(async (order) => {
+                if (!order?.id) return null;
+                try {
+                  const items = await getOrderItems(order.id);
+                  const calculatedTotal = (Array.isArray(items) ? items : []).reduce((sum, item) => {
+                    if (!item) return sum;
+                    const itemTotal = item.total || ((item.unitPrice || item.unit_price || 0) * (item.quantity || 0)) - (item.discount || 0);
+                    return sum + itemTotal;
+                  }, 0);
+
+                  const calculatedQuantity = (Array.isArray(items) ? items : []).reduce((sum, item) => sum + (item?.quantity || 0), 0);
+
+                  const taxRate = order.taxRate || order.tax_rate || 0;
+                  const subtotal = calculatedTotal;
+                  const taxAmount = subtotal * (taxRate / 100);
+                  const grandTotal = subtotal + taxAmount;
+
+                  return {
+                    ...order,
+                    totalAmount: grandTotal,
+                    total_amount: grandTotal,
+                    totalQuantity: calculatedQuantity,
+                    total_quantity: calculatedQuantity,
+                    subtotal: subtotal,
+                  } as Order;
+                } catch (error: unknown) {
+                  // Sessizce handle et - performans için
+                  return {
+                    ...order,
+                    totalAmount: 0,
+                    total_amount: 0,
+                  } as Order;
+                }
+              })
+            );
+
+            const calculatedOrders: Order[] = ordersWithCalculatedTotals
+              .filter((result) => result.status === 'fulfilled' && result.value !== null)
+              .map(result => (result as PromiseFulfilledResult<Order>).value);
+
+            // Tüm siparişleri birleştir (sıralama: processedWithTotal, beforeVisible, calculatedOrders, afterVisible)
+            const validOrders = [...processedWithTotal, ...beforeVisible, ...calculatedOrders, ...afterVisible];
+
+            // Search ve sort işlemleri frontend'de yapılacak
+            let filtered = validOrders;
+
+            if (searchQuery) {
+              const query = searchQuery.toLocaleLowerCase('tr-TR');
+              filtered = filtered.filter((order) =>
+                order.orderNumber?.toLocaleLowerCase('tr-TR').includes(query) ||
+                order.customerName?.toLocaleLowerCase('tr-TR').includes(query) ||
+                order.customerCompany?.toLocaleLowerCase('tr-TR').includes(query)
+              );
+            }
+
+            // Sort
+            filtered.sort((a, b) => {
+              let aValue: unknown, bValue: unknown;
+              if (sortBy === 'order_date') {
+                aValue = a.orderDate || a.createdAt;
+                bValue = b.orderDate || b.createdAt;
+              } else if (sortBy === 'created_at') {
+                aValue = a.createdAt;
+                bValue = b.createdAt;
+              } else if (sortBy === 'delivery_date') {
+                aValue = a.deliveryDate || null;
+                bValue = b.deliveryDate || null;
+                // Null değerleri en sona al
+                if (aValue === null && bValue === null) return 0;
+                if (aValue === null) return 1;
+                if (bValue === null) return -1;
+              } else if (sortBy === 'total') {
+                aValue = a.totalAmount || 0;
+                bValue = b.totalAmount || 0;
+              } else if (sortBy === 'priority') {
+                aValue = (a as Order & { priority?: number }).priority ?? 0;
+                bValue = (b as Order & { priority?: number }).priority ?? 0;
+              } else {
+                aValue = a.orderNumber || '';
+                bValue = b.orderNumber || '';
               }
-            })
-          );
-          
-          const calculatedOrders: Order[] = ordersWithCalculatedTotals
-            .filter((result) => result.status === 'fulfilled' && result.value !== null)
-            .map(result => (result as PromiseFulfilledResult<Order>).value);
-          
-          // Tüm siparişleri birleştir (sıralama: processedWithTotal, beforeVisible, calculatedOrders, afterVisible)
-          const validOrders = [...processedWithTotal, ...beforeVisible, ...calculatedOrders, ...afterVisible];
-          
-          // Search ve sort işlemleri frontend'de yapılacak
+
+              if (aValue instanceof Timestamp) aValue = aValue.toMillis();
+              if (bValue instanceof Timestamp) bValue = bValue.toMillis();
+              if (aValue instanceof Date) aValue = aValue.getTime();
+              if (bValue instanceof Date) bValue = bValue.getTime();
+
+              return sortOrder === 'asc'
+                ? (aValue > bValue ? 1 : -1)
+                : (aValue < bValue ? 1 : -1);
+            });
+
+            // Pagination
+            setOrders(filtered.slice(startIndex, endIndex));
+            setTotalPages(Math.ceil(filtered.length / 50));
+          }, 200);
+
+          // İlk render için: totalAmount=0 ile göster
+          const validOrders = validOrdersInitial;
+
+          // İlk render için: Search ve sort işlemleri frontend'de yapılacak
           let filtered = validOrders;
-          
+
           if (searchQuery) {
             const query = searchQuery.toLocaleLowerCase('tr-TR');
             filtered = filtered.filter((order) =>
@@ -171,8 +227,8 @@ const Orders = () => {
               order.customerCompany?.toLocaleLowerCase('tr-TR').includes(query)
             );
           }
-          
-          // Sort
+
+          // Sort (totalAmount=0 olanlar için basit sort)
           filtered.sort((a, b) => {
             let aValue: unknown, bValue: unknown;
             if (sortBy === 'order_date') {
@@ -184,7 +240,7 @@ const Orders = () => {
             } else if (sortBy === 'delivery_date') {
               aValue = a.deliveryDate || null;
               bValue = b.deliveryDate || null;
-              // Null değerleri en sona al
+
               if (aValue === null && bValue === null) return 0;
               if (aValue === null) return 1;
               if (bValue === null) return -1;
@@ -198,92 +254,35 @@ const Orders = () => {
               aValue = a.orderNumber || '';
               bValue = b.orderNumber || '';
             }
-            
+
             if (aValue instanceof Timestamp) aValue = aValue.toMillis();
             if (bValue instanceof Timestamp) bValue = bValue.toMillis();
             if (aValue instanceof Date) aValue = aValue.getTime();
             if (bValue instanceof Date) bValue = bValue.getTime();
-            
-            return sortOrder === 'asc' 
+
+            return sortOrder === 'asc'
               ? (aValue > bValue ? 1 : -1)
               : (aValue < bValue ? 1 : -1);
           });
-          
+
           // Pagination
           setOrders(filtered.slice(startIndex, endIndex));
           setTotalPages(Math.ceil(filtered.length / 50));
-        }, 200);
-        
-        // İlk render için: totalAmount=0 ile göster
-        const validOrders = validOrdersInitial;
-        
-        // İlk render için: Search ve sort işlemleri frontend'de yapılacak
-        let filtered = validOrders;
-        
-        if (searchQuery) {
-          const query = searchQuery.toLocaleLowerCase('tr-TR');
-          filtered = filtered.filter((order) =>
-            order.orderNumber?.toLocaleLowerCase('tr-TR').includes(query) ||
-            order.customerName?.toLocaleLowerCase('tr-TR').includes(query) ||
-            order.customerCompany?.toLocaleLowerCase('tr-TR').includes(query)
-          );
-        }
-        
-        // Sort (totalAmount=0 olanlar için basit sort)
-        filtered.sort((a, b) => {
-          let aValue: unknown, bValue: unknown;
-          if (sortBy === 'order_date') {
-            aValue = a.orderDate || a.createdAt;
-            bValue = b.orderDate || b.createdAt;
-          } else if (sortBy === 'created_at') {
-            aValue = a.createdAt;
-            bValue = b.createdAt;
-          } else if (sortBy === 'delivery_date') {
-            aValue = a.deliveryDate || null;
-            bValue = b.deliveryDate || null;
-
-            if (aValue === null && bValue === null) return 0;
-            if (aValue === null) return 1;
-            if (bValue === null) return -1;
-          } else if (sortBy === 'total') {
-            aValue = a.totalAmount || 0;
-            bValue = b.totalAmount || 0;
-          } else if (sortBy === 'priority') {
-            aValue = (a as Order & { priority?: number }).priority ?? 0;
-            bValue = (b as Order & { priority?: number }).priority ?? 0;
-          } else {
-            aValue = a.orderNumber || '';
-            bValue = b.orderNumber || '';
+          setLoading(false);
+        } catch (error: unknown) {
+          if (import.meta.env.DEV) {
+            console.error("Real-time orders update error:", error);
           }
-          
-          if (aValue instanceof Timestamp) aValue = aValue.toMillis();
-          if (bValue instanceof Timestamp) bValue = bValue.toMillis();
-          if (aValue instanceof Date) aValue = aValue.getTime();
-          if (bValue instanceof Date) bValue = bValue.getTime();
-          
-          return sortOrder === 'asc' 
-            ? (aValue > bValue ? 1 : -1)
-            : (aValue < bValue ? 1 : -1);
-        });
-        
-        // Pagination
-        setOrders(filtered.slice(startIndex, endIndex));
-        setTotalPages(Math.ceil(filtered.length / 50));
-        setLoading(false);
-      } catch (error: unknown) {
-        if (import.meta.env.DEV) {
-          console.error("Real-time orders update error:", error);
+          setLoading(false);
         }
-        setLoading(false);
-      }
-    });
-    
-    // Cleanup: Component unmount olduğunda unsubscribe et
-    return () => {
-      unsubscribe();
-    };
+      });
+
+      // Cleanup: Component unmount olduğunda unsubscribe et
+      return () => {
+        unsubscribe();
+      };
     }, 100);
-    
+
     return () => {
       clearTimeout(timer);
     };
@@ -344,16 +343,9 @@ const Orders = () => {
         canDeleteResource(userProfile, "orders"),
       ]);
 
-      setCanCreate(canCreateOrder);
-      setCanUpdate(canUpdateOrder);
-      setCanDelete(canDeleteOrder);
-      
-      // Ekip lideri her zaman ekleme/düzenleme/silme yapabilir
-      if (isTeamLeader) {
-        setCanCreate(true);
-        setCanUpdate(true);
-        setCanDelete(true);
-      }
+      setCanCreate(canCreateOrder || isAdmin || isTeamLeader);
+      setCanUpdate(canUpdateOrder || isAdmin || isTeamLeader);
+      setCanDelete(canDeleteOrder || isAdmin || isTeamLeader);
     };
 
     checkPermissions();
@@ -414,7 +406,7 @@ const Orders = () => {
 
   const handleDelete = async () => {
     if (!selectedOrder) return;
-    
+
     // Yetki kontrolü
     if (!canDelete) {
       toast.error("Sipariş silme yetkiniz yok.");
@@ -442,12 +434,12 @@ const Orders = () => {
       const symbol = currency ? (CURRENCY_SYMBOLS[currency as Currency] || "₺") : "₺";
       return `${symbol}0,00`;
     }
-    
+
     const orderCurrency = (currency || "TRY") as Currency;
     const currencyCode = orderCurrency === "TRY" ? "TRY" : orderCurrency;
     const locale = orderCurrency === "TRY" ? "tr-TR" : "en-US";
     const symbol = CURRENCY_SYMBOLS[orderCurrency] || "₺";
-    
+
     try {
       return new Intl.NumberFormat(locale, {
         style: "currency",
@@ -477,8 +469,8 @@ const Orders = () => {
             <p className="text-muted-foreground mt-0.5 text-xs sm:text-sm">Sipariş takibi ve yönetimi</p>
           </div>
           {canCreate && (
-            <Button 
-              className="gap-1 w-full sm:w-auto min-h-[36px] sm:min-h-8 text-[11px] sm:text-xs" 
+            <Button
+              className="gap-1 w-full sm:w-auto min-h-[36px] sm:min-h-8 text-[11px] sm:text-xs"
               onClick={() => {
                 setCreateDialogOpen(true);
               }}
@@ -502,7 +494,7 @@ const Orders = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              
+
               {/* Durum Filtresi */}
               <div className="w-full sm:w-auto sm:min-w-[160px] md:min-w-[180px]">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -526,7 +518,7 @@ const Orders = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {/* Sıralama */}
               <div className="w-full sm:w-auto sm:min-w-[160px] md:min-w-[180px]">
                 <Select value={sortBy} onValueChange={setSortBy}>
@@ -543,7 +535,7 @@ const Orders = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {/* Sıralama Yönü */}
               <Button
                 variant="outline"
@@ -608,19 +600,14 @@ const Orders = () => {
                   key: "customer_name",
                   header: "Müşteri",
                   accessor: (order) => (
-                    <button
-                      type="button"
-                      className="hover:text-primary focus:outline-none truncate block text-left w-full"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleShowCustomer(order.customer_id);
-                      }}
-                    >
-                      {order.customer_name || "-"}
+                    <div className="truncate block text-left w-full">
+                      <span className="font-medium text-slate-700">
+                        {order.customer_name || "-"}
+                      </span>
                       {order.customer_company && (
-                        <span className="text-muted-foreground"> - {order.customer_company}</span>
+                        <span className="text-muted-foreground text-[10px]"> - {order.customer_company}</span>
                       )}
-                    </button>
+                    </div>
                   ),
                   priority: "medium",
                   minWidth: 120,
@@ -655,7 +642,7 @@ const Orders = () => {
                 },
               ]}
               renderCard={(order) => (
-                <ResponsiveCard 
+                <ResponsiveCard
                   className="p-3 sm:p-4 cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => {
                     setSelectedOrder(order);
@@ -723,24 +710,22 @@ const Orders = () => {
         </Card>
       </div>
 
-      <CreateOrderDialog
+      <UnifiedCreateOrderDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         onSuccess={() => {
-          // Real-time subscribe otomatik güncelleyecek
           setCreateDialogOpen(false);
           setSelectedOrder(null);
         }}
-        order={selectedOrder} // Edit modu için mevcut sipariş
+        order={selectedOrder}
       />
 
       {selectedOrder && (
-        <OrderDetailModal
+        <UnifiedOrderDetailModal
           open={detailModalOpen}
           onOpenChange={setDetailModalOpen}
           order={selectedOrder}
           onEdit={() => {
-            // Düzenleme dialog'unu aç (selectedOrder zaten set edilmiş)
             setDetailModalOpen(false);
             setCreateDialogOpen(true);
           }}
@@ -748,14 +733,11 @@ const Orders = () => {
             setDetailModalOpen(false);
             setDeleteDialogOpen(true);
           }}
+          onUpdate={() => {
+            // Local state is usually updated via subscribeToOrders
+          }}
         />
       )}
-
-      <CustomerDetailModal
-        open={customerModalOpen}
-        onOpenChange={setCustomerModalOpen}
-        customer={customerModalData}
-      />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

@@ -24,15 +24,15 @@ function logStep(stepName, status, message = '') {
   const statusText = status === 'success' ? 'BAŞARILI' : status === 'error' ? 'BAŞARISIZ' : 'UYARI';
   const colorCode = status === 'success' ? '\x1b[32m' : status === 'error' ? '\x1b[31m' : '\x1b[33m';
   const resetCode = '\x1b[0m';
-  
+
   console.log(`${colorCode}${statusIcon} [${statusText}]${resetCode} ${stepName}${message ? ': ' + message : ''}`);
-  
+
   results.steps.push({
     name: stepName,
     status,
     message
   });
-  
+
   if (status === 'error') {
     results.success = false;
   }
@@ -45,10 +45,10 @@ function copyRecursiveSync(src, dest) {
     if (!exists) {
       throw new Error(`Kaynak klasör bulunamadı: ${src}`);
     }
-    
+
     const stats = fs.statSync(src);
     const isDirectory = stats.isDirectory();
-    
+
     if (isDirectory) {
       if (!fs.existsSync(dest)) {
         fs.mkdirSync(dest, { recursive: true });
@@ -80,19 +80,19 @@ try {
     NODE_ENV: 'production',
     // Firebase env değerleri .env.production dosyasından okunacak
   };
-  
+
   // Base path'i root olarak ayarla (Hostinger root deployment için)
   const envWithBasePath = {
     ...envProduction,
     VITE_BASE_PATH: '/',
   };
-  
-  execSync('npm run build', { 
-    cwd: rootDir, 
+
+  execSync('npm run build', {
+    cwd: rootDir,
     stdio: 'inherit',
     env: envWithBasePath
   });
-  
+
   // Build başarılı mı kontrol et
   const distDir = path.join(rootDir, 'dist');
   if (fs.existsSync(distDir)) {
@@ -146,7 +146,7 @@ try {
       }
     }
   }
-  
+
   if (!fs.existsSync(publicHtmlDir)) {
     fs.mkdirSync(publicHtmlDir, { recursive: true });
     logStep('public_html Klasörü Hazırlama', 'success', 'Yeni klasör oluşturuldu');
@@ -166,9 +166,9 @@ try {
     logStep('Frontend Dosyaları Kopyalama', 'error', 'dist klasörü bulunamadı!');
     process.exit(1);
   }
-  
+
   copyRecursiveSync(distDir, publicHtmlDir);
-  
+
   // Kopyalama başarılı mı kontrol et
   const copiedIndex = path.join(publicHtmlDir, 'index.html');
   if (fs.existsSync(copiedIndex)) {
@@ -197,7 +197,7 @@ try {
   } else {
     let indexContent = fs.readFileSync(indexPath, 'utf-8');
     let changesMade = 0;
-    
+
     // CSP'yi güncelle - Firebase Analytics için UA-* pattern'ini ekle
     const cspPattern = /<meta http-equiv="Content-Security-Policy" content="([^"]+)">/;
     if (cspPattern.test(indexContent)) {
@@ -229,14 +229,14 @@ try {
         changesMade++;
       }
     }
-    
+
     // Boş satırları temizle (3+ boş satırı 1'e indir)
     const beforeEmptyLines = indexContent;
     indexContent = indexContent.replace(/\n\s*\n\s*\n+/g, '\n\n');
     if (beforeEmptyLines !== indexContent) {
       changesMade++;
     }
-    
+
     // Duplicate CSS'yi kaldır (sadece bir tane kalmalı)
     const styleMatches = indexContent.match(/<link rel="stylesheet"[^>]*>/g) || [];
     if (styleMatches.length > 1) {
@@ -249,8 +249,7 @@ try {
         changesMade++;
       }
     }
-    
-<<<<<<< HEAD
+
     // Modulepreload sırasını düzelt - React core önce olmalı
     const modulepreloadPattern = /<link rel="modulepreload"[^>]*>/g;
     const modulepreloads = indexContent.match(modulepreloadPattern) || [];
@@ -261,7 +260,7 @@ try {
         'vendor-firebase',
         'vendor-pdf'
       ];
-      
+
       // Modulepreload'ları öncelik sırasına göre sırala
       const sortedPreloads = modulepreloads.sort((a, b) => {
         const getPriority = (preload) => {
@@ -274,29 +273,25 @@ try {
         };
         return getPriority(a) - getPriority(b);
       });
-      
+
       // Tüm modulepreload'ları kaldır ve sıralı olarak ekle
       indexContent = indexContent.replace(modulepreloadPattern, '');
-      
+
       // Ana script'ten önce, sıralı modulepreload'ları ekle
       const scriptPattern = /<script type="module"[^>]*>/;
       const scriptMatch = indexContent.match(scriptPattern);
       if (scriptMatch) {
         const scriptIndex = indexContent.indexOf(scriptMatch[0]);
         const preloadsHtml = sortedPreloads.map(p => '    ' + p).join('\n');
-        indexContent = indexContent.slice(0, scriptIndex) + 
-          preloadsHtml + '\n    ' + 
+        indexContent = indexContent.slice(0, scriptIndex) +
+          preloadsHtml + '\n    ' +
           indexContent.slice(scriptIndex);
         changesMade++;
       }
     }
-    
+
     fs.writeFileSync(indexPath, indexContent);
     logStep('index.html Düzenleme', 'success', `${changesMade} değişiklik yapıldı (CSP güncelleme, modulepreload sıralama, temizlik)`);
-=======
-    fs.writeFileSync(indexPath, indexContent);
-    logStep('index.html Düzenleme', 'success', `${changesMade} değişiklik yapıldı (CSP güncelleme, temizlik)`);
->>>>>>> 2bdcc7331f104f0af420939d7419e34ea46ff9d1
   }
 } catch (error) {
   logStep('index.html Düzenleme', 'error', error.message);
@@ -401,9 +396,9 @@ try {
   </FilesMatch>
 </IfModule>
 `;
-  
+
   fs.writeFileSync(htaccessPath, htaccessContent);
-  
+
   // Dosya oluşturuldu mu kontrol et
   if (fs.existsSync(htaccessPath)) {
     const stats = fs.statSync(htaccessPath);
@@ -423,7 +418,7 @@ try {
   const indexExists = fs.existsSync(indexPath);
   const htaccessExists = fs.existsSync(htaccessPath);
   const assetsExists = fs.existsSync(path.join(publicHtmlDir, 'assets'));
-  
+
   if (indexExists && htaccessExists && assetsExists) {
     logStep('Dosya Kontrolü', 'success', `${fileCount} dosya/klasör bulundu (index.html, .htaccess, assets mevcut)`);
   } else {
@@ -447,7 +442,7 @@ results.steps.forEach((step, index) => {
   const statusText = step.status === 'success' ? 'BAŞARILI' : step.status === 'error' ? 'BAŞARISIZ' : 'UYARI';
   const colorCode = step.status === 'success' ? '\x1b[32m' : step.status === 'error' ? '\x1b[31m' : '\x1b[33m';
   const resetCode = '\x1b[0m';
-  
+
   console.log(`${index + 1}. ${colorCode}${statusIcon} [${statusText}]${resetCode} ${step.name}${step.message ? ' - ' + step.message : ''}`);
 });
 

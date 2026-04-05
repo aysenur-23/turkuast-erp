@@ -371,9 +371,6 @@ export const CustomerDetailModal = ({ open, onOpenChange, customer, onUpdate, on
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="app-dialog-shell">
         {/* DialogTitle ve DialogDescription DialogContent'in direkt child'ı olmalı (Radix UI gereksinimi) */}
-        <DialogTitle className="sr-only" id="customer-detail-title">
-          {isEditing ? "Müşteri Düzenle" : `Müşteri Detayı - ${customer.name}`}
-        </DialogTitle>
         <DialogDescription className="sr-only" id="customer-detail-description">
           Müşteri detayları ve bilgileri
         </DialogDescription>
@@ -387,9 +384,9 @@ export const CustomerDetailModal = ({ open, onOpenChange, customer, onUpdate, on
                   <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-[16px] sm:text-[18px] font-semibold text-foreground truncate">
+                  <DialogTitle className="text-[16px] sm:text-[18px] font-semibold text-foreground truncate">
                     {isEditing ? "Müşteri Düzenle" : customer.name}
-                  </h2>
+                  </DialogTitle>
                   {!isEditing && customer.company && (
                     <p className="text-[11px] sm:text-xs text-muted-foreground truncate mt-0.5">
                       {customer.company}
@@ -517,7 +514,7 @@ export const CustomerDetailModal = ({ open, onOpenChange, customer, onUpdate, on
           )}
 
           <div className="flex-1 overflow-hidden bg-gray-50/50 min-h-0 flex flex-col pt-2 pb-2">
-            <div className="flex-1 min-h-0 app-dialog-scroll px-3 sm:px-4">
+            <div className="flex-1 min-h-0 h-full app-dialog-scroll px-3 sm:px-4">
               {loading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

@@ -28,7 +28,7 @@ import { Card as ResponsiveCard } from "@/components/ui/card";
 import { StatCard } from "@/components/Dashboard/StatCard";
 
 const Customers = () => {
-  const { user } = useAuth();
+  const { user, isAdmin, isTeamLeader } = useAuth();
   const navigate = useNavigate();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -93,8 +93,8 @@ const Customers = () => {
           canCreateResource(userProfile, "customers"),
           canDeleteResource(userProfile, "customers"),
         ]);
-        setCanCreate(createPerm);
-        setCanDelete(deletePerm);
+        setCanCreate(createPerm || isAdmin || isTeamLeader);
+        setCanDelete(deletePerm || isAdmin || isTeamLeader);
       } catch (error) {
         if (import.meta.env.DEV) {
           console.error("Customer create permission check error:", error);

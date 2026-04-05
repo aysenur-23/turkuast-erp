@@ -542,51 +542,51 @@ export const FinancialReportDialog = ({ open, onOpenChange }: FinancialReportDia
                 </div>
                 <div className="grid grid-cols-4 gap-4">
                   <Card className="bg-[rgb(240,253,244)] border-[rgb(187,247,208)] border-2">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-[14px] sm:text-[15px] font-semibold text-muted-foreground flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-green-500" />
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-[11px] sm:text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                        <TrendingUp className="h-3.5 w-3.5 text-green-500" />
                         Toplam Gelir
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-[11px] sm:text-xs font-bold text-green-600">₺{reportData.totalRevenue.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                      <p className="text-[11px] sm:text-xs text-muted-foreground mt-1">Toplam ciro</p>
+                    <CardContent className="pt-0">
+                      <p className="text-[16px] sm:text-[18px] lg:text-[20px] font-bold text-green-600 tabular-nums">₺{reportData.totalRevenue.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1">Toplam ciro</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-[rgb(254,242,242)] border-[rgb(254,202,202)] border-2">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-[14px] sm:text-[15px] font-semibold text-muted-foreground flex items-center gap-2">
-                        <ArrowDown className="h-4 w-4 text-red-500" />
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-[11px] sm:text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                        <ArrowDown className="h-3.5 w-3.5 text-red-500" />
                         Toplam Gider
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-[11px] sm:text-xs font-bold text-red-600">₺{reportData.totalCost.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                      <p className="text-[11px] sm:text-xs text-muted-foreground mt-1">Toplam maliyet</p>
+                    <CardContent className="pt-0">
+                      <p className="text-[16px] sm:text-[18px] lg:text-[20px] font-bold text-red-600 tabular-nums">₺{reportData.totalCost.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1">Toplam maliyet</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-[rgb(236,253,245)] border-[rgb(167,243,208)] border-2">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-[14px] sm:text-[15px] font-semibold text-muted-foreground flex items-center gap-2">
-                        <ArrowUp className="h-4 w-4 text-emerald-500" />
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-[11px] sm:text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                        <ArrowUp className="h-3.5 w-3.5 text-emerald-500" />
                         Brüt Kar
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-[11px] sm:text-xs font-bold text-emerald-600">₺{reportData.grossProfit.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                      <p className="text-[11px] sm:text-xs text-muted-foreground mt-1">Net kar</p>
+                    <CardContent className="pt-0">
+                      <p className="text-[16px] sm:text-[18px] lg:text-[20px] font-bold text-emerald-600 tabular-nums">₺{reportData.grossProfit.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1">Net kar</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-[rgb(255,255,255)] border-[rgb(221,83,53)] border-2" style={{ backgroundColor: 'rgba(221, 83, 53, 0.05)' }}>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-[14px] sm:text-[15px] font-semibold text-muted-foreground flex items-center gap-2">
-                        <Percent className="h-4 w-4 text-primary" />
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-[11px] sm:text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                        <Percent className="h-3.5 w-3.5 text-primary" />
                         Kar Marjı
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-[11px] sm:text-xs font-bold text-primary">{reportData.profitMargin.toFixed(1)}%</p>
-                      <p className="text-[11px] sm:text-xs text-muted-foreground mt-1">Karlılık oranı</p>
+                    <CardContent className="pt-0">
+                      <p className="text-[16px] sm:text-[18px] lg:text-[20px] font-bold text-primary tabular-nums">{reportData.profitMargin.toFixed(1)}%</p>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1">Karlılık oranı</p>
                     </CardContent>
                   </Card>
                 </div>

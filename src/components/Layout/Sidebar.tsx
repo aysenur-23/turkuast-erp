@@ -258,8 +258,8 @@ export const Sidebar = ({ isMobile, open, onOpenChange, isCollapsed = false }: S
           }}
           title="Ana sayfaya git"
         >
-          <img src="/turkuast-favicon.png" alt="Turkuast ERP" className="h-9 w-9 sm:h-10 sm:w-10 object-contain flex-shrink-0" width={40} height={40} loading="eager" />
-          <span className="text-sm sm:text-lg font-bold text-sidebar-foreground">Turkuast ERP</span>
+          <img src="/turkuast-favicon.png" alt="Turkuast ERP" className="h-10 w-10 sm:h-12 sm:w-12 object-contain flex-shrink-0 scale-110" width={48} height={48} loading="eager" />
+          <span className="text-sm sm:text-xl font-bold text-sidebar-foreground tracking-tight">Turkuast ERP</span>
         </div>
       </div>
 

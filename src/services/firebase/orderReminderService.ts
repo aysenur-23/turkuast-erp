@@ -23,19 +23,31 @@ const resolveReminderDate = (value?: unknown): Date | null => {
 };
 
 const isPaymentReminderCandidate = (order: Order, now: Date): boolean => {
-  const paymentReceived = order.paymentReceived ?? order.payment_received ?? false;
-  const paymentTermMonths = Number(order.paymentTermMonths ?? order.payment_term_months ?? 0);
-  const dueDate = resolveReminderDate(order.dueDate ?? order.due_date);
+  const paymentStatus = order.paymentStatus || "unpaid";
+  const hasMaturity = order.hasMaturity || false;
+  const maturityDate = resolveReminderDate(order.maturityDate);
+  const paymentTerms = order.paymentTerms || "";
+  const dueDate = resolveReminderDate(order.dueDate || order.due_date);
   const reminderSentAt = resolveReminderDate(
-    order.paymentReminderSentAt ?? order.payment_reminder_sent_at,
+    order.paymentReminderSentAt || (order as any).payment_reminder_sent_at
   );
 
-  if (paymentReceived) return false;
-  if (paymentTermMonths <= 0) return false;
-  if (!dueDate) return false;
+  if (paymentStatus === "paid") return false;
+
+  // Eğer özel bir vade tarihi set edilmişse onu kullan
+  if (hasMaturity && maturityDate) {
+    if (reminderSentAt) return false;
+    return maturityDate.getTime() <= now.getTime();
+  }
+
+  // Eskiden kalma logic (ödeme şartı varsa ve vade dolmuşsa)
+  if (!paymentTerms && !dueDate) return false;
   if (reminderSentAt) return false;
 
-  return dueDate.getTime() <= now.getTime();
+  const targetDate = dueDate || (paymentTerms ? now : null);
+  if (!targetDate) return false;
+
+  return targetDate.getTime() <= now.getTime();
 };
 
 const claimOrderReminder = async (orderId: string, now: Date): Promise<boolean> => {
@@ -98,27 +110,36 @@ export const processDueOrderPaymentReminders = async (): Promise<number> => {
 
     const orderNumber = order.orderNumber || order.order_number || order.id;
     const customerName = order.customerName || order.customer_name || "Belirtilmemiş müşteri";
-    const dueDate = resolveReminderDate(order.dueDate ?? order.due_date);
+    const maturityDate = resolveReminderDate(order.maturityDate);
+    const dueDate = maturityDate || resolveReminderDate(order.dueDate ?? order.due_date);
     const paymentMethodLabel = getOrderPaymentMethodLabel(
-      order.paymentMethod ?? order.payment_method,
+      order.paymentMethod,
     );
     const totalAmount = Number(order.totalAmount ?? order.total_amount ?? 0);
+    const paidAmount = Number(order.paidAmount || 0);
+    const remainingAmount = Math.max(totalAmount - paidAmount, 0);
+
     const formattedTotal = totalAmount.toLocaleString("tr-TR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    const formattedRemaining = remainingAmount.toLocaleString("tr-TR", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
     const formattedDueDate = dueDate
       ? dueDate.toLocaleDateString("tr-TR", {
-          day: "2-digit",
-          month: "long",
-          year: "numeric",
-        })
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
       : "belirtilmedi";
 
     const message = [
       `"${orderNumber}" numaralı siparişin ödeme vadesi doldu.`,
       `Müşteri: ${customerName}`,
-      `Tutar: ${formattedTotal} ${(order.currency || "TRY") === "TRY" ? "TL" : order.currency}`,
+      `Toplam Tutar: ${formattedTotal} ${(order.currency || "TRY") === "TRY" ? "TL" : order.currency}`,
+      `Kalan Ödeme: ${formattedRemaining} ${(order.currency || "TRY") === "TRY" ? "TL" : order.currency}`,
       `Yöntem: ${paymentMethodLabel}`,
       `Vade Tarihi: ${formattedDueDate}`,
     ].join("\n");
@@ -135,8 +156,8 @@ export const processDueOrderPaymentReminders = async (): Promise<number> => {
           metadata: {
             orderNumber,
             dueDate: dueDate ? dueDate.toISOString() : null,
-            paymentMethod: order.paymentMethod ?? order.payment_method ?? null,
-            paymentTermMonths: order.paymentTermMonths ?? order.payment_term_months ?? null,
+            paymentMethod: order.paymentMethod || null,
+            paymentTerms: order.paymentTerms || null,
             updatedAt: now.toISOString(),
             reminderType: "payment_due",
           },

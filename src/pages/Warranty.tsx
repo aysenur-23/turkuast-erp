@@ -366,16 +366,38 @@ const Warranty = () => {
     });
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "received": return "Alındı";
+      case "inspecting": return "İncelemede";
+      case "waiting_parts": return "Parça Bekliyor";
+      case "repairing": return "Onarımda";
+      case "quality_check": return "Kalite Kontrol";
+      case "ready": return "Teslimata Hazır";
+      case "completed": return "Tamamlandı";
+      case "returned": return "İade Edildi";
+      default: return status;
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "received":
         return <Badge variant="default">Alındı</Badge>;
-      case "in_repair":
-        return <Badge variant="secondary">Onarımda</Badge>;
+      case "inspecting":
+        return <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">İncelemede</Badge>;
+      case "waiting_parts":
+        return <Badge variant="outline" className="border-amber-500 text-amber-600">Parça Bekliyor</Badge>;
+      case "repairing":
+        return <Badge variant="secondary" className="bg-orange-100 text-orange-700 hover:bg-orange-200">Onarımda</Badge>;
+      case "quality_check":
+        return <Badge variant="secondary" className="bg-purple-100 text-purple-700 hover:bg-purple-200">Kalite Kontrol</Badge>;
+      case "ready":
+        return <Badge variant="default" className="bg-emerald-500 text-white hover:bg-emerald-600">Teslimata Hazır</Badge>;
       case "completed":
-        return <Badge variant="outline">Tamamlandı</Badge>;
+        return <Badge variant="outline" className="border-emerald-600 text-emerald-700">Tamamlandı</Badge>;
       case "returned":
-        return <Badge variant="secondary">İade Edildi</Badge>;
+        return <Badge variant="secondary" className="bg-gray-100 text-gray-700">İade Edildi</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -474,12 +496,20 @@ const Warranty = () => {
                     switch (status) {
                       case "completed":
                         return "bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/20 dark:border-emerald-800 dark:text-emerald-400";
-                      case "in_repair":
+                      case "ready":
+                        return "bg-emerald-100 border-emerald-300 text-emerald-800 dark:bg-emerald-900/30 dark:border-emerald-700 dark:text-emerald-300";
+                      case "repairing":
+                        return "bg-orange-50 border-orange-200 text-orange-700 dark:bg-orange-950/20 dark:border-orange-800 dark:text-orange-400";
+                      case "inspecting":
                         return "bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-950/20 dark:border-blue-800 dark:text-blue-400";
-                      case "returned":
-                        return "bg-purple-50 border-purple-200 text-purple-700 dark:bg-purple-950/20 dark:border-purple-800 dark:text-purple-400";
-                      default:
+                      case "waiting_parts":
                         return "bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-950/20 dark:border-amber-800 dark:text-amber-400";
+                      case "quality_check":
+                        return "bg-purple-50 border-purple-200 text-purple-700 dark:bg-purple-950/20 dark:border-purple-800 dark:text-purple-400";
+                      case "returned":
+                        return "bg-gray-50 border-gray-200 text-gray-700 dark:bg-gray-950/20 dark:border-gray-800 dark:text-gray-400";
+                      default:
+                        return "bg-slate-50 border-slate-200 text-slate-700 dark:bg-slate-950/20 dark:border-slate-800 dark:text-slate-400";
                     }
                   };
 
@@ -550,10 +580,7 @@ const Warranty = () => {
                               getStatusColor(record.status)
                             )}
                           >
-                            {record.status === "received" ? "Alındı" :
-                              record.status === "in_repair" ? "Onarımda" :
-                                record.status === "completed" ? "Tamamlandı" :
-                                  record.status === "returned" ? "İade Edildi" : record.status}
+                            {getStatusLabel(record.status)}
                           </Badge>
                           <Select
                             value={record.status}
@@ -569,7 +596,11 @@ const Warranty = () => {
                             </SelectTrigger>
                             <SelectContent onClick={(e) => e.stopPropagation()} className="text-[11px] sm:text-xs">
                               <SelectItem value="received">Alındı</SelectItem>
-                              <SelectItem value="in_repair">Onarımda</SelectItem>
+                              <SelectItem value="inspecting">İncelemede</SelectItem>
+                              <SelectItem value="waiting_parts">Parça Bekliyor</SelectItem>
+                              <SelectItem value="repairing">Onarımda</SelectItem>
+                              <SelectItem value="quality_check">Kalite Kontrol</SelectItem>
+                              <SelectItem value="ready">Teslimata Hazır</SelectItem>
                               <SelectItem value="completed">Tamamlandı</SelectItem>
                               <SelectItem value="returned">İade Edildi</SelectItem>
                             </SelectContent>
@@ -669,7 +700,16 @@ const Warranty = () => {
                         <p className="text-xs text-muted-foreground uppercase">Durum</p>
                         <Select value={selectedRecord.status} onValueChange={(v: any) => handleStatusChange(selectedRecord.id, v)}>
                           <SelectTrigger className="h-6 border-0 p-0 font-semibold focus:ring-0 bg-transparent"><SelectValue /></SelectTrigger>
-                          <SelectContent><SelectItem value="received">Alındı</SelectItem><SelectItem value="in_repair">Onarımda</SelectItem><SelectItem value="completed">Tamamlandı</SelectItem><SelectItem value="returned">İade Edildi</SelectItem></SelectContent>
+                          <SelectContent>
+                            <SelectItem value="received">Alındı</SelectItem>
+                            <SelectItem value="inspecting">İncelemede</SelectItem>
+                            <SelectItem value="waiting_parts">Parça Bekliyor</SelectItem>
+                            <SelectItem value="repairing">Onarımda</SelectItem>
+                            <SelectItem value="quality_check">Kalite Kontrol</SelectItem>
+                            <SelectItem value="ready">Teslimata Hazır</SelectItem>
+                            <SelectItem value="completed">Tamamlandı</SelectItem>
+                            <SelectItem value="returned">İade Edildi</SelectItem>
+                          </SelectContent>
                         </Select>
                       </div>
                     </CardContent></Card>
@@ -761,7 +801,16 @@ const Warranty = () => {
                     <Label>Durum</Label>
                     <Select value={formData.status} onValueChange={(v: any) => setFormData({ ...formData, status: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent><SelectItem value="received">Alındı</SelectItem><SelectItem value="in_repair">Onarımda</SelectItem><SelectItem value="completed">Tamamlandı</SelectItem><SelectItem value="returned">İade Edildi</SelectItem></SelectContent>
+                      <SelectContent>
+                        <SelectItem value="received">Alındı</SelectItem>
+                        <SelectItem value="inspecting">İncelemede</SelectItem>
+                        <SelectItem value="waiting_parts">Parça Bekliyor</SelectItem>
+                        <SelectItem value="repairing">Onarımda</SelectItem>
+                        <SelectItem value="quality_check">Kalite Kontrol</SelectItem>
+                        <SelectItem value="ready">Teslimata Hazır</SelectItem>
+                        <SelectItem value="completed">Tamamlandı</SelectItem>
+                        <SelectItem value="returned">İade Edildi</SelectItem>
+                      </SelectContent>
                     </Select>
                   </div>
                 </div>
@@ -830,7 +879,16 @@ const Warranty = () => {
                     <Label>Durum</Label>
                     <Select value={formData.status} onValueChange={(v: any) => setFormData({ ...formData, status: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent><SelectItem value="received">Alındı</SelectItem><SelectItem value="in_repair">Onarımda</SelectItem><SelectItem value="completed">Tamamlandı</SelectItem><SelectItem value="returned">İade Edildi</SelectItem></SelectContent>
+                      <SelectContent>
+                        <SelectItem value="received">Alındı</SelectItem>
+                        <SelectItem value="inspecting">İncelemede</SelectItem>
+                        <SelectItem value="waiting_parts">Parça Bekliyor</SelectItem>
+                        <SelectItem value="repairing">Onarımda</SelectItem>
+                        <SelectItem value="quality_check">Kalite Kontrol</SelectItem>
+                        <SelectItem value="ready">Teslimata Hazır</SelectItem>
+                        <SelectItem value="completed">Tamamlandı</SelectItem>
+                        <SelectItem value="returned">İade Edildi</SelectItem>
+                      </SelectContent>
                     </Select>
                   </div>
                 </div>

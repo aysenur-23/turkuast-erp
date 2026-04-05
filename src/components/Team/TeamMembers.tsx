@@ -427,7 +427,7 @@ export const TeamMembers = ({
       {/* Dialogs */}
       {/* User Stats Preview Dialog */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="app-dialog-shell max-w-3xl">
           <DialogHeader>
             <DialogTitle>Personel Performans Raporu</DialogTitle>
             <DialogDescription>
@@ -435,96 +435,98 @@ export const TeamMembers = ({
             </DialogDescription>
           </DialogHeader>
 
-          {loadingPreview ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : previewData && (
-            <div className="space-y-6">
-              {/* User Header */}
-              <div className="flex items-center gap-4 bg-muted/30 p-4 rounded-lg border">
-                <Avatar className="h-16 w-16 border-2 border-background shadow-sm">
-                  <AvatarFallback className="text-xl bg-primary/10 text-primary">
-                    {previewData.member.fullName?.substring(0, 2).toUpperCase() || "U"}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="text-xl font-bold">{previewData.member.fullName}</h3>
-                  <p className="text-sm text-muted-foreground">{previewData.member.email}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="outline" className="text-xs">
-                      {getDepartmentNames(previewData.member)}
-                    </Badge>
-                    <Badge variant="secondary" className="text-xs">
-                      {getRoleLabel(getUserRole(previewData.member))}
-                    </Badge>
+          <div className="app-dialog-scroll">
+            {loadingPreview ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : previewData && (
+              <div className="space-y-6">
+                {/* User Header */}
+                <div className="flex items-center gap-4 bg-muted/30 p-4 rounded-lg border">
+                  <Avatar className="h-16 w-16 border-2 border-background shadow-sm">
+                    <AvatarFallback className="text-xl bg-primary/10 text-primary">
+                      {previewData.member.fullName?.substring(0, 2).toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="text-xl font-bold">{previewData.member.fullName}</h3>
+                    <p className="text-sm text-muted-foreground">{previewData.member.email}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline" className="text-xs">
+                        {getDepartmentNames(previewData.member)}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        {getRoleLabel(getUserRole(previewData.member))}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <Card className="bg-primary/5 border-primary/10 shadow-sm">
+                    <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+                      <span className="text-2xl font-bold text-primary">{previewData.stats.total}</span>
+                      <span className="text-xs text-muted-foreground font-medium mt-1">Toplam Görev</span>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-green-50 border-green-100 shadow-sm">
+                    <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+                      <span className="text-2xl font-bold text-green-700">{previewData.stats.completed}</span>
+                      <span className="text-xs text-green-600 font-medium mt-1">Tamamlanan</span>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-blue-50 border-blue-100 shadow-sm">
+                    <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+                      <span className="text-2xl font-bold text-blue-700">{previewData.stats.active}</span>
+                      <span className="text-xs text-blue-600 font-medium mt-1">Devam Eden</span>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-yellow-50 border-yellow-100 shadow-sm">
+                    <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+                      <span className="text-2xl font-bold text-yellow-700">{previewData.stats.pending}</span>
+                      <span className="text-xs text-yellow-600 font-medium mt-1">Bekleyen</span>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Recent Tasks */}
+                <div className="space-y-3">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Son Görevler
+                  </h4>
+                  <div className="border rounded-md divide-y max-h-[300px] overflow-y-auto">
+                    {previewData.stats.assignments.length > 0 ? (
+                      previewData.stats.assignments.sort((a, b) => new Date(b.assignedAt).getTime() - new Date(a.assignedAt).getTime()).slice(0, 10).map((task, idx) => (
+                        <div key={idx} className="p-3 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                          <div className="min-w-0 flex-1 mr-4">
+                            <p className="text-sm font-medium truncate">{task.taskTitle}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Atanma: {format(new Date(task.assignedAt), "d MMM yyyy", { locale: tr })}
+                            </p>
+                          </div>
+                          <Badge variant={task.status === "completed" ? "default" : task.status === "pending" ? "outline" : "secondary"} className={
+                            task.status === "completed" ? "bg-green-600 hover:bg-green-700" :
+                              task.status === "in_progress" || task.status === "accepted" ? "bg-blue-600 hover:bg-blue-700 text-white" : ""
+                          }>
+                            {task.status === "completed" ? "Tamamlandı" :
+                              task.status === "in_progress" ? "Sürüyor" :
+                                task.status === "accepted" ? "Aktif" : "Bekliyor"}
+                          </Badge>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-8 text-center text-muted-foreground text-sm">
+                        Kayıtlı görev bulunamadı.
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <Card className="bg-primary/5 border-primary/10 shadow-sm">
-                  <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                    <span className="text-2xl font-bold text-primary">{previewData.stats.total}</span>
-                    <span className="text-xs text-muted-foreground font-medium mt-1">Toplam Görev</span>
-                  </CardContent>
-                </Card>
-                <Card className="bg-green-50 border-green-100 shadow-sm">
-                  <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                    <span className="text-2xl font-bold text-green-700">{previewData.stats.completed}</span>
-                    <span className="text-xs text-green-600 font-medium mt-1">Tamamlanan</span>
-                  </CardContent>
-                </Card>
-                <Card className="bg-blue-50 border-blue-100 shadow-sm">
-                  <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                    <span className="text-2xl font-bold text-blue-700">{previewData.stats.active}</span>
-                    <span className="text-xs text-blue-600 font-medium mt-1">Devam Eden</span>
-                  </CardContent>
-                </Card>
-                <Card className="bg-yellow-50 border-yellow-100 shadow-sm">
-                  <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                    <span className="text-2xl font-bold text-yellow-700">{previewData.stats.pending}</span>
-                    <span className="text-xs text-yellow-600 font-medium mt-1">Bekleyen</span>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Recent Tasks */}
-              <div className="space-y-3">
-                <h4 className="font-semibold flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Son Görevler
-                </h4>
-                <div className="border rounded-md divide-y max-h-[300px] overflow-y-auto">
-                  {previewData.stats.assignments.length > 0 ? (
-                    previewData.stats.assignments.sort((a, b) => new Date(b.assignedAt).getTime() - new Date(a.assignedAt).getTime()).slice(0, 10).map((task, idx) => (
-                      <div key={idx} className="p-3 flex items-center justify-between hover:bg-muted/50 transition-colors">
-                        <div className="min-w-0 flex-1 mr-4">
-                          <p className="text-sm font-medium truncate">{task.taskTitle}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Atanma: {format(new Date(task.assignedAt), "d MMM yyyy", { locale: tr })}
-                          </p>
-                        </div>
-                        <Badge variant={task.status === "completed" ? "default" : task.status === "pending" ? "outline" : "secondary"} className={
-                          task.status === "completed" ? "bg-green-600 hover:bg-green-700" :
-                            task.status === "in_progress" || task.status === "accepted" ? "bg-blue-600 hover:bg-blue-700 text-white" : ""
-                        }>
-                          {task.status === "completed" ? "Tamamlandı" :
-                            task.status === "in_progress" ? "Sürüyor" :
-                              task.status === "accepted" ? "Aktif" : "Bekliyor"}
-                        </Badge>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-8 text-center text-muted-foreground text-sm">
-                      Kayıtlı görev bulunamadı.
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
 
           <DialogFooter className="gap-2 sm:gap-0 mt-2">
             <Button variant="outline" onClick={() => setPreviewOpen(false)}>Kapat</Button>

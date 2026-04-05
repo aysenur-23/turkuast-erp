@@ -331,9 +331,6 @@ export const ProductDetailModal = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="app-dialog-shell">
         {/* DialogTitle ve DialogDescription DialogContent'in direkt child'ı olmalı (Radix UI gereksinimi) */}
-        <DialogTitle className="sr-only">
-          {product.name} - Ürün Detayı
-        </DialogTitle>
         <DialogDescription className="sr-only">
           Ürün detayları ve bilgileri
         </DialogDescription>
@@ -345,9 +342,9 @@ export const ProductDetailModal = ({
                 <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 flex-shrink-0">
                   <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <h2 className="text-[16px] sm:text-[18px] font-semibold text-foreground truncate">
+                <DialogTitle className="text-[16px] sm:text-[18px] font-semibold text-foreground truncate">
                   {product.name}
-                </h2>
+                </DialogTitle>
               </div>
               <div className="flex flex-wrap items-center gap-2 flex-shrink-0 relative z-10 pr-10 sm:pr-12">
                 <Badge variant={getStatusVariant(product.stock, product.minStock)} className="text-xs px-2 sm:px-3 py-1 relative z-10">
@@ -432,7 +429,7 @@ export const ProductDetailModal = ({
             </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-hidden bg-gray-50/50 p-3 sm:p-4 min-h-0 app-dialog-scroll">
+          <div className="flex-1 overflow-hidden bg-gray-50/50 p-3 sm:p-4 min-h-0 h-full app-dialog-scroll">
             <div className="max-w-full mx-auto">
               {isEditing ? (
                 <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">

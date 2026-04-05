@@ -403,39 +403,39 @@ export const ProductionReportDialog = ({ open, onOpenChange }: ProductionReportD
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <Card className="bg-[rgb(239,246,255)] border-[rgb(191,219,254)] border-2">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-[14px] sm:text-[15px] font-semibold text-muted-foreground flex items-center gap-2">
-                        <FileBarChart className="h-4 w-4 text-blue-500" />
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-[11px] sm:text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                        <FileBarChart className="h-3.5 w-3.5 text-blue-500" />
                         Toplam Sipariş
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-[11px] sm:text-xs font-bold text-blue-600">{reportData.totalOrders}</p>
-                      <p className="text-[11px] sm:text-xs text-muted-foreground mt-1">Tarih aralığında</p>
+                    <CardContent className="pt-0">
+                      <p className="text-2xl sm:text-3xl font-bold text-blue-600 tabular-nums">{reportData.totalOrders}</p>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1">Tarih aralığında</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-[rgb(240,253,244)] border-[rgb(187,247,208)] border-2">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-[14px] sm:text-[15px] font-semibold text-muted-foreground flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-[11px] sm:text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
                         Tamamlanan
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-[11px] sm:text-xs font-bold text-green-600">{reportData.completed}</p>
-                      <p className="text-[11px] sm:text-xs text-muted-foreground mt-1">Başarıyla tamamlandı</p>
+                    <CardContent className="pt-0">
+                      <p className="text-2xl sm:text-3xl font-bold text-green-600 tabular-nums">{reportData.completed}</p>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1">Başarıyla tamamlandı</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-[rgb(255,255,255)] border-[rgb(221,83,53)] border-2" style={{ backgroundColor: 'rgba(221, 83, 53, 0.05)' }}>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-[14px] sm:text-[15px] font-semibold text-muted-foreground flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-primary" />
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-[11px] sm:text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                        <TrendingUp className="h-3.5 w-3.5 text-primary" />
                         Tamamlanma Oranı
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-[11px] sm:text-xs font-bold text-primary">{reportData.completionRate.toFixed(1)}%</p>
-                      <p className="text-[11px] sm:text-xs text-muted-foreground mt-1">Başarı oranı</p>
+                    <CardContent className="pt-0">
+                      <p className="text-2xl sm:text-3xl font-bold text-primary tabular-nums">{reportData.completionRate.toFixed(1)}%</p>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1">Başarı oranı</p>
                     </CardContent>
                   </Card>
                 </div>

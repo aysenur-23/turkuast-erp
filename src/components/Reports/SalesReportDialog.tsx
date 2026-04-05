@@ -353,39 +353,39 @@ export const SalesReportDialog = ({ open, onOpenChange }: SalesReportDialogProps
                 {/* İstatistik Kartları - Profesyonel ve Sade */}
                 <div className="grid grid-cols-3 gap-4">
                   <Card className="bg-[rgb(255,255,255)] border-[rgb(221,83,53)] border-2" style={{ backgroundColor: 'rgba(221, 83, 53, 0.05)' }}>
-                    <CardHeader className="pb-3">
+                    <CardHeader className="pb-2">
                       <CardTitle className="text-[11px] sm:text-xs font-semibold text-muted-foreground flex items-center gap-2 leading-tight">
-                        <TrendingUp className="h-4 w-4 text-primary" />
+                        <TrendingUp className="h-3.5 w-3.5 text-primary" />
                         Toplam Gelir
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-3xl font-bold text-primary">₺{reportData.totalRevenue.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                      <p className="text-[11px] sm:text-xs text-muted-foreground mt-1 leading-snug">Ortalama: ₺{reportData.avgOrderValue.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    <CardContent className="pt-0">
+                      <p className="text-[18px] sm:text-[22px] lg:text-[24px] font-bold text-primary tabular-nums">₺{reportData.totalRevenue.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1 leading-snug">Ortalama: ₺{reportData.avgOrderValue.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-[rgb(239,246,255)] border-[rgb(191,219,254)] border-2">
-                    <CardHeader className="pb-3">
+                    <CardHeader className="pb-2">
                       <CardTitle className="text-[11px] sm:text-xs font-semibold text-muted-foreground flex items-center gap-2 leading-tight">
-                        <Package className="h-4 w-4 text-blue-500" />
+                        <Package className="h-3.5 w-3.5 text-blue-500" />
                         Toplam Sipariş
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-3xl font-bold text-blue-600">{reportData.totalOrders}</p>
-                      <p className="text-xs text-muted-foreground mt-1">Tarih aralığında</p>
+                    <CardContent className="pt-0">
+                      <p className="text-[18px] sm:text-[22px] lg:text-[24px] font-bold text-blue-600 tabular-nums">{reportData.totalOrders}</p>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1">Tarih aralığında</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-[rgb(240,253,244)] border-[rgb(187,247,208)] border-2">
-                    <CardHeader className="pb-3">
+                    <CardHeader className="pb-2">
                       <CardTitle className="text-[11px] sm:text-xs font-semibold text-muted-foreground flex items-center gap-2 leading-tight">
-                        <Users className="h-4 w-4 text-green-500" />
+                        <Users className="h-3.5 w-3.5 text-green-500" />
                         Aktif Müşteri
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-3xl font-bold text-green-600">{reportData.activeCustomers}</p>
-                      <p className="text-xs text-muted-foreground mt-1">Sipariş veren müşteri</p>
+                    <CardContent className="pt-0">
+                      <p className="text-[18px] sm:text-[22px] lg:text-[24px] font-bold text-green-600 tabular-nums">{reportData.activeCustomers}</p>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1">Sipariş veren müşteri</p>
                     </CardContent>
                   </Card>
                 </div>
