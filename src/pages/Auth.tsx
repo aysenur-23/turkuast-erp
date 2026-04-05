@@ -84,18 +84,18 @@ const Auth = () => {
 
   // Auth sayfasında body scroll'unu etkinleştir
   useEffect(() => {
-    // Body scroll'unu etkinleştir
-    document.body.style.overflow = "auto";
-    document.body.style.height = "auto";
-    document.documentElement.style.overflow = "auto";
-    document.documentElement.style.height = "auto";
+    // Body scroll'unu etkinleştir - !important kullanarak garantile
+    document.body.style.setProperty('overflow', 'auto', 'important');
+    document.body.style.setProperty('height', 'auto', 'important');
+    document.documentElement.style.setProperty('overflow', 'auto', 'important');
+    document.documentElement.style.setProperty('height', 'auto', 'important');
 
     return () => {
       // Cleanup: Component unmount olduğunda eski haline döndür
-      document.body.style.overflow = "";
-      document.body.style.height = "";
-      document.documentElement.style.overflow = "";
-      document.documentElement.style.height = "";
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('height');
+      document.documentElement.style.removeProperty('overflow');
+      document.documentElement.style.removeProperty('height');
     };
   }, []);
 

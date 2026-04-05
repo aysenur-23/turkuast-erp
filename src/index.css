@@ -16,7 +16,6 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  overflow-y: hidden;
   position: relative;
   -webkit-text-size-adjust: 100%;
 }
@@ -192,7 +191,7 @@ input::-webkit-calendar-picker-indicator {
   [class*="TabsContent"],
   [class*="CardContent"] {
     position: relative !important;
-    overflow: auto !important;
+    overflow: visible !important;
     z-index: 1;
     isolation: isolate;
   }
@@ -616,7 +615,7 @@ All colors MUST be HSL.
     width: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden !important;
+    overflow: hidden;
     position: relative;
     /* Fixed causes issues on some browsers, overflow: hidden on html/body is enough */
   }
