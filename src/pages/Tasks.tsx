@@ -2775,6 +2775,46 @@ const Tasks = () => {
           <h1 className="text-[16px] sm:text-[18px] font-semibold text-foreground" id="page-title">
             {getPageTitle()}
           </h1>
+          <div className="flex items-center gap-2">
+            {/* Görev Ekle Butonu */}
+            {canCreate && !(user?.roles?.includes("personnel")) && (
+              <Button
+                size="sm"
+                className="h-7 text-xs px-2.5 gap-1.5 font-medium shadow-sm hover:shadow transition-all"
+                onClick={async () => {
+                  if (!user) return;
+                  try {
+                    const departments = await getDepartments();
+                    const userProfile: UserProfile = {
+                      id: user.id,
+                      email: user.email,
+                      emailVerified: user.emailVerified,
+                      fullName: user.fullName,
+                      displayName: user.fullName,
+                      phone: user.phone,
+                      dateOfBirth: user.dateOfBirth,
+                      role: user.roles,
+                      createdAt: Timestamp.now(),
+                      updatedAt: Timestamp.now(),
+                    };
+                    const hasPermission = await canCreateTask(userProfile, departments);
+                    if (!hasPermission) {
+                      toast.error("Görev oluşturma yetkiniz yok");
+                      return;
+                    }
+                    openInlineForm("create");
+                  } catch (error: unknown) {
+                    if (import.meta.env.DEV) {
+                      console.error("Permission check error:", error);
+                    }
+                    toast.error("Yetki kontrolü yapılamadı");
+                  }
+                }}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Görev Ekle
+              </Button>
+            )}
           {/* İstatistikler Açılma Butonu */}
           {!statsExpanded ? (
             <Button
@@ -2797,6 +2837,7 @@ const Tasks = () => {
               <ChevronRight className="h-3.5 w-3.5" />
             </Button>
           )}
+          </div>
         </div>
 
         {/* Uyarılar Banner - Kompakt */}

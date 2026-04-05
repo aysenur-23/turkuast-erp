@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,16 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { createProduct } from "@/services/firebase/productService";
+import { getProductCategories, ProductCategory } from "@/services/firebase/productCategoryService";
 import { useAuth } from "@/contexts/AuthContext";
 import { Package, Loader2, X, Save } from "lucide-react";
-
-const PRODUCT_CATEGORIES = [
-  "Taşınabilir Güç Paketleri",
-  "Kabin Tipi Güç Paketleri",
-  "Araç Tipi Güç Paketleri",
-  "Endüstriyel Güç Paketleri",
-  "Güneş Enerji Sistemleri",
-] as const;
 
 interface CreateProductDialogProps {
   open: boolean;
@@ -28,6 +21,11 @@ interface CreateProductDialogProps {
 export const CreateProductDialog = ({ open, onOpenChange, onSuccess }: CreateProductDialogProps) => {
   const { user, isAdmin, isTeamLeader } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [productCategories, setProductCategories] = useState<ProductCategory[]>([]);
+
+  useEffect(() => {
+    getProductCategories().then(setProductCategories).catch(() => {});
+  }, []);
   const [formData, setFormData] = useState({
     name: "",
     sku: `PRD-${Date.now()}`,
@@ -205,8 +203,8 @@ export const CreateProductDialog = ({ open, onOpenChange, onSuccess }: CreatePro
                               list="category-options"
                             />
                             <datalist id="category-options">
-                              {PRODUCT_CATEGORIES.map((cat) => (
-                                <option key={cat} value={cat} />
+                              {productCategories.map((cat) => (
+                                <option key={cat.id} value={cat.name} />
                               ))}
                             </datalist>
                           </div>
@@ -217,9 +215,9 @@ export const CreateProductDialog = ({ open, onOpenChange, onSuccess }: CreatePro
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="none">Kategori Yok</SelectItem>
-                              {PRODUCT_CATEGORIES.map((cat) => (
-                                <SelectItem key={cat} value={cat}>
-                                  {cat}
+                              {productCategories.map((cat) => (
+                                <SelectItem key={cat.id} value={cat.name}>
+                                  {cat.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>

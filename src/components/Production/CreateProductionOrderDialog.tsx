@@ -224,7 +224,7 @@ export const CreateProductionOrderDialog = ({ open, onOpenChange, onSuccess, ord
   const [productsLoading, setProductsLoading] = useState(false);
 
   const STEPS = [
-    { label: "Sipariş Bilgileri", icon: <Package className="h-4 w-4" /> },
+    { label: "Üretim Bilgileri", icon: <Package className="h-4 w-4" /> },
     { label: "Ürünler", icon: <ShoppingCart className="h-4 w-4" /> },
     { label: "Tamamlama", icon: <CheckCircle2 className="h-4 w-4" /> },
   ];
@@ -529,7 +529,7 @@ export const CreateProductionOrderDialog = ({ open, onOpenChange, onSuccess, ord
           });
         }
 
-        toast.success("Üretim siparişi başarıyla güncellendi");
+        toast.success("Üretim başarıyla güncellendi");
       } else {
         await createOrder({
           orderNumber: formData.order_number,
@@ -555,7 +555,7 @@ export const CreateProductionOrderDialog = ({ open, onOpenChange, onSuccess, ord
           priority: formData.priority,
         }, orderItems);
 
-        toast.success("Üretim siparişi oluşturuldu");
+        toast.success("Üretim oluşturuldu");
       }
 
       onSuccess();
@@ -589,10 +589,10 @@ export const CreateProductionOrderDialog = ({ open, onOpenChange, onSuccess, ord
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="app-dialog-shell max-w-3xl">
           <DialogTitle className="sr-only">
-            {order ? "Üretim Siparişi Düzenle" : "Yeni Üretim Siparişi"}
+            {order ? "Üretim Düzenle" : "Yeni Üretim"}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            {order ? "Üretim siparişi bilgilerini düzenleyin" : "Üretim için yeni bir sipariş oluşturun"}
+            {order ? "Üretim bilgilerini düzenleyin" : "Yeni bir üretim kaydı oluşturun"}
           </DialogDescription>
 
           <div className="flex flex-col flex-1 min-h-0">
@@ -604,7 +604,7 @@ export const CreateProductionOrderDialog = ({ open, onOpenChange, onSuccess, ord
                 </div>
                 <div className="flex-1 min-w-0">
                   <h2 className="text-[15px] sm:text-[17px] font-semibold text-foreground truncate">
-                    {order ? "Üretim Siparişi Düzenle" : "Yeni Üretim Siparişi"}
+                    {order ? "Üretim Düzenle" : "Yeni Üretim"}
                   </h2>
                 </div>
               </div>
@@ -623,7 +623,7 @@ export const CreateProductionOrderDialog = ({ open, onOpenChange, onSuccess, ord
                       <CardHeader className="p-4 sm:p-5 border-b">
                         <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
                           <Package className="h-4 w-4 text-primary" />
-                          Sipariş Bilgileri
+                          Üretim Bilgileri
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-4 sm:p-5 space-y-4">
@@ -631,7 +631,7 @@ export const CreateProductionOrderDialog = ({ open, onOpenChange, onSuccess, ord
                           {/* Order Number */}
                           <div className="space-y-1.5">
                             <Label className="text-xs sm:text-sm font-medium" showRequired>
-                              Sipariş Numarası
+                              Üretim Numarası
                             </Label>
                             <div className="flex gap-2">
                               <Input
@@ -944,16 +944,16 @@ export const CreateProductionOrderDialog = ({ open, onOpenChange, onSuccess, ord
                       <CardHeader className="p-4 sm:p-5 border-b">
                         <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
                           <CheckCircle2 className="h-4 w-4 text-primary" />
-                          Sipariş Özeti
+                          Üretim Özeti
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-4 sm:p-5 space-y-5">
                         {/* Order Info */}
                         <div className="space-y-3">
-                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sipariş Bilgileri</h4>
+                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Üretim Bilgileri</h4>
                           <div className="grid grid-cols-2 gap-3 text-sm">
                             <div>
-                              <span className="text-muted-foreground text-xs">Sipariş No</span>
+                              <span className="text-muted-foreground text-xs">Üretim No</span>
                               <p className="font-medium">{formData.order_number}</p>
                             </div>
                             <div>
@@ -1055,7 +1055,7 @@ export const CreateProductionOrderDialog = ({ open, onOpenChange, onSuccess, ord
                     ) : (
                       <>
                         <Save className="h-4 w-4" />
-                        {order ? "Güncelle" : "Sipariş Oluştur"}
+                        {order ? "Güncelle" : "Üretim Oluştur"}
                       </>
                     )}
                   </Button>

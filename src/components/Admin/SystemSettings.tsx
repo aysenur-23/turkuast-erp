@@ -6,13 +6,21 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Database, Bell, Lock, Activity, Loader2 } from "lucide-react";
+import { Database, Bell, Lock, Activity, Loader2, Tag, Pencil, Trash2, Plus, Check, X as XIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getAdminSettings,
   updateAdminSettings,
   AdminSettings,
 } from "@/services/firebase/adminSettingsService";
+import {
+  getProductCategories,
+  createProductCategory,
+  updateProductCategory,
+  deleteProductCategory,
+  seedDefaultProductCategories,
+  ProductCategory,
+} from "@/services/firebase/productCategoryService";
 import { Timestamp } from "firebase/firestore";
 
 import { downloadDatabaseBackup } from "@/utils/backupUtils";
@@ -26,6 +34,16 @@ export const SystemSettings = () => {
     restore: false,
     cleanup: false,
   });
+
+  // Category CRUD state
+  const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [savingCategoryId, setSavingCategoryId] = useState<string | null>(null);
+  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
 
   const { user } = useAuth();
 
@@ -43,6 +61,67 @@ export const SystemSettings = () => {
 
     fetchSettings();
   }, []);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoadingCategories(true);
+      try {
+        if (user?.id) await seedDefaultProductCategories(user.id);
+        const cats = await getProductCategories();
+        setCategories(cats);
+      } catch {
+        toast.error("Kategoriler yüklenemedi");
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, [user?.id]);
+
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim() || !user?.id) return;
+    setAddingCategory(true);
+    try {
+      const created = await createProductCategory(newCategoryName.trim(), user.id);
+      setCategories((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
+      setNewCategoryName("");
+      toast.success("Kategori eklendi");
+    } catch {
+      toast.error("Kategori eklenemedi");
+    } finally {
+      setAddingCategory(false);
+    }
+  };
+
+  const handleEditSave = async (id: string) => {
+    if (!editingName.trim()) return;
+    setSavingCategoryId(id);
+    try {
+      await updateProductCategory(id, editingName.trim());
+      setCategories((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, name: editingName.trim() } : c)).sort((a, b) => a.name.localeCompare(b.name))
+      );
+      setEditingId(null);
+      toast.success("Kategori güncellendi");
+    } catch {
+      toast.error("Kategori güncellenemedi");
+    } finally {
+      setSavingCategoryId(null);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    setDeletingCategoryId(id);
+    try {
+      await deleteProductCategory(id);
+      setCategories((prev) => prev.filter((c) => c.id !== id));
+      toast.success("Kategori silindi");
+    } catch {
+      toast.error("Kategori silinemedi");
+    } finally {
+      setDeletingCategoryId(null);
+    }
+  };
 
   const handleSaveAll = async () => {
     if (!user?.id || !settings) {
@@ -331,6 +410,107 @@ export const SystemSettings = () => {
           >
             <span className="text-xs sm:text-sm">{actionLoading.cleanup ? "Temizleniyor..." : "Veritabanını Temizle"}</span>
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* Ürün Kategorileri */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-[14px] sm:text-[15px] leading-tight">
+            <Tag className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            Ürün Kategorileri
+          </CardTitle>
+          <CardDescription className="text-[11px] sm:text-xs leading-snug">Ürünlerde kullanılan kategorileri yönetin</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {/* Add new category */}
+          <div className="flex gap-2">
+            <Input
+              placeholder="Yeni kategori adı..."
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleAddCategory(); }}
+              className="min-h-[44px] sm:min-h-0 text-[14px] sm:text-sm flex-1"
+            />
+            <Button
+              onClick={handleAddCategory}
+              disabled={addingCategory || !newCategoryName.trim()}
+              className="min-h-[44px] sm:min-h-0 shrink-0"
+            >
+              {addingCategory ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              <span className="ml-1 hidden sm:inline text-xs">Ekle</span>
+            </Button>
+          </div>
+          <Separator />
+          {loadingCategories ? (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : categories.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-4">Henüz kategori yok</p>
+          ) : (
+            <div className="space-y-1.5">
+              {categories.map((cat) => (
+                <div key={cat.id} className="flex items-center gap-2 rounded-md border px-3 py-2">
+                  {editingId === cat.id ? (
+                    <>
+                      <Input
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleEditSave(cat.id);
+                          if (e.key === "Escape") setEditingId(null);
+                        }}
+                        className="h-8 text-sm flex-1"
+                        autoFocus
+                      />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-green-600 hover:text-green-700"
+                        onClick={() => handleEditSave(cat.id)}
+                        disabled={savingCategoryId === cat.id}
+                      >
+                        {savingCategoryId === cat.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        onClick={() => setEditingId(null)}
+                      >
+                        <XIcon className="h-3.5 w-3.5" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="flex-1 text-sm truncate">{cat.name}</span>
+                      {cat.isDefault && (
+                        <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded shrink-0">varsayılan</span>
+                      )}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => { setEditingId(cat.id); setEditingName(cat.name); }}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(cat.id)}
+                        disabled={deletingCategoryId === cat.id}
+                      >
+                        {deletingCategoryId === cat.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

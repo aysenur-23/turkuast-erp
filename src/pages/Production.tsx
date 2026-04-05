@@ -420,7 +420,7 @@ const Production = () => {
   if (loading) {
     return (
       <MainLayout>
-        <LoadingState message="Üretim siparişleri yükleniyor..." />
+        <LoadingState message="Üretimler yükleniyor..." />
       </MainLayout>
     );
   }
@@ -430,13 +430,13 @@ const Production = () => {
       <div className="space-y-2 w-full sm:w-[95%] md:w-[90%] lg:max-w-[1400px] mx-auto">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 sm:gap-2">
           <div className="flex-1 min-w-0">
-            <h1 className="text-lg sm:text-xl font-semibold text-foreground">Üretim Siparişleri</h1>
+            <h1 className="text-lg sm:text-xl font-semibold text-foreground">Üretim</h1>
             <p className="text-muted-foreground mt-0.5 text-xs sm:text-sm">Üretim süreçlerini yönetin</p>
           </div>
           {canCreate && (
             <Button className="gap-1 w-full sm:w-auto min-h-[36px] sm:min-h-8 text-xs sm:text-sm" onClick={() => setCreateDialogOpen(true)}>
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Yeni Sipariş</span>
+              <span className="hidden sm:inline">Yeni Üretim</span>
               <span className="sm:hidden">Yeni</span>
             </Button>
           )}
@@ -448,7 +448,7 @@ const Production = () => {
               {/* Arama Kutusu */}
               <div className="flex-1 min-w-0 w-full sm:w-auto sm:min-w-[200px] md:min-w-[250px]">
                 <SearchInput
-                  placeholder="Sipariş ara..."
+                  placeholder="Üretim ara..."
                   className="w-full h-9 sm:h-10 text-xs sm:text-sm"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -599,7 +599,7 @@ const Production = () => {
                     cellClassName: "text-left",
                   },
                 ]}
-                emptyMessage={searchQuery || statusFilter !== "all" ? "Arama sonucu bulunamadı" : "Henüz üretim siparişi bulunmuyor"}
+                emptyMessage={searchQuery || statusFilter !== "all" ? "Arama sonucu bulunamadı" : "Henüz üretim kaydı bulunmuyor"}
                 onRowClick={(order) => {
                   setSelectedOrder(order);
                   setDetailModalOpen(true);
@@ -726,9 +726,9 @@ const Production = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Siparişi sil?</AlertDialogTitle>
+            <AlertDialogTitle>Üretimi sil?</AlertDialogTitle>
             <AlertDialogDescription>
-              Bu işlem geri alınamaz. Sipariş kalıcı olarak silinecek.
+              Bu işlem geri alınamaz. Üretim kaydı kalıcı olarak silinecek.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

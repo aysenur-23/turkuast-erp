@@ -117,15 +117,14 @@ export const CustomerCombobox = memo(({ value, onChange, placeholder = "Müşter
         // setTimeout ile onChange'i çağırarak popover'ın kapanmasını garantile
         setTimeout(() => {
           onChange(customerId, customer.name);
-        }, 0);
+        }, 50);
       } catch (error) {
         toast.error("Müşteri seçilirken hata oluştu");
       }
     } else {
       toast.error("Müşteri bulunamadı");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customers]);
+  }, [customers, onChange]);
 
   const handleCreateSuccess = () => {
     fetchCustomers();
@@ -179,7 +178,7 @@ export const CustomerCombobox = memo(({ value, onChange, placeholder = "Müşter
                       className="gap-2 min-h-[44px] sm:min-h-0"
                       onClick={() => {
                         setOpen(false);
-                        setCreateDialogOpen(true);
+                        setTimeout(() => setCreateDialogOpen(true), 50);
                       }}
                     >
                       <Plus className="h-4 w-4" />
@@ -195,7 +194,7 @@ export const CustomerCombobox = memo(({ value, onChange, placeholder = "Müşter
                       className="gap-2 min-h-[44px] sm:min-h-0"
                       onClick={() => {
                         setOpen(false);
-                        setCreateDialogOpen(true);
+                        setTimeout(() => setCreateDialogOpen(true), 50);
                       }}
                     >
                       <Plus className="h-4 w-4" />

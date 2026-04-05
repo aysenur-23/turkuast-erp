@@ -15,8 +15,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, Image as ImageIcon, Edit, Save, X, Loader2, Plus, Trash2, List } from "lucide-react";
+import { CURRENCY_SYMBOLS } from "@/utils/currency";
 import { toast } from "sonner";
 import { updateProduct, addProductComment, getProductComments, getProductActivities, Product } from "@/services/firebase/productService";
+import { getProductCategories, ProductCategory } from "@/services/firebase/productCategoryService";
 import {
   getProductRecipes,
   addRecipeItem,
@@ -38,20 +40,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const PRODUCT_CATEGORIES = [
-  "Taşınabilir Güç Paketleri",
-  "Kabin Tipi Güç Paketleri",
-  "Araç Tipi Güç Paketleri",
-  "Endüstriyel Güç Paketleri",
-  "Güneş Enerji Sistemleri",
-] as const;
-
 interface ProductDetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product: Product;
   onUpdate?: () => void;
   onDelete?: () => void;
+  currency?: string;
+  exchangeRate?: number;
 }
 
 export const ProductDetailModal = ({
@@ -60,10 +56,25 @@ export const ProductDetailModal = ({
   product,
   onUpdate,
   onDelete,
+  currency = "TRY",
+  exchangeRate = 1,
 }: ProductDetailModalProps) => {
+  const currencySymbol = CURRENCY_SYMBOLS[currency] || "₺";
+  const formatPrice = (tryAmount: number) => {
+    const converted = currency === "TRY" ? tryAmount : tryAmount * exchangeRate;
+    return `${currencySymbol}${new Intl.NumberFormat(currency === "TRY" ? "tr-TR" : "en-US", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(converted)}`;
+  };
   const { user, isAdmin, isTeamLeader } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [productCategories, setProductCategories] = useState<ProductCategory[]>([]);
+
+  useEffect(() => {
+    getProductCategories().then(setProductCategories).catch(() => {});
+  }, []);
   const [canUpdate, setCanUpdate] = useState(false);
   const [canDelete, setCanDelete] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
@@ -481,9 +492,9 @@ export const ProductDetailModal = ({
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="none">Kategori Yok</SelectItem>
-                              {PRODUCT_CATEGORIES.map((cat) => (
-                                <SelectItem key={cat} value={cat}>
-                                  {cat}
+                              {productCategories.map((cat) => (
+                                <SelectItem key={cat.id} value={cat.name}>
+                                  {cat.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -654,23 +665,21 @@ export const ProductDetailModal = ({
                             </div>
                             {product.price && (
                               <div className="rounded-lg border bg-muted/30 px-3 py-2">
-                                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Satış Fiyatı</p>
+                                <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+                                  Satış Fiyatı {currency !== "TRY" && <span className="text-[10px]">({currency})</span>}
+                                </p>
                                 <p className="font-semibold text-base sm:text-lg">
-                                  ₺{new Intl.NumberFormat("tr-TR", {
-                                    minimumFractionDigits: 0,
-                                    maximumFractionDigits: 0,
-                                  }).format(product.price || 0)}
+                                  {formatPrice(product.price || 0)}
                                 </p>
                               </div>
                             )}
                             {product.cost && (
                               <div className="rounded-lg border bg-muted/30 px-3 py-2">
-                                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Maliyet</p>
+                                <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+                                  Maliyet {currency !== "TRY" && <span className="text-[10px]">({currency})</span>}
+                                </p>
                                 <p className="font-medium text-sm sm:text-base">
-                                  ₺{new Intl.NumberFormat("tr-TR", {
-                                    minimumFractionDigits: 0,
-                                    maximumFractionDigits: 0,
-                                  }).format(product.cost || 0)}
+                                  {formatPrice(product.cost || 0)}
                                 </p>
                               </div>
                             )}

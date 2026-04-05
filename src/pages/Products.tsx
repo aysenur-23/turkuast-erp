@@ -7,6 +7,7 @@ import { Plus, Package, X, AlertTriangle, TrendingUp, Box, ChevronLeft, ChevronR
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { getProducts, deleteProduct, Product } from "@/services/firebase/productService";
+import { getProductCategories, ProductCategory } from "@/services/firebase/productCategoryService";
 import { getAllUsers } from "@/services/firebase/authService";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -30,14 +31,6 @@ import { canCreateResource, canDeleteResource } from "@/utils/permissions";
 import { UserProfile } from "@/services/firebase/authService";
 import { StatCard } from "@/components/Dashboard/StatCard";
 
-const PRODUCT_CATEGORIES = [
-  "Taşınabilir Güç Paketleri",
-  "Kabin Tipi Güç Paketleri",
-  "Araç Tipi Güç Paketleri",
-  "Endüstriyel Güç Paketleri",
-  "Güneş Enerji Sistemleri",
-] as const;
-
 const Products = () => {
   const { user, isAdmin, isTeamLeader } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
@@ -50,6 +43,7 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [productCategories, setProductCategories] = useState<ProductCategory[]>([]);
   const [stockView, setStockView] = useState<"all" | "low" | "out">("all");
   const [statsModalOpen, setStatsModalOpen] = useState(false);
   const [activeStatCard, setActiveStatCard] = useState<string | null>(null);
@@ -59,6 +53,9 @@ const Products = () => {
     const saved = localStorage.getItem("productCurrency");
     return (saved as Currency) || DEFAULT_CURRENCY;
   });
+  const [exchangeRate, setExchangeRate] = useState<number>(1); // TRY → selectedCurrency çarpanı
+  const [exchangeRateInfo, setExchangeRateInfo] = useState<string>("");
+  const [exchangeRateLoading, setExchangeRateLoading] = useState(false);
   const [canCreate, setCanCreate] = useState(false);
   const [canDelete, setCanDelete] = useState(false);
   const [sortColumn, setSortColumn] = useState<"name" | "category" | "stock" | "price">("name");
@@ -162,7 +159,31 @@ const Products = () => {
 
   useEffect(() => {
     fetchProducts();
+    getProductCategories().then(setProductCategories).catch(() => {});
   }, [fetchProducts]);
+
+  // Seçilen para birimine göre anlık kur çek
+  useEffect(() => {
+    if (selectedCurrency === 'TRY') {
+      setExchangeRate(1);
+      setExchangeRateInfo("");
+      return;
+    }
+    setExchangeRateLoading(true);
+    fetch('https://api.exchangerate-api.com/v4/latest/TRY')
+      .then(r => r.json())
+      .then(data => {
+        const rate = data.rates?.[selectedCurrency];
+        if (rate && rate > 0) {
+          setExchangeRate(rate);
+          setExchangeRateInfo(`1 ${selectedCurrency} ≈ ${(1 / rate).toFixed(2)} ₺ · ${data.date || ""}`);
+        }
+      })
+      .catch(() => {
+        // API başarısız - kur 1 kalır
+      })
+      .finally(() => setExchangeRateLoading(false));
+  }, [selectedCurrency]);
 
   // Debounce search term
   useEffect(() => {
@@ -503,9 +524,9 @@ const Products = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tüm Kategoriler</SelectItem>
-                    {PRODUCT_CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
+                    {productCategories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.name}>
+                        {cat.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -513,13 +534,20 @@ const Products = () => {
               </div>
 
               {/* Para Birimi Seçici */}
-              <div className="w-full sm:w-auto sm:min-w-[140px] md:min-w-[150px]">
+              <div className="w-full sm:w-auto flex flex-col gap-0.5">
                 <Select value={selectedCurrency} onValueChange={(value) => {
                   setSelectedCurrency(value as Currency);
                   localStorage.setItem("productCurrency", value);
                 }}>
-                  <SelectTrigger className="w-full h-9 sm:h-10 text-[11px] sm:text-xs">
-                    <SelectValue placeholder="Para Birimi" />
+                  <SelectTrigger className="w-full sm:min-w-[140px] h-9 sm:h-10 text-[11px] sm:text-xs">
+                    {exchangeRateLoading ? (
+                      <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <DollarSign className="h-3 w-3 animate-pulse" />
+                        Kur yükleniyor...
+                      </span>
+                    ) : (
+                      <SelectValue placeholder="Para Birimi" />
+                    )}
                   </SelectTrigger>
                   <SelectContent>
                     {CURRENCY_OPTIONS.map((opt) => (
@@ -529,6 +557,9 @@ const Products = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {exchangeRateInfo && (
+                  <span className="text-[10px] text-muted-foreground px-1">{exchangeRateInfo}</span>
+                )}
               </div>
 
               {/* Filtreleri Temizle */}
@@ -706,6 +737,7 @@ const Products = () => {
                     const isOutOfStock = stock === 0;
                     const isLowStock = stock > 0 && stock <= minStock;
                     const price = Number(product.price) || 0;
+                    const displayPrice = selectedCurrency === 'TRY' ? price : price * exchangeRate;
 
                     return (
                       <div
@@ -771,8 +803,8 @@ const Products = () => {
                           <span className="text-xs font-semibold text-[#42526E] dark:text-[#B6C2CF]">
                             {CURRENCY_SYMBOLS[selectedCurrency]}{new Intl.NumberFormat(selectedCurrency === "TRY" ? "tr-TR" : "en-US", {
                               minimumFractionDigits: 0,
-                              maximumFractionDigits: 0
-                            }).format(price)}
+                              maximumFractionDigits: 2
+                            }).format(displayPrice)}
                           </span>
                         </div>
                         <div className="table-cell px-0 sm:px-0.5 md:px-1 py-1 sm:py-1.5 align-middle border-r border-[#DFE1E6] dark:border-[#38414A]">
@@ -828,6 +860,7 @@ const Products = () => {
                 const isOutOfStock = stock === 0;
                 const isLowStock = stock > 0 && stock <= minStock;
                 const price = Number(product.price) || 0;
+                const displayPrice = selectedCurrency === 'TRY' ? price : price * exchangeRate;
 
                 return (
                   <Card
@@ -890,8 +923,8 @@ const Products = () => {
                         <span className="text-[11px] sm:text-xs font-semibold">
                           {CURRENCY_SYMBOLS[selectedCurrency]}{new Intl.NumberFormat(selectedCurrency === "TRY" ? "tr-TR" : "en-US", {
                             minimumFractionDigits: 0,
-                            maximumFractionDigits: 0
-                          }).format(price)}
+                            maximumFractionDigits: 2
+                          }).format(displayPrice)}
                         </span>
                       </div>
                     </CardContent>
@@ -922,6 +955,8 @@ const Products = () => {
             onOpenChange={setDetailModalOpen}
             product={selectedProduct}
             onUpdate={fetchProducts}
+            currency={selectedCurrency}
+            exchangeRate={exchangeRate}
             onDelete={() => {
               setDetailModalOpen(false);
               setDeleteDialogOpen(true);

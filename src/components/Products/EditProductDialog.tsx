@@ -8,16 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { updateProduct, Product } from "@/services/firebase/productService";
+import { getProductCategories, ProductCategory } from "@/services/firebase/productCategoryService";
 import { useAuth } from "@/contexts/AuthContext";
 import { Package, Loader2, X, Save } from "lucide-react";
-
-const PRODUCT_CATEGORIES = [
-  "Taşınabilir Güç Paketleri",
-  "Kabin Tipi Güç Paketleri",
-  "Araç Tipi Güç Paketleri",
-  "Endüstriyel Güç Paketleri",
-  "Güneş Enerji Sistemleri",
-] as const;
 
 interface EditProductDialogProps {
   open: boolean;
@@ -29,6 +22,11 @@ interface EditProductDialogProps {
 export const EditProductDialog = ({ open, onOpenChange, onSuccess, product }: EditProductDialogProps) => {
   const { isAdmin, isTeamLeader } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [productCategories, setProductCategories] = useState<ProductCategory[]>([]);
+
+  useEffect(() => {
+    getProductCategories().then(setProductCategories).catch(() => {});
+  }, []);
   const [formData, setFormData] = useState({
     name: "",
     sku: "",
@@ -204,8 +202,8 @@ export const EditProductDialog = ({ open, onOpenChange, onSuccess, product }: Ed
                               list="category-options-edit"
                             />
                             <datalist id="category-options-edit">
-                              {PRODUCT_CATEGORIES.map((cat) => (
-                                <option key={cat} value={cat} />
+                              {productCategories.map((cat) => (
+                                <option key={cat.id} value={cat.name} />
                               ))}
                             </datalist>
                           </div>
@@ -216,9 +214,9 @@ export const EditProductDialog = ({ open, onOpenChange, onSuccess, product }: Ed
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="none">Kategori Yok</SelectItem>
-                              {PRODUCT_CATEGORIES.map((cat) => (
-                                <SelectItem key={cat} value={cat}>
-                                  {cat}
+                              {productCategories.map((cat) => (
+                                <SelectItem key={cat.id} value={cat.name}>
+                                  {cat.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>
