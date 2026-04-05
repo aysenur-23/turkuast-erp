@@ -229,6 +229,7 @@ export const UnifiedOrderDetailModal = ({
         notes: "",
         deliveryAddress: "",
         deliveryNotes: "",
+        trackingNumber: "",
         price: 0,
         paidAmount: 0,
         totalAmount: 0, // Fallback for UI
@@ -262,6 +263,7 @@ export const UnifiedOrderDetailModal = ({
                 notes: order.notes || "",
                 deliveryAddress: order.deliveryAddress || order.delivery_address || order.shippingAddress || order.shipping_address || "",
                 deliveryNotes: order.deliveryNotes || order.delivery_notes || order.shippingNotes || order.shipping_notes || "",
+                trackingNumber: order.trackingNumber || order.tracking_number || "",
                 price: order.price || order.totalAmount || order.total_amount || 0,
                 totalAmount: order.totalAmount || order.total_amount || 0,
                 paidAmount: order.paidAmount || 0,
@@ -482,6 +484,8 @@ export const UnifiedOrderDetailModal = ({
                 delivery_address: formData.deliveryAddress,
                 deliveryNotes: formData.deliveryNotes,
                 delivery_notes: formData.deliveryNotes,
+                trackingNumber: formData.trackingNumber,
+                tracking_number: formData.trackingNumber,
                 price: formData.price,
                 totalAmount: formData.price,
                 total_amount: formData.price,
@@ -575,13 +579,13 @@ export const UnifiedOrderDetailModal = ({
                         <div className="flex items-center gap-2 w-full md:w-auto">
                             {!isEditing ? (
                                 <>
-                                    {!isPersonnel && (canUpdate || isCreator) && (
+                                    {(canUpdate || isCreator) && (
                                         <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="flex-1 md:flex-none h-9">
                                             <Edit className="h-4 w-4 mr-2" />
                                             Düzenle
                                         </Button>
                                     )}
-                                    {!isPersonnel && canDeleteState && onDelete && (
+                                    {canDeleteState && onDelete && (
                                         <Button variant="outline" size="sm" onClick={onDelete} className="flex-1 md:flex-none h-9 text-destructive hover:text-destructive">
                                             <Trash2 className="h-4 w-4 mr-2" />
                                             Sil
@@ -651,44 +655,58 @@ export const UnifiedOrderDetailModal = ({
                                             Sıradaki: {unifiedStatusWorkflow[getCurrentStatusIndex() + 1]?.label || "Tamamlandı"}
                                         </span>
                                     </CardHeader>
-                                    <CardContent className="p-6">
-                                        <div className="flex items-center justify-between relative">
-                                            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-100 -translate-y-1/2 z-0" />
-                                            {unifiedStatusWorkflow.map((step, idx) => {
-                                                const currentIndex = getCurrentStatusIndex();
-                                                const isDone = idx < currentIndex;
-                                                const isCurrent = idx === currentIndex;
-                                                const Icon = step.icon;
+                                    <CardContent className="p-4 sm:p-6 overflow-hidden">
+                                        <div className="overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 hide-scrollbar">
+                                            <div className="flex items-center justify-between relative min-w-[600px]">
+                                                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-100 -translate-y-1/2 z-0" />
+                                                {unifiedStatusWorkflow.map((step, idx) => {
+                                                    const currentIndex = getCurrentStatusIndex();
+                                                    const isDone = idx < currentIndex;
+                                                    const isCurrent = idx === currentIndex;
+                                                    const Icon = step.icon;
 
-                                                return (
-                                                    <div key={step.value} className="relative z-10 flex flex-col items-center gap-2">
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <button
-                                                                    disabled={!canUpdateStatus || isEditing || updatingStatus}
-                                                                    onClick={() => handleStatusChange(step.value)}
-                                                                    className={cn(
-                                                                        "h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all",
-                                                                        isDone ? "bg-emerald-500 border-emerald-500 text-white" :
-                                                                            isCurrent ? "bg-primary border-primary text-white scale-125 ring-4 ring-primary/10" :
-                                                                                "bg-white border-slate-200 text-slate-400 hover:border-primary/50"
-                                                                    )}
-                                                                >
-                                                                    {isDone ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-                                                                </button>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>{step.label}</TooltipContent>
-                                                        </Tooltip>
-                                                        <span className={cn(
-                                                            "text-[9px] font-bold uppercase",
-                                                            isCurrent ? "text-primary" : "text-slate-400"
-                                                        )}>
-                                                            {step.label}
-                                                        </span>
-                                                    </div>
-                                                );
-                                            })}
+                                                    return (
+                                                        <div key={step.value} className="relative z-10 flex flex-col items-center gap-2">
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <button
+                                                                        disabled={!canUpdateStatus || isEditing || updatingStatus}
+                                                                        onClick={() => handleStatusChange(step.value)}
+                                                                        className={cn(
+                                                                            "h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all",
+                                                                            isDone ? "bg-emerald-500 border-emerald-500 text-white" :
+                                                                                isCurrent ? "bg-primary border-primary text-white scale-125 ring-4 ring-primary/10" :
+                                                                                    "bg-white border-slate-200 text-slate-400 hover:border-primary/50"
+                                                                        )}
+                                                                    >
+                                                                        {isDone ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                                                                    </button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>{step.label}</TooltipContent>
+                                                            </Tooltip>
+                                                            <span className={cn(
+                                                                "text-[9px] font-bold uppercase",
+                                                                isCurrent ? "text-primary" : "text-slate-400"
+                                                            )}>
+                                                                {step.label}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
+                                        {canUpdateStatus && getCurrentStatusIndex() < unifiedStatusWorkflow.length - 1 && (
+                                            <div className="mt-6 flex justify-end">
+                                                <Button
+                                                    size="sm"
+                                                    disabled={!canUpdateStatus || isEditing || updatingStatus}
+                                                    onClick={() => handleStatusChange(unifiedStatusWorkflow[getCurrentStatusIndex() + 1].value)}
+                                                    className="gap-2 bg-slate-900 text-white hover:bg-slate-800"
+                                                >
+                                                    Sonraki Adıma Geç
+                                                </Button>
+                                            </div>
+                                        )}
                                     </CardContent>
                                 </Card>
 
@@ -718,6 +736,10 @@ export const UnifiedOrderDetailModal = ({
                                                     </Select>
                                                 </div>
                                                 <div className="space-y-2">
+                                                    <Label>Kargo Takip No</Label>
+                                                    <Input value={formData.trackingNumber} onChange={e => setFormData(p => ({ ...p, trackingNumber: e.target.value }))} placeholder="Kargo firması / takip no" />
+                                                </div>
+                                                <div className="md:col-span-2 space-y-2">
                                                     <Label>Durum</Label>
                                                     <Select value={formData.status} onValueChange={v => setFormData(p => ({ ...p, status: v as Order["status"] }))}>
                                                         <SelectTrigger><SelectValue /></SelectTrigger>
@@ -749,6 +771,12 @@ export const UnifiedOrderDetailModal = ({
                                                     <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Teslimat Adresi</p>
                                                     <p className="text-sm text-slate-600 leading-relaxed">{formData.deliveryAddress || "-"}</p>
                                                 </div>
+                                                {formData.trackingNumber && (
+                                                    <div className="col-span-full bg-blue-50/50 p-3 rounded-lg border border-blue-100">
+                                                        <p className="text-[10px] text-blue-600 font-bold uppercase mb-1">Kargo Takip No</p>
+                                                        <p className="text-sm font-bold text-blue-900">{formData.trackingNumber}</p>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </CardContent>
@@ -966,7 +994,7 @@ export const UnifiedOrderDetailModal = ({
                                                         <FileDown className="h-3 w-3 mr-1.5 text-primary" />
                                                         Faturayı Gör
                                                     </Button>
-                                                    <input type="file" id="invoice-upload-replace" className="hidden" onChange={handleInvoiceUpload} accept=".pdf,.jpg,.png" />
+                                                    <input type="file" id="invoice-upload-replace" className="hidden" onChange={handleInvoiceUpload} accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
                                                     <Button variant="secondary" size="sm" className="h-8 w-8 p-0" disabled={saving} asChild title="Faturayı Güncelle">
                                                         <label htmlFor="invoice-upload-replace" className="cursor-pointer">
                                                             <FileUp className="h-3 w-3" />
@@ -975,7 +1003,7 @@ export const UnifiedOrderDetailModal = ({
                                                 </div>
                                             ) : (
                                                 <div className="relative">
-                                                    <input type="file" id="invoice-upload-direct" className="hidden" onChange={handleInvoiceUpload} accept=".pdf,.jpg,.png" />
+                                                    <input type="file" id="invoice-upload-direct" className="hidden" onChange={handleInvoiceUpload} accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
                                                     <Button variant="outline" className="w-full h-8 text-[10px] border-dashed border-2 group" disabled={saving} asChild>
                                                         <label htmlFor="invoice-upload-direct" className="cursor-pointer">
                                                             {saving ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <FileUp className="h-3 w-3 mr-1.5 group-hover:-translate-y-0.5 transition-transform" />}

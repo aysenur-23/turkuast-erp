@@ -14,8 +14,10 @@ import { getProducts, Product } from "@/services/firebase/productService";
 import { getRawMaterials, RawMaterial } from "@/services/firebase/materialService";
 import { getWarrantyRecords, WarrantyRecord } from "@/services/firebase/warrantyService";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMaturityCheck } from "@/hooks/useMaturityCheck";
 
 const Dashboard = () => {
+  useMaturityCheck();
   const { data: stats, isLoading } = useDashboardStats();
   const navigate = useNavigate();
   const { isAdmin, user } = useAuth();

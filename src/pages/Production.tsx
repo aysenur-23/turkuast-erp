@@ -41,7 +41,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { UnifiedCreateOrderDialog } from "@/components/Orders/UnifiedCreateOrderDialog";
+import { CreateProductionOrderDialog } from "@/components/Production/CreateProductionOrderDialog";
 import { UnifiedOrderDetailModal } from "@/components/Orders/UnifiedOrderDetailModal";
 import { LoadingState } from "@/components/ui/loading-state";
 
@@ -688,21 +688,19 @@ const Production = () => {
         </Card>
       </div>
 
-      <UnifiedCreateOrderDialog
+      <CreateProductionOrderDialog
         open={createDialogOpen}
         onOpenChange={(open) => {
           setCreateDialogOpen(open);
           if (!open) {
-            // Dialog kapandığında selectedOrder'ı temizle
             setSelectedOrder(null);
           }
         }}
         onSuccess={() => {
-          // Subscription otomatik güncelleyecek
           setCreateDialogOpen(false);
           setSelectedOrder(null);
         }}
-        order={selectedOrder as unknown as Order} // Edit modu için mevcut sipariş
+        order={selectedOrder as unknown as Order}
       />
 
       {selectedOrder && (

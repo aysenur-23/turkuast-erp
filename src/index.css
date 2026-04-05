@@ -16,6 +16,7 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  overflow-y: hidden;
   position: relative;
   -webkit-text-size-adjust: 100%;
 }
@@ -49,17 +50,7 @@ table,
   table-layout: auto;
 }
 
-/* Overscroll behavior only - removed contain: layout style paint as it breaks layouts */
-/* If containment is needed, use .contain-safe class instead */
-[class*="overflow"],
-[style*="overflow"] {
-  overscroll-behavior: contain;
-}
-
-/* Optional: Safe containment class for specific use cases */
-.contain-safe {
-  contain: layout style paint;
-}
+/* Overscroll behavior was removed here because it trapped hover scrolling on overflow-hidden elements */
 
 /* Popover ve Command component'leri için özel kurallar - global max-width'ten muaf */
 /* Radix Popover CSS variable'ının çalışması için */
@@ -615,9 +606,9 @@ All colors MUST be HSL.
     width: 100%;
     margin: 0;
     padding: 0;
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: hidden;
     position: relative;
-    /* Fixed causes issues on some browsers, overflow: hidden on html/body is enough */
   }
 
   /* Root element filling the fixed body */

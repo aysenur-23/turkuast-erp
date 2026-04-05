@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { createOrder, updateOrder, getOrderItems, getOrderById, OrderItem as FirebaseOrderItem, Order as FirebaseOrder } from "@/services/firebase/orderService";
@@ -226,6 +227,12 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
     payment_method: "bank_transfer",
     payment_status: "unpaid" as "paid" | "unpaid",
     invoice_url: "",
+    hasMaturity: false,
+    maturityMonths: 0,
+    maturityDate: "",
+    deliveryAddress: "",
+    deliveryNotes: "",
+    trackingNumber: "",
   });
 
   const [orderItems, setOrderItems] = useState<OrderItem[]>([createEmptyItem()]);
@@ -268,6 +275,12 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
       payment_method: "bank_transfer",
       payment_status: "unpaid",
       invoice_url: "",
+      hasMaturity: false,
+      maturityMonths: 0,
+      maturityDate: "",
+      deliveryAddress: "",
+      deliveryNotes: "",
+      trackingNumber: "",
     });
     setOrderItems([createEmptyItem()]);
     setOrderNumberTouched(false);
@@ -345,9 +358,21 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
             tax_rate: order.tax_rate || order.taxRate || 20,
             deductMaterials: order.deductMaterials || false,
             priority: order.priority ?? 0,
-            payment_method: order.payment_method || order.paymentMethod || "bank_transfer",
-            payment_status: (order.payment_status || order.paymentStatus || "unpaid") as "paid" | "unpaid",
-            invoice_url: order.invoice_url || order.invoiceUrl || "",
+            payment_method: (order as any).payment_method || order.paymentMethod || "bank_transfer",
+            payment_status: ((order as any).payment_status || order.paymentStatus || "unpaid") as "paid" | "unpaid",
+            invoice_url: (order as any).invoice_url || order.invoiceUrl || "",
+            hasMaturity: order.hasMaturity || false,
+            maturityMonths: order.maturityMonths || 0,
+            maturityDate: order.maturityDate instanceof Date
+              ? format(order.maturityDate, "yyyy-MM-dd")
+              : order.maturityDate instanceof Timestamp
+                ? format(order.maturityDate.toDate(), "yyyy-MM-dd")
+                : typeof order.maturityDate === "string"
+                  ? order.maturityDate
+                  : "",
+            deliveryAddress: order.deliveryAddress || order.delivery_address || order.shippingAddress || order.shipping_address || "",
+            deliveryNotes: order.deliveryNotes || order.delivery_notes || order.shippingNotes || order.shipping_notes || "",
+            trackingNumber: order.trackingNumber || order.tracking_number || "",
           });
 
           // Order items'ı yükle
@@ -740,11 +765,8 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
             deductMaterials: orderData.deductMaterials, // Hammadde düşürme seçeneği
             priority: orderData.priority ?? 0,
             paymentMethod: orderData.payment_method,
-            payment_method: orderData.payment_method,
             paymentStatus: orderData.payment_status,
-            payment_status: orderData.payment_status,
             invoiceUrl: orderData.invoice_url,
-            invoice_url: orderData.invoice_url,
           },
           user.id,
           true // skipStatusValidation - admin için
@@ -826,11 +848,17 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
             deductMaterials: orderData.deductMaterials, // Hammadde düşürme seçeneği
             priority: orderData.priority ?? 0,
             paymentMethod: orderData.payment_method,
-            payment_method: orderData.payment_method,
             paymentStatus: orderData.payment_status,
-            payment_status: orderData.payment_status,
             invoiceUrl: orderData.invoice_url,
-            invoice_url: orderData.invoice_url,
+            hasMaturity: orderData.hasMaturity,
+            maturityMonths: orderData.maturityMonths || 0,
+            maturityDate: orderData.maturityDate ? Timestamp.fromDate(new Date(orderData.maturityDate)) : null,
+            deliveryAddress: orderData.deliveryAddress || null,
+            delivery_address: orderData.deliveryAddress || null,
+            deliveryNotes: orderData.deliveryNotes || null,
+            delivery_notes: orderData.deliveryNotes || null,
+            trackingNumber: orderData.trackingNumber || null,
+            tracking_number: orderData.trackingNumber || null,
           },
           itemsPayload
         );
@@ -1163,7 +1191,7 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
                                 <div className="relative flex-1">
                                   <Input
                                     type="file"
-                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                                     onChange={handleInvoiceUpload}
                                     disabled={uploadingInvoice}
                                     className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
@@ -1197,6 +1225,64 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
                                 )}
                               </div>
                             </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <Label className="text-xs sm:text-sm font-medium">Vade Seçeneği</Label>
+                                <Switch
+                                  checked={orderData.hasMaturity}
+                                  onCheckedChange={(checked) => setOrderData(prev => ({ ...prev, hasMaturity: checked }))}
+                                />
+                              </div>
+                              {orderData.hasMaturity && (
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                  <div className="space-y-1">
+                                    <Label className="text-[10px] text-muted-foreground">Vade(Ay)</Label>
+                                    <Input
+                                      type="number"
+                                      min={1}
+                                      value={orderData.maturityMonths || ""}
+                                      onChange={e => setOrderData(p => ({ ...p, maturityMonths: Number(e.target.value) }))}
+                                      placeholder="Ay"
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <Label className="text-[10px] text-muted-foreground">Vade Tarihi</Label>
+                                    <Input
+                                      type="date"
+                                      value={orderData.maturityDate}
+                                      onChange={e => setOrderData(p => ({ ...p, maturityDate: e.target.value }))}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-xs sm:text-sm font-medium">
+                                Kargo Takip No
+                              </Label>
+                              <Input
+                                value={orderData.trackingNumber}
+                                onChange={(e) => setOrderData((prev) => ({ ...prev, trackingNumber: e.target.value }))}
+                                placeholder="Örn: 123456789"
+                                className="h-10 text-sm"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-xs sm:text-sm font-medium">
+                              Teslimat Adresi
+                            </Label>
+                            <Textarea
+                              value={orderData.deliveryAddress}
+                              onChange={(e) => setOrderData((prev) => ({ ...prev, deliveryAddress: e.target.value }))}
+                              rows={2}
+                              placeholder="Sipariş teslimat adresi..."
+                              className="text-sm resize-none transition-all min-h-[60px]"
+                            />
                           </div>
 
                           <div className="space-y-2">
@@ -1619,7 +1705,7 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
                           <Package className="h-4 w-4 text-primary" />
                           Ürün Listesi
                         </h4>
-                        <div className="space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden">
+                        <div className="space-y-2 max-h-[300px] overflow-y-auto overscroll-contain overflow-x-hidden">
                           {validItems.map((item, index) => (
                             <div
                               key={index}
