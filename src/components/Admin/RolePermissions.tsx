@@ -283,7 +283,7 @@ export const RolePermissions = () => {
         users: `Yeni kullanıcı hesapları oluşturma yetkisi. Bu yetkiye sahip kullanıcılar sisteme yeni kullanıcı kaydedebilir.`,
         departments: `Yeni departman/ekip oluşturma yetkisi. Bu yetkiye sahip kullanıcılar yeni ekipler tanımlayabilir.`,
         orders: `Yeni sipariş oluşturma yetkisi. Bu yetkiye sahip kullanıcılar müşterilere sipariş kaydı oluşturabilir.`,
-        production_orders: `Yeni üretim siparişi oluşturma yetkisi. Bu yetkiye sahip kullanıcılar üretim için sipariş kaydı oluşturabilir.`,
+        production_orders: `Yeni üretim oluşturma yetkisi. Bu yetkiye sahip kullanıcılar üretim kaydı oluşturabilir.`,
         customers: `Yeni müşteri kaydı oluşturma yetkisi. Bu yetkiye sahip kullanıcılar müşteri bilgilerini sisteme ekleyebilir.`,
         products: `Yeni ürün kaydı oluşturma yetkisi. Bu yetkiye sahip kullanıcılar ürün bilgilerini sisteme ekleyebilir.`,
         projects: `Yeni proje oluşturma yetkisi. Bu yetkiye sahip kullanıcılar proje kayıtları oluşturabilir.`,

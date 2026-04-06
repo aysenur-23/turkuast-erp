@@ -472,10 +472,12 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange, onUpdate, initialS
     ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // Personnel veya Viewer kontrolü
+  // Personnel veya Viewer kontrolü (admin ve team_leader hariç)
   const isPersonnelOrViewer = useMemo(() => {
     if (!user?.roles || user.roles.length === 0) return false;
-    return user.roles.some(role => role === "personnel" || role === "viewer");
+    const hasRestrictedRole = user.roles.some(role => role === "personnel" || role === "viewer");
+    const hasAdminRole = user.roles.some(role => role === "admin" || role === "team_leader" || role === "super_admin" || role === "main_admin");
+    return hasRestrictedRole && !hasAdminRole;
   }, [user?.roles]);
 
   // Personnel ve İzleyici için yeni görev oluşturma modunu engelle
@@ -2521,7 +2523,7 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange, onUpdate, initialS
         >
           <div className="flex flex-col h-full min-h-0">
             <DialogHeader className="p-3 sm:p-4 border-b bg-white flex-shrink-0">
-              <DialogTitle className="text-[16px] sm:text-[18px] font-semibold text-foreground leading-tight">Yeni Görev Oluştur</DialogTitle>
+              <DialogTitle>Yeni Görev Oluştur</DialogTitle>
               <DialogDescription className="sr-only">
                 Yeni görev oluşturmak için formu doldurun
               </DialogDescription>

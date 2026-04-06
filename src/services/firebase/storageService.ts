@@ -1,11 +1,15 @@
 /**
  * Firebase Storage Service
  * Dosya yükleme ve indirme işlemleri
+ * 
+ * Strateji:
+ * - Google Drive: Birincil depolama (yetkilendirme gerekir)
+ * - Firebase Storage: Fallback depolama (Drive başarısız olursa)
  */
 
 import { ref, uploadBytes, getDownloadURL, deleteObject, UploadResult } from "firebase/storage";
 import { storage } from "@/lib/firebase";
-import { uploadFileToDrive, deleteDriveFile, type DriveUploadResponse } from "@/services/driveService";
+import { uploadFileToDrive, deleteDriveFile, isDriveAuthorized, type DriveUploadResponse } from "@/services/driveService";
 
 export type StorageProvider = "firebase" | "google_drive";
 
@@ -15,6 +19,8 @@ export interface StorageUploadResult {
   webViewLink?: string;
   webContentLink?: string;
   fileId?: string;
+  driveLink?: string;
+  fallbackUrl?: string; // Firebase yedek URL (Drive birincil olduğunda)
 }
 
 const driveResponseToResult = (response: DriveUploadResponse): StorageUploadResult => ({
@@ -23,6 +29,7 @@ const driveResponseToResult = (response: DriveUploadResponse): StorageUploadResu
   webViewLink: response.webViewLink,
   webContentLink: response.webContentLink,
   url: response.webViewLink || response.webContentLink || "",
+  driveLink: response.webViewLink,
 });
 
 /**
@@ -80,13 +87,15 @@ export const uploadProductImage = async (
 };
 
 /**
- * Görev eki yükleme - Sadece Google Drive'a kaydeder
+ * Görev eki yükleme - Google Drive birincil, Firebase Storage fallback
  */
 export const uploadTaskAttachment = async (
   file: File,
   taskId: string,
   onProgress?: (progress: number) => void
 ): Promise<StorageUploadResult> => {
+  console.log("[DRIVE DEBUG] uploadTaskAttachment başladı", { taskId, fileName: file.name, size: file.size });
+  
   // Dosya boyutu kontrolü (max 10MB)
   if (file.size > 10 * 1024 * 1024) {
     throw new Error("Dosya boyutu 10MB'dan küçük olmalıdır");
@@ -95,18 +104,80 @@ export const uploadTaskAttachment = async (
   const timestamp = Date.now();
   const fileName = `tasks/${taskId}/attachments/${timestamp}_${file.name}`;
 
-  // Sadece Google Drive'a yükle
-  const response = await uploadFileToDrive(file, {
-    type: "task",
-    fileName: file.name,
-    metadata: { taskId, path: fileName },
-  });
+  // 1. Önce Google Drive'a yükle (birincil)
+  try {
+    console.log("[DRIVE DEBUG] isDriveAuthorized kontrolü...");
+    const driveAuthorized = await isDriveAuthorized();
+    console.log("[DRIVE DEBUG] isDriveAuthorized sonuç:", driveAuthorized);
+    
+    if (driveAuthorized) {
+      console.log("[DRIVE DEBUG] uploadFileToDrive çağrılıyor...");
+      const response = await uploadFileToDrive(file, {
+        type: "task",
+        fileName: file.name,
+        metadata: { taskId, path: fileName },
+      });
+      console.log("[DRIVE DEBUG] uploadFileToDrive başarılı:", response);
+      
+      // Drive başarılı oldu, Firebase'e de yedek olarak yükle (opsiyonel)
+      try {
+        const firebaseUrl = await uploadFile(file, fileName, onProgress);
+        return {
+          provider: "google_drive",
+          url: response.webViewLink || response.webContentLink || "",
+          webViewLink: response.webViewLink,
+          webContentLink: response.webContentLink,
+          fileId: response.fileId,
+          driveLink: response.webViewLink,
+          fallbackUrl: firebaseUrl, // Firebase yedek URL
+        };
+      } catch (firebaseError) {
+        // Firebase yedek hatası kritik değil, Drive URL'si yeterli
+        if (import.meta.env.DEV) {
+          console.warn("Firebase fallback upload failed (Drive primary):", firebaseError);
+        }
+        return {
+          provider: "google_drive",
+          url: response.webViewLink || response.webContentLink || "",
+          webViewLink: response.webViewLink,
+          webContentLink: response.webContentLink,
+          fileId: response.fileId,
+          driveLink: response.webViewLink,
+        };
+      }
+    } else {
+      console.log("[DRIVE DEBUG] Drive yetkilendirmesi yok, Firebase'e fallback");
+    }
+  } catch (driveError) {
+    // Drive hatası, Firebase Storage'a fallback yap
+    console.error("[DRIVE DEBUG] uploadFileToDrive HATA:", driveError);
+    if (import.meta.env.DEV) {
+      console.warn("Drive upload failed, falling back to Firebase Storage:", driveError);
+    }
+    // Drive yetkilendirme hatası ise kullanıcıya bilgi ver
+    if (driveError instanceof Error) {
+      if (driveError.message.includes("yetkilendirme") || 
+          driveError.message.includes("auth") ||
+          driveError.message.includes("401") ||
+          driveError.message.includes("403")) {
+        // Toast yerine sadece console'da logla (sürekli gösterme)
+        console.info("Drive yetkilendirmesi yok, Firebase Storage kullanılıyor");
+      }
+    }
+  }
   
-  return driveResponseToResult(response);
+  // 2. Drive başarısız oldu veya yetkilendirme yoksa Firebase Storage'a yükle
+  console.log("[DRIVE DEBUG] Firebase Storage'a yüklüyor...");
+  const firebaseUrl = await uploadFile(file, fileName, onProgress);
+  
+  return {
+    provider: "firebase",
+    url: firebaseUrl,
+  };
 };
 
 /**
- * PDF raporu yükleme - Sadece Google Drive'a kaydeder
+ * PDF raporu yükleme - Google Drive birincil, Firebase Storage fallback
  */
 export const uploadReportPDF = async (
   file: File | Blob,
@@ -124,14 +195,56 @@ export const uploadReportPDF = async (
     ? file 
     : new File([file], `${timestamp}.pdf`, { type: 'application/pdf' });
 
-  // Sadece Google Drive'a yükle
-  const response = await uploadFileToDrive(fileToUpload, {
-    type: "report",
-    fileName: fileToUpload.name,
-    metadata: { reportType, reportId: reportId || null, path: fileName },
-  });
+  // 1. Önce Google Drive'a yükle (birincil)
+  try {
+    const driveAuthorized = await isDriveAuthorized();
+    if (driveAuthorized) {
+      const response = await uploadFileToDrive(fileToUpload, {
+        type: "report",
+        fileName: fileToUpload.name,
+        metadata: { reportType, reportId: reportId || null, path: fileName },
+      });
+      
+      // Drive başarılı oldu, Firebase'e de yedek olarak yükle (opsiyonel)
+      try {
+        const firebaseUrl = await uploadFile(fileToUpload, fileName, onProgress);
+        return {
+          provider: "google_drive",
+          url: response.webViewLink || response.webContentLink || "",
+          webViewLink: response.webViewLink,
+          webContentLink: response.webContentLink,
+          fileId: response.fileId,
+          driveLink: response.webViewLink,
+          fallbackUrl: firebaseUrl,
+        };
+      } catch (firebaseError) {
+        if (import.meta.env.DEV) {
+          console.warn("Firebase fallback upload failed (Drive primary):", firebaseError);
+        }
+        return {
+          provider: "google_drive",
+          url: response.webViewLink || response.webContentLink || "",
+          webViewLink: response.webViewLink,
+          webContentLink: response.webContentLink,
+          fileId: response.fileId,
+          driveLink: response.webViewLink,
+        };
+      }
+    }
+  } catch (driveError) {
+    // Drive hatası, Firebase Storage'a fallback yap
+    if (import.meta.env.DEV) {
+      console.warn("Drive upload failed, falling back to Firebase Storage:", driveError);
+    }
+  }
+
+  // 2. Drive başarısız oldu veya yetkilendirme yoksa Firebase Storage'a yükle
+  const firebaseUrl = await uploadFile(fileToUpload, fileName, onProgress);
   
-  return driveResponseToResult(response);
+  return {
+    provider: "firebase",
+    url: firebaseUrl,
+  };
 };
 
 /**
@@ -166,7 +279,7 @@ export const deleteFile = async (
     await deleteObject(storageRef);
   } catch (error: unknown) {
     console.error("Delete file error:", error);
-    throw new Error(error.message || "Dosya silinirken hata oluştu");
+    throw new Error(error instanceof Error ? error.message : "Dosya silinirken hata oluştu");
   }
 };
 

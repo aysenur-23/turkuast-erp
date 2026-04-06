@@ -700,7 +700,7 @@ export const NotificationCenter = () => {
                         } 
                         // Sipariş bildirimleri
                         else if (['order_created', 'order_updated'].includes(notification.type)) {
-                          // Metadata'dan sipariş tipini kontrol et (üretim siparişi mi normal sipariş mi)
+                          // Metadata'dan sipariş tipini kontrol et (üretim mi normal sipariş mi)
                           const metadata = notification.metadata as { orderType?: string; [key: string]: unknown };
                           setOpen(false);
                           if (metadata?.orderType === 'production' || notification.message?.includes('üretim')) {

@@ -898,16 +898,16 @@ const RawMaterials = () => {
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-[16px] sm:text-[18px]">Hammadde Sil</AlertDialogTitle>
-              <AlertDialogDescription className="text-xs sm:text-sm">
+              <AlertDialogTitle>Hammadde Sil</AlertDialogTitle>
+              <AlertDialogDescription>
                 "{materialToDelete?.name}" hammaddesini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="text-xs sm:text-sm">İptal</AlertDialogCancel>
+              <AlertDialogCancel>İptal</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDelete}
-                className="text-xs sm:text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 Sil
               </AlertDialogAction>

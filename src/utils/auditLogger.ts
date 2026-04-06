@@ -98,7 +98,7 @@ const getTableLabel = (tableName: string): string => {
     users: "Kullanıcı",
     departments: "Departman",
     orders: "Sipariş",
-    production_orders: "Üretim Siparişi",
+    production_orders: "Üretim",
     customers: "Müşteri",
     products: "Ürün",
     projects: "Proje",

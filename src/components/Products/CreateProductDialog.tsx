@@ -114,9 +114,7 @@ export const CreateProductDialog = ({ open, onOpenChange, onSuccess }: CreatePro
                 <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 flex-shrink-0">
                   <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <DialogTitle className="text-[16px] sm:text-[18px] font-semibold text-foreground truncate">
-                  Yeni Ürün
-                </DialogTitle>
+                <DialogTitle>Yeni Ürün</DialogTitle>
               </div>
               <div className="flex flex-wrap gap-2 flex-shrink-0">
                 <Button

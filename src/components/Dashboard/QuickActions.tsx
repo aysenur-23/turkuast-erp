@@ -77,7 +77,7 @@ export const QuickActions = ({
       borderColor: "border-blue-100",
     }]),
     {
-      title: "Üretim Siparişi",
+      title: "Üretim",
       description: "Üretim başlat",
       icon: Package,
       onClick: () => handleAction(onCreateProductionOrder, "/production"),

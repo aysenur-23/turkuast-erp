@@ -214,9 +214,7 @@ export const CreateRawMaterialDialog = ({
                   <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 flex-shrink-0">
                     <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   </div>
-                  <DialogTitle className="text-[16px] sm:text-[18px] font-semibold text-foreground truncate">
-                    Yeni Hammadde Ekle
-                  </DialogTitle>
+                  <DialogTitle>Yeni Hammadde Ekle</DialogTitle>
                 </div>
                 <div className="flex flex-wrap gap-2 flex-shrink-0">
                   <Button
@@ -550,7 +548,7 @@ export const CreateRawMaterialDialog = ({
                             <SelectTrigger className="min-h-[44px] sm:min-h-0">
                               <SelectValue placeholder={usersLoading ? "Yükleniyor..." : "Kişi seçin"} />
                             </SelectTrigger>
-                            <SelectContent className="text-[11px] sm:text-xs max-h-[300px] overflow-y-auto">
+                            <SelectContent className="text-[11px] sm:text-xs max-h-[300px] overflow-y-auto overscroll-contain">
                               <SelectItem value="none" className="text-[11px] sm:text-xs">Satın Alan Kişi Yok</SelectItem>
                               {users.map((user) => (
                                 <SelectItem key={user.id} value={user.id} className="text-[11px] sm:text-xs">

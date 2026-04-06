@@ -160,13 +160,13 @@ export const CreateCustomerDialog = ({ open, onOpenChange, onSuccess }: CreateCu
 
         <div className="flex flex-col h-full min-h-0">
           {/* Header */}
-          <DialogHeader className="p-3 sm:p-4 border-b bg-white flex-shrink-0 relative pr-12 sm:pr-16">
+          <DialogHeader className="p-4 border-b bg-white flex-shrink-0 relative pr-16">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                 <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 flex-shrink-0">
                   <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <DialogTitle className="text-[16px] sm:text-[18px] font-semibold text-foreground truncate">
+                <DialogTitle>
                   Yeni Müşteri
                 </DialogTitle>
               </div>
@@ -174,24 +174,24 @@ export const CreateCustomerDialog = ({ open, onOpenChange, onSuccess }: CreateCu
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-primary/20 hover:bg-primary/5 rounded-lg px-3 py-1.5 font-medium text-[11px] sm:text-xs flex-shrink-0 min-h-[36px] sm:min-h-8"
+                  className="h-9 border-primary/20 hover:bg-primary/5 rounded-lg px-4 font-medium text-sm flex-shrink-0"
                   onClick={() => onOpenChange(false)}
                   disabled={loading}
                 >
-                  <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 flex-shrink-0" />
+                  <X className="h-4 w-4 mr-2 flex-shrink-0" />
                   İptal
                 </Button>
                 <Button
                   variant="default"
                   size="sm"
-                  className="bg-primary hover:bg-primary/90 rounded-lg px-3 py-1.5 font-medium text-[11px] sm:text-xs flex-shrink-0 text-white min-h-[36px] sm:min-h-8"
+                  className="h-9 bg-primary hover:bg-primary/90 rounded-lg px-4 font-medium text-sm flex-shrink-0 text-white"
                   onClick={handleSubmit}
                   disabled={loading}
                 >
                   {loading ? (
-                    <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 flex-shrink-0 animate-spin" />
+                    <Loader2 className="h-4 w-4 mr-2 flex-shrink-0 animate-spin" />
                   ) : (
-                    <Save className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 flex-shrink-0" />
+                    <Save className="h-4 w-4 mr-2 flex-shrink-0" />
                   )}
                   Kaydet
                 </Button>
@@ -203,89 +203,89 @@ export const CreateCustomerDialog = ({ open, onOpenChange, onSuccess }: CreateCu
             <div className="flex-1 min-h-0 app-dialog-scroll">
               <form onSubmit={handleSubmit} className="space-y-2">
                 <Card>
-                  <CardContent className="p-3 sm:p-4 space-y-1.5 sm:space-y-2">
+                  <CardContent className="p-4 sm:p-6 space-y-4">
                     <div>
-                      <h3 className="text-[14px] sm:text-[15px] font-semibold text-foreground mb-1">Müşteri Bilgileri</h3>
-                      <p className="text-[11px] sm:text-xs text-muted-foreground">Temel müşteri bilgilerini girin</p>
+                      <h3 className="text-base font-semibold text-foreground mb-1">Müşteri Bilgileri</h3>
+                      <p className="text-sm text-muted-foreground">Temel müşteri bilgilerini girin</p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
-                      <div className="space-y-1.5 sm:space-y-2">
-                        <Label htmlFor="name" showRequired className="text-[11px] sm:text-xs">İsim</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name" showRequired className="text-sm">İsim</Label>
                         <Input
                           id="name"
                           value={formData.name}
                           onChange={(e) => setFieldValue("name", e.target.value)}
-                          className="min-h-[44px] sm:min-h-0 text-[11px] sm:text-xs"
+                          className="h-10 text-sm"
                           required
                         />
-                        {errors.name && <p className="text-[11px] sm:text-xs text-destructive">{errors.name}</p>}
+                        {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
                       </div>
-                      <div className="space-y-1.5 sm:space-y-2">
-                        <Label htmlFor="company" className="text-[11px] sm:text-xs">Şirket</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="company" className="text-sm">Şirket</Label>
                         <Input
                           id="company"
                           value={formData.company}
                           onChange={(e) => setFieldValue("company", e.target.value)}
-                          className="min-h-[44px] sm:min-h-0 text-[11px] sm:text-xs"
+                          className="h-10 text-sm"
                         />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
-                      <div className="space-y-1.5 sm:space-y-2">
-                        <Label htmlFor="email" className="text-[11px] sm:text-xs">E-posta</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="email" className="text-sm">E-posta</Label>
                         <Input
                           id="email"
                           type="email"
                           value={formData.email}
                           onChange={(e) => setFieldValue("email", e.target.value)}
-                          className="min-h-[44px] sm:min-h-0 text-[11px] sm:text-xs"
+                          className="h-10 text-sm"
                         />
-                        {errors.email && <p className="text-[11px] sm:text-xs text-destructive">{errors.email}</p>}
+                        {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                       </div>
-                      <div className="space-y-1.5 sm:space-y-2">
-                        <Label htmlFor="phone" className="text-[11px] sm:text-xs">Telefon</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone" className="text-sm">Telefon</Label>
                         <Input
                           id="phone"
                           value={formData.phone}
                           onChange={(e) => setFieldValue("phone", e.target.value)}
-                          className="min-h-[44px] sm:min-h-0 text-[11px] sm:text-xs"
+                          className="h-10 text-sm"
                         />
-                        {errors.phone && <p className="text-[11px] sm:text-xs text-destructive">{errors.phone}</p>}
+                        {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
-                      <div className="space-y-1.5 sm:space-y-2">
-                        <Label htmlFor="address" className="text-[11px] sm:text-xs">Adres</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="address" className="text-sm">Adres</Label>
                         <Textarea
                           id="address"
                           value={formData.address}
                           onChange={(e) => setFieldValue("address", e.target.value)}
                           rows={3}
-                          className="min-h-[44px] sm:min-h-0 resize-none text-[11px] sm:text-xs"
+                          className="min-h-[80px] resize-none text-sm"
                         />
                       </div>
-                      <div className="space-y-1.5 sm:space-y-2">
-                        <Label htmlFor="tax_number" className="text-[11px] sm:text-xs">Vergi No</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="tax_number" className="text-sm">Vergi No</Label>
                         <Input
                           id="tax_number"
                           value={formData.tax_number}
                           onChange={(e) => setFieldValue("tax_number", e.target.value)}
-                          className="min-h-[44px] sm:min-h-0 text-[11px] sm:text-xs"
+                          className="h-10 text-sm"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="notes" className="text-[11px] sm:text-xs">Notlar</Label>
+                      <Label htmlFor="notes" className="text-sm">Notlar</Label>
                       <Textarea
                         id="notes"
                         value={formData.notes}
                         onChange={(e) => setFieldValue("notes", e.target.value)}
                         rows={4}
-                        className="min-h-[44px] sm:min-h-0 resize-none text-[11px] sm:text-xs"
+                        className="min-h-[100px] resize-none text-sm"
                         placeholder="Müşteri hakkında notlar..."
                       />
                     </div>

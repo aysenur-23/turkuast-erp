@@ -561,7 +561,7 @@ export default function Notifications() {
                       }
                       // Sipariş bildirimleri
                       else if (['order_created', 'order_updated'].includes(notification.type)) {
-                        // Metadata'dan sipariş tipini kontrol et (üretim siparişi mi normal sipariş mi)
+                        // Metadata'dan sipariş tipini kontrol et (üretim mi normal sipariş mi)
                         const metadata = notification.metadata as { orderType?: string;[key: string]: unknown };
                         if (metadata?.orderType === 'production' || notification.message?.includes('üretim')) {
                           navigate(`/production?orderId=${notification.relatedId}`);
@@ -837,18 +837,18 @@ export default function Notifications() {
           </DialogDescription>
 
           <div className="flex flex-col h-full min-h-0">
-            <DialogHeader className="p-2 border-b bg-white flex-shrink-0 relative pr-12 sm:pr-16">
-              <h2 className="text-[14px] sm:text-[15px] font-semibold text-foreground">Görevi Reddet</h2>
-              <p className="mt-1 text-[11px] sm:text-xs text-muted-foreground">
+            <DialogHeader className="p-4 border-b bg-white flex-shrink-0 relative pr-12 sm:pr-16">
+              <DialogTitle>Görevi Reddet</DialogTitle>
+              <DialogDescription>
                 Görevi reddetmek için lütfen en az 20 karakterlik bir sebep belirtin.
-              </p>
+              </DialogDescription>
             </DialogHeader>
-            <div className="flex-1 overflow-hidden bg-gray-50/50 p-2 min-h-0">
+            <div className="flex-1 overflow-hidden bg-gray-50/50 p-4 min-h-0">
               <div className="max-w-full mx-auto h-full overflow-y-auto">
                 <Card>
                   <CardContent className="space-y-4 pt-6">
                     <div className="space-y-2">
-                      <Label htmlFor="rejection_reason" className="text-[11px] sm:text-xs" showRequired>Reddetme Sebebi</Label>
+                      <Label htmlFor="rejection_reason" className="text-sm font-medium" showRequired>Reddetme Sebebi</Label>
                       <Textarea
                         id="rejection_reason"
                         value={rejectionReason}
@@ -858,7 +858,7 @@ export default function Notifications() {
                         className={`min-h-[100px] sm:min-h-[120px] ${rejectionReason.length > 0 && rejectionReason.length < 20 ? "border-destructive" : ""}`}
                       />
                       {rejectionReason.length > 0 && rejectionReason.length < 20 && (
-                        <p className="text-[11px] sm:text-xs text-destructive">
+                        <p className="text-xs text-destructive">
                           En az {20 - rejectionReason.length} karakter daha gerekli
                         </p>
                       )}
@@ -867,7 +867,7 @@ export default function Notifications() {
                 </Card>
               </div>
             </div>
-            <div className="p-2 border-t bg-white flex-shrink-0 flex flex-wrap gap-2 justify-end">
+            <div className="p-4 border-t bg-white flex-shrink-0 flex flex-wrap gap-2 justify-end">
               <Button
                 variant="outline"
                 onClick={() => {
@@ -876,7 +876,7 @@ export default function Notifications() {
                   setSelectedNotification(null);
                 }}
                 disabled={processing}
-                className="min-h-[44px] sm:min-h-0"
+                className="h-9 px-4"
               >
                 İptal
               </Button>
@@ -884,7 +884,7 @@ export default function Notifications() {
                 variant="destructive"
                 onClick={handleRejectTask}
                 disabled={processing || rejectionReason.trim().length < 20}
-                className="min-h-[44px] sm:min-h-0"
+                className="h-9 px-4"
               >
                 {processing ? "Reddediliyor..." : "Reddet"}
               </Button>

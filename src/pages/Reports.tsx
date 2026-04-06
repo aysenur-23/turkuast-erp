@@ -227,7 +227,7 @@ const Reports = () => {
             {savedReports.length === 0 ? (
               <p className="text-[11px] sm:text-xs text-muted-foreground text-center py-6 sm:py-8">Henüz rapor oluşturulmamış</p>
             ) : (
-              <div className="space-y-2 sm:space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+              <div className="space-y-2 sm:space-y-3 max-h-[60vh] overflow-y-auto overscroll-contain pr-2">
                 {savedReports.map((report) => (
                   <div
                     key={report.id}

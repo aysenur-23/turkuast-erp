@@ -87,7 +87,7 @@ export const AdminDashboard = () => {
           borderColor: "border-emerald-200",
         },
         {
-          title: "Üretim Siparişi",
+          title: "Üretim",
           description: "Üretim başlat",
           icon: Package,
           onClick: () => setProductionDialogOpen(true),

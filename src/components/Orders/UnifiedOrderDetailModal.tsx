@@ -41,6 +41,8 @@ import {
     Coins,
     ArrowRightLeft,
     Activity,
+    Layers,
+    Factory,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -149,14 +151,22 @@ type StatusItem = {
     color: string;
 };
 
-// Unified Status Workflow
+// Unified Status Workflow - Üretim odaklı akış
 const unifiedStatusWorkflow: StatusItem[] = [
     { value: "draft", label: "Taslak", icon: ClipboardList, color: "text-muted-foreground" },
-    { value: "pending", label: "Beklemede", icon: Clock, color: "text-amber-500" },
     { value: "confirmed", label: "Onaylandı", icon: CheckCircle2, color: "text-emerald-500" },
     { value: "planned", label: "Planlandı", icon: Calendar, color: "text-blue-500" },
-    { value: "in_production", label: "Üretimde", icon: Package, color: "text-blue-600" },
-    { value: "quality_check", label: "Kalite Kontrol", icon: CircleDot, color: "text-purple-500" },
+    { value: "box_production", label: "Kutu Üretimi", icon: Package, color: "text-orange-500" },
+    { value: "component_production", label: "Komponent Üretimi", icon: Factory, color: "text-amber-500" },
+    { value: "assembly", label: "Birleştirme", icon: Layers, color: "text-blue-600" },
+    { value: "completed", label: "Tamamlandı", icon: Check, color: "text-emerald-600" },
+];
+
+// Üretim siparişi olmayanlar için workflow (üretim aşamaları hariç)
+const nonProductionWorkflow: StatusItem[] = [
+    { value: "draft", label: "Taslak", icon: ClipboardList, color: "text-muted-foreground" },
+    { value: "confirmed", label: "Onaylandı", icon: CheckCircle2, color: "text-emerald-500" },
+    { value: "planned", label: "Planlandı", icon: Calendar, color: "text-blue-500" },
     { value: "completed", label: "Tamamlandı", icon: Check, color: "text-emerald-600" },
     { value: "shipped", label: "Kargoda", icon: Truck, color: "text-sky-500" },
     { value: "delivered", label: "Teslim Edildi", icon: PackageCheck, color: "text-primary" },
@@ -246,6 +256,12 @@ export const UnifiedOrderDetailModal = ({
 
     const isPersonnel = Boolean(user?.roles?.includes("personnel"));
     const isCreator = user?.id === order?.createdBy;
+    
+    // Üretim siparişi kontrolü - PROD- ile başlayan siparişler üretim siparişidir
+    const isProductionOrder = order?.orderNumber?.startsWith("PROD-") || order?.order_number?.startsWith("PROD-");
+    
+    // Sipariş tipine göre doğru workflow'u seç
+    const currentWorkflow = isProductionOrder ? unifiedStatusWorkflow : nonProductionWorkflow;
 
     // Initialize form when order changes
     useEffect(() => {
@@ -350,7 +366,7 @@ export const UnifiedOrderDetailModal = ({
     }, [open, order?.id, user, isAdmin, isTeamLeader]);
 
     const getCurrentStatusIndex = () => {
-        const index = unifiedStatusWorkflow.findIndex(s => s.value === currentStatus);
+        const index = currentWorkflow.findIndex(s => s.value === currentStatus);
         return index >= 0 ? index : 1; // Default to pending
     };
 
@@ -544,14 +560,20 @@ export const UnifiedOrderDetailModal = ({
         const s = normalizeStatusValue(status);
         if (s === "completed" || s === "delivered") return "default";
         if (s === "cancelled") return "destructive";
-        if (s === "pending" || s === "shipped") return "secondary";
+        if (s === "shipped") return "secondary";
         return "outline";
     };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="app-dialog-shell max-w-5xl">
-                <DialogDescription className="sr-only">Sipariş bilgileri, ürünler ve finansal takip.</DialogDescription>
+                {/* Erişilebilirlik için DialogTitle ve DialogDescription DialogContent'in direkt child'ı olmalı */}
+                <DialogTitle className="sr-only">
+                    Sipariş {formData.orderNumber}
+                </DialogTitle>
+                <DialogDescription className="sr-only">
+                    Sipariş bilgileri, ürünler ve finansal takip.
+                </DialogDescription>
 
                 <DialogHeader className="p-3 sm:p-4 border-b bg-white flex-shrink-0 relative">
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
@@ -560,12 +582,12 @@ export const UnifiedOrderDetailModal = ({
                                 <ShoppingCart className="h-5 w-5 text-primary" />
                             </div>
                             <div>
-                                <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
+                                <h2 className="text-lg sm:text-xl font-bold text-foreground">
                                     Sipariş {formData.orderNumber}
-                                </DialogTitle>
+                                </h2>
                                 <div className="flex items-center gap-2 mt-0.5">
                                     <Badge variant={getStatusVariant(currentStatus)} className="text-[10px] px-2 py-0.5">
-                                        {unifiedStatusWorkflow.find(s => s.value === currentStatus)?.label || currentStatus}
+                                        {currentWorkflow.find(s => s.value === currentStatus)?.label || currentStatus}
                                     </Badge>
                                     {approvalStatus === "pending" && (
                                         <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-600 bg-amber-50">
@@ -652,14 +674,14 @@ export const UnifiedOrderDetailModal = ({
                                             Süreç Takibi
                                         </CardTitle>
                                         <span className="text-[10px] text-slate-500">
-                                            Sıradaki: {unifiedStatusWorkflow[getCurrentStatusIndex() + 1]?.label || "Tamamlandı"}
+                                            Sıradaki: {currentWorkflow[getCurrentStatusIndex() + 1]?.label || "Tamamlandı"}
                                         </span>
                                     </CardHeader>
                                     <CardContent className="p-4 sm:p-6 overflow-hidden">
-                                        <div className="overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 hide-scrollbar">
-                                            <div className="flex items-center justify-between relative min-w-[600px]">
+                                        <div className="overflow-x-auto pb-4 px-4 sm:px-6 hide-scrollbar">
+                                            <div className="flex items-center justify-between relative min-w-[600px] px-4">
                                                 <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-100 -translate-y-1/2 z-0" />
-                                                {unifiedStatusWorkflow.map((step, idx) => {
+                                                {currentWorkflow.map((step, idx) => {
                                                     const currentIndex = getCurrentStatusIndex();
                                                     const isDone = idx < currentIndex;
                                                     const isCurrent = idx === currentIndex;
@@ -695,12 +717,12 @@ export const UnifiedOrderDetailModal = ({
                                                 })}
                                             </div>
                                         </div>
-                                        {canUpdateStatus && getCurrentStatusIndex() < unifiedStatusWorkflow.length - 1 && (
+                                        {canUpdateStatus && getCurrentStatusIndex() < currentWorkflow.length - 1 && (
                                             <div className="mt-6 flex justify-end">
                                                 <Button
                                                     size="sm"
                                                     disabled={!canUpdateStatus || isEditing || updatingStatus}
-                                                    onClick={() => handleStatusChange(unifiedStatusWorkflow[getCurrentStatusIndex() + 1].value)}
+                                                    onClick={() => handleStatusChange(currentWorkflow[getCurrentStatusIndex() + 1].value)}
                                                     className="gap-2 bg-slate-900 text-white hover:bg-slate-800"
                                                 >
                                                     Sonraki Adıma Geç
@@ -744,7 +766,7 @@ export const UnifiedOrderDetailModal = ({
                                                     <Select value={formData.status} onValueChange={v => setFormData(p => ({ ...p, status: v as Order["status"] }))}>
                                                         <SelectTrigger><SelectValue /></SelectTrigger>
                                                         <SelectContent>
-                                                            {unifiedStatusWorkflow.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                                                            {isProductionOrder ? unifiedStatusWorkflow.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>) : nonProductionWorkflow.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
                                                         </SelectContent>
                                                     </Select>
                                                 </div>

@@ -77,12 +77,12 @@ const getNextStatus = (currentStatus: string) => {
     return null;
   }
   const nextStatus = taskStatusWorkflow[currentIndex + 1];
-  
+
   // "approved" durumuna direkt geçiş yapılamaz - sadece onay süreci ile geçilebilir
   if (nextStatus && nextStatus.value === "approved") {
     return null;
   }
-  
+
   return nextStatus;
 };
 
@@ -90,7 +90,7 @@ const TaskPool = () => {
   const { user } = useAuth();
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [canUpdate, setCanUpdate] = useState(false);
-  
+
   // Permission state'lerini Firestore'dan kontrol et
   useEffect(() => {
     const checkPermissions = async () => {
@@ -143,7 +143,7 @@ const TaskPool = () => {
   const [projectList, setProjectList] = useState<Project[]>([]);
   const [viewMode, setViewMode] = useState<"list" | "board">("list");
   const [newTaskDefaultStatus, setNewTaskDefaultStatus] = useState<"pending" | "in_progress" | "completed">("pending");
-  
+
   // Yeni state'ler
   const [viewTaskDialogOpen, setViewTaskDialogOpen] = useState(false);
   const [viewTaskId, setViewTaskId] = useState<string | null>(null);
@@ -180,7 +180,7 @@ const TaskPool = () => {
 
       // Görev havuzunda sadece isInPool=true olan görevler gösterilir
       // onlyInMyTasks görevleri görev havuzunda görünmez
-      const poolTasksData = allTasks.filter((task) => 
+      const poolTasksData = allTasks.filter((task) =>
         task.isInPool === true && !task.onlyInMyTasks
       );
       setPoolTasks(poolTasksData);
@@ -200,27 +200,27 @@ const TaskPool = () => {
           if (!project.isPrivate) return project; // Gizli olmayan projeler herkes görebilir
           if (isSuperAdmin) return project; // Super Admin tüm projeleri görebilir
           if (user?.id && project.createdBy === user.id) return project; // Oluşturan görebilir
-          
+
           // Ekip lideri için projede görevi olan kullanıcılar kontrolü yapılmaz (sadece kendi oluşturduğu gizli projeleri görebilir)
           // Team Leader kontrolü - Firestore'dan (canUpdate projects)
           if (canUpdate && !isSuperAdmin) {
             return null; // Ekip lideri sadece kendi oluşturduğu gizli projeleri görebilir (yukarıda kontrol edildi)
           }
-          
+
           // Projede görevi olan kullanıcılar görebilir (ekip lideri hariç)
           if (user?.id) {
             try {
               const { getTasks, getTaskAssignments } = await import("@/services/firebase/taskService");
               const projectTasks = await getTasks({ projectId: project.id });
-              
+
               // Kullanıcının bu projede görevi var mı kontrol et
               for (const task of projectTasks) {
                 // Görevi oluşturan kişi
                 if (task.createdBy === user.id) return project;
-                
+
                 // Atanan kullanıcılar
                 if (task.assignedUsers && task.assignedUsers.includes(user.id)) return project;
-                
+
                 // Assignments kontrolü
                 const assignments = await getTaskAssignments(task.id);
                 const isAssigned = assignments.some(
@@ -237,7 +237,7 @@ const TaskPool = () => {
               }
             }
           }
-          
+
           return null; // Diğer kullanıcılar gizli projeleri göremez
         })
       );
@@ -248,20 +248,20 @@ const TaskPool = () => {
         (p): p is typeof allProjects[0] => {
           if (p === null) return false;
           // Status ve genel proje filtrelemesi
-          if (p.status !== "active" || p.id === "general" || 
-              p.name?.toLowerCase() === "genel görevler" || 
-              p.name?.toLowerCase() === "genel") {
+          if (p.status !== "active" || p.id === "general" ||
+            p.name?.toLowerCase() === "genel görevler" ||
+            p.name?.toLowerCase() === "genel") {
             return false;
           }
           // Otomatik oluşturulan "Gizli Görevler" projesini filtrele
-          if (p.name === "Gizli Görevler" && p.isPrivate === true && 
-              p.description === "Projesi olmayan gizli görevler için otomatik oluşturulan proje") {
+          if (p.name === "Gizli Görevler" && p.isPrivate === true &&
+            p.description === "Projesi olmayan gizli görevler için otomatik oluşturulan proje") {
             return false;
           }
           return true;
         }
       );
-      
+
       setProjectList(finalProjects);
 
       const usersMap: Record<string, UserProfile> = {};
@@ -317,19 +317,19 @@ const TaskPool = () => {
     try {
       await approvePoolRequest(taskId, userId, user.id, keepInPool);
       toast.success("Görev talebi onaylandı");
-      
+
       // State'i manuel güncelle
       if (selectedTask) {
         const updatedPoolRequests = (selectedTask.poolRequests || []).filter(id => id !== userId);
         const updatedAssignedUsers = [...(selectedTask.assignedUsers || []), userId];
-        
+
         const updatedTask = {
           ...selectedTask,
-          poolRequests: keepInPool ? updatedPoolRequests : [], 
+          poolRequests: keepInPool ? updatedPoolRequests : [],
           isInPool: keepInPool,
           assignedUsers: updatedAssignedUsers
         };
-        
+
         setSelectedTask(updatedTask);
       }
 
@@ -481,7 +481,7 @@ const TaskPool = () => {
     try {
       const normalizedStatus = status as "pending" | "in_progress" | "completed";
       const targetTask = poolTasks.find((task) => task.id === taskId);
-      
+
       if (!targetTask) {
         toast.error("Görev bulunamadı");
         return;
@@ -490,17 +490,17 @@ const TaskPool = () => {
       // Yetki kontrolü: SADECE görev üyeleri (rejected hariç) ve görevi oluşturan durum değiştirebilir
       // Personel, ekip lideri, yönetici - görev üyesi olduğu görevin durumunu değiştirebilir
       const isCreator = targetTask?.createdBy === user.id;
-      
+
       // Görevin atanan kullanıcılarını kontrol et (rejected hariç)
       const taskAssignments = await getTaskAssignments(taskId);
-      const assignedUserIds = Array.isArray(taskAssignments) 
+      const assignedUserIds = Array.isArray(taskAssignments)
         ? taskAssignments
-            .filter(a => a?.status !== "rejected")
-            .map(a => a?.assignedTo)
-            .filter((id): id is string => !!id) 
+          .filter(a => a?.status !== "rejected")
+          .map(a => a?.assignedTo)
+          .filter((id): id is string => !!id)
         : [];
       const isAssignedFromAssignments = assignedUserIds.includes(user.id);
-      
+
       // Fallback: task.assignedUsers array'inden kontrol
       const isInTaskAssignedUsers = Array.isArray(targetTask.assignedUsers) && targetTask.assignedUsers.some((u) => {
         if (typeof u === 'string') {
@@ -511,9 +511,9 @@ const TaskPool = () => {
         }
         return false;
       });
-      
+
       const isAssigned = isAssignedFromAssignments || isInTaskAssignedUsers;
-      
+
       // Sadece görev üyesi (rejected hariç) veya oluşturan ise izin var
       if (!isAssigned && !isCreator) {
         toast.error("Bu görevin durumunu değiştirme yetkiniz yok. Sadece görev üyesi olduğunuz görevlerin durumunu değiştirebilirsiniz.");
@@ -623,11 +623,11 @@ const TaskPool = () => {
               ) : (
                 <div className="space-y-4">
                   {filteredTasks.map((task) => {
-                  const poolRequests = task.poolRequests || [];
-                  const hasUserRequest = user?.id && poolRequests.includes(user.id);
-                  const isTaskCreator = task.createdBy === user?.id;
-                  const dueDate = task.dueDate ? task.dueDate.toDate() : null;
-                  const project = task.projectId ? projects[task.projectId] : null;
+                    const poolRequests = task.poolRequests || [];
+                    const hasUserRequest = user?.id && poolRequests.includes(user.id);
+                    const isTaskCreator = task.createdBy === user?.id;
+                    const dueDate = task.dueDate ? task.dueDate.toDate() : null;
+                    const project = task.projectId ? projects[task.projectId] : null;
 
                     return (
                       <div
@@ -635,83 +635,83 @@ const TaskPool = () => {
                         className="flex flex-col gap-4 p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors cursor-pointer"
                         onClick={() => openViewTask(task.id)}
                       >
-                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                        <div className="space-y-2 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="font-semibold text-lg">{task.title}</h3>
-                            {project && (
-                              <Badge variant="secondary" className="h-5 px-2 py-0 text-[11px] font-normal leading-tight">
-                                {project.name}
-                              </Badge>
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                          <div className="space-y-2 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="font-semibold text-lg">{task.title}</h3>
+                              {project && (
+                                <Badge variant="secondary" className="h-5 px-2 py-0 text-[11px] font-normal leading-tight">
+                                  {project.name}
+                                </Badge>
+                              )}
+                              {(() => {
+                                const { getPriorityOption, convertOldPriorityToNew } = require("@/utils/priority");
+                                const taskPriority = task.priority || 0;
+                                // Eski sistem (1-5) varsa yeni sisteme (0-5) çevir
+                                const newPriority = convertOldPriorityToNew(taskPriority);
+                                const option = getPriorityOption(newPriority);
+                                // Sadece yüksek öncelikli görevleri göster (3 = Yüksek, 4 = Çok Yüksek, 5 = Acil)
+                                if (newPriority >= 3) {
+                                  return (
+                                    <Badge variant={newPriority >= 4 ? "destructive" : "secondary"} className="h-5 px-2 py-0 text-[11px] font-normal leading-tight">
+                                      {option.label}
+                                    </Badge>
+                                  );
+                                }
+                                return null;
+                              })()}
+                            </div>
+                            {task.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {task.description}
+                              </p>
                             )}
-                            {(() => {
-                              const { getPriorityOption, convertOldPriorityToNew } = require("@/utils/priority");
-                              const taskPriority = task.priority || 0;
-                              // Eski sistem (1-5) varsa yeni sisteme (0-5) çevir
-                              const newPriority = convertOldPriorityToNew(taskPriority);
-                              const option = getPriorityOption(newPriority);
-                              // Sadece yüksek öncelikli görevleri göster (3 = Yüksek, 4 = Çok Yüksek, 5 = Acil)
-                              if (newPriority >= 3) {
-                                return (
-                                  <Badge variant={newPriority >= 4 ? "destructive" : "secondary"} className="h-5 px-2 py-0 text-[11px] font-normal leading-tight">
-                                    {option.label}
-                                  </Badge>
-                                );
-                              }
-                              return null;
-                            })()}
-                          </div>
-                          {task.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-2">
-                              {task.description}
-                            </p>
-                          )}
-                          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                            {dueDate && (
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                              {dueDate && (
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="h-4 w-4" />
+                                  <span>{dueDate.toLocaleDateString("tr-TR")}</span>
+                                </div>
+                              )}
+                              {task.createdBy && users[task.createdBy] && (
+                                <div className="flex items-center gap-1">
+                                  <User className="h-4 w-4" />
+                                  <span>Oluşturan: {users[task.createdBy].fullName || users[task.createdBy].email || "Bilinmeyen"}</span>
+                                </div>
+                              )}
                               <div className="flex items-center gap-1">
-                                <Calendar className="h-4 w-4" />
-                                <span>{dueDate.toLocaleDateString("tr-TR")}</span>
+                                <Users className="h-4 w-4" />
+                                <span>{poolRequests.length} talep</span>
                               </div>
-                            )}
-                            {task.createdBy && users[task.createdBy] && (
-                              <div className="flex items-center gap-1">
-                                <User className="h-4 w-4" />
-                                <span>Oluşturan: {users[task.createdBy].fullName || users[task.createdBy].email || "Bilinmeyen"}</span>
-                              </div>
-                            )}
-                            <div className="flex items-center gap-1">
-                              <Users className="h-4 w-4" />
-                              <span>{poolRequests.length} talep</span>
                             </div>
                           </div>
-                        </div>
 
-                        <div className="flex items-center gap-2 self-end sm:self-start" onClick={(e) => e.stopPropagation()}>
-                          {hasUserRequest ? (
-                            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                              Talep Gönderildi
-                            </Badge>
-                          ) : (
-                            <Button
-                              size="sm"
-                              onClick={() => handleRequestTask(task.id)}
-                              disabled={poolRequests.includes(user?.id || "")}
-                            >
-                              Görevi Talep Et
-                            </Button>
-                          )}
-                          
-                          {(canManagePool || isTaskCreator) && poolRequests.length > 0 && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => openApproveDialog(task)}
-                            >
-                              Talepleri Yönet
-                            </Button>
-                          )}
+                          <div className="flex items-center gap-2 self-end sm:self-start" onClick={(e) => e.stopPropagation()}>
+                            {hasUserRequest ? (
+                              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                                Talep Gönderildi
+                              </Badge>
+                            ) : (
+                              <Button
+                                size="sm"
+                                onClick={() => handleRequestTask(task.id)}
+                                disabled={poolRequests.includes(user?.id || "")}
+                              >
+                                Görevi Talep Et
+                              </Button>
+                            )}
+
+                            {(canManagePool || isTaskCreator) && poolRequests.length > 0 && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openApproveDialog(task)}
+                              >
+                                Talepleri Yönet
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                      </div>
                       </div>
                     );
                   })}
@@ -737,7 +737,7 @@ const TaskPool = () => {
                 "{selectedTask?.title}" görevi için gelen talepleri onaylayın veya reddedin.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto">
+            <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto overscroll-contain">
               {selectedTask?.assignedUsers && selectedTask.assignedUsers.length > 0 && (
                 <div className="mb-4">
                   <h4 className="text-sm font-medium text-muted-foreground mb-2">Atanan Kullanıcılar</h4>
@@ -824,8 +824,8 @@ const TaskPool = () => {
             </DialogHeader>
             <div className="py-4 space-y-4">
               <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="keepInPool" 
+                <Checkbox
+                  id="keepInPool"
                   checked={confirmApproveState.keepInPool}
                   onCheckedChange={(checked) => setConfirmApproveState(prev => ({ ...prev, keepInPool: checked as boolean }))}
                 />
@@ -855,7 +855,7 @@ const TaskPool = () => {
                 Görev havuzuna yeni bir görev ekleyin. Bu göreve uygun ekip üyeleri başvurabilir.
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="mb-4">
               <Label htmlFor="project-select">Proje Seçimi *</Label>
               <Select
@@ -876,10 +876,10 @@ const TaskPool = () => {
             </div>
 
             {selectedProjectId ? (
-            <TaskInlineForm
+              <TaskInlineForm
                 mode="create"
                 projectId={selectedProjectId}
-              defaultStatus={newTaskDefaultStatus}
+                defaultStatus={newTaskDefaultStatus}
                 onCancel={() => {
                   setAddTaskDialogOpen(false);
                   setSelectedProjectId(null);
@@ -915,8 +915,8 @@ const TaskPool = () => {
                 taskId={viewTaskId}
                 onCancel={() => setViewTaskDialogOpen(false)}
                 onSuccess={() => {
-                    fetchData();
-                    setViewTaskDialogOpen(false);
+                  fetchData();
+                  setViewTaskDialogOpen(false);
                 }}
                 className="border-0 shadow-none p-0"
               />

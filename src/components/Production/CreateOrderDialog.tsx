@@ -580,7 +580,7 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
           });
         }
 
-        toast.success("Üretim siparişi başarıyla güncellendi");
+        toast.success("Üretim başarıyla güncellendi");
       } else {
         await createOrder({
           orderNumber: formData.order_number,
@@ -616,7 +616,7 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
           invoiceUrl: formData.invoiceUrl,
         }, orderItems);
 
-        toast.success("Üretim siparişi oluşturuldu");
+        toast.success("Üretim oluşturuldu");
       }
 
       onSuccess();
@@ -643,10 +643,10 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
         >
           {/* DialogTitle ve DialogDescription DialogContent'in direkt child'ı olmalı (Radix UI gereksinimi) */}
           <DialogTitle className="sr-only" id="create-production-order-dialog-title">
-            {order ? "Üretim Siparişi Düzenle" : "Yeni Üretim Siparişi"}
+            {order ? "Üretim Düzenle" : "Yeni Üretim"}
           </DialogTitle>
           <DialogDescription className="sr-only" id="create-production-order-dialog-description">
-            {order ? "Üretim siparişi bilgilerini düzenleyin" : "Üretim için yeni bir sipariş oluşturun"}
+            {order ? "Üretim bilgilerini düzenleyin" : "Üretim için yeni bir kayıt oluşturun"}
           </DialogDescription>
 
           <div className="flex flex-col flex-1 min-h-0">
@@ -657,7 +657,7 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
                     <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   </div>
                   <h2 className="text-[14px] sm:text-[16px] md:text-[18px] font-semibold text-foreground truncate flex-1 min-w-0">
-                    {order ? "Üretim Siparişi Düzenle" : "Yeni Üretim Siparişi"}
+                    {order ? "Üretim Düzenle" : "Yeni Üretim"}
                   </h2>
                 </div>
                 <Badge variant="outline" className="text-[10px] px-2 sm:px-3 py-1 flex-shrink-0 w-full sm:w-auto justify-center sm:justify-start">
@@ -1278,7 +1278,7 @@ export const CreateOrderDialog = ({ open, onOpenChange, onSuccess, order }: Crea
                               <Package className="h-4 w-4 text-primary" />
                               Ürün Listesi
                             </h4>
-                            <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                            <div className="space-y-2 max-h-[200px] overflow-y-auto overscroll-contain">
                               {validItems.map((item, index) => (
                                 <div
                                   key={index}

@@ -371,13 +371,13 @@ const Orders = () => {
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       draft: "Taslak",
-      pending: "Beklemede",
       confirmed: "Onaylandı",
-      planned: "Planlanan",
+      planned: "Planlandı",
+      box_production: "Kutu Üretimi",
+      component_production: "Komponent Üretimi",
+      assembly: "Birleştirme",
       in_production: "Üretimde",
       in_progress: "Üretimde",
-      quality_check: "Kalite Kontrol",
-      on_hold: "Beklemede",
       completed: "Tamamlandı",
       shipped: "Kargoda",
       delivered: "Teslim Edildi",
@@ -389,13 +389,13 @@ const Orders = () => {
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       draft: "bg-gray-100 text-gray-800 border-gray-300",
-      pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
       confirmed: "bg-blue-100 text-blue-800 border-blue-300",
       planned: "bg-indigo-100 text-indigo-800 border-indigo-300",
+      box_production: "bg-orange-100 text-orange-800 border-orange-300",
+      component_production: "bg-amber-100 text-amber-800 border-amber-300",
+      assembly: "bg-cyan-100 text-cyan-800 border-cyan-300",
       in_production: "bg-orange-100 text-orange-800 border-orange-300",
       in_progress: "bg-orange-100 text-orange-800 border-orange-300",
-      quality_check: "bg-cyan-100 text-cyan-800 border-cyan-300",
-      on_hold: "bg-amber-100 text-amber-800 border-amber-300",
       completed: "bg-green-100 text-green-800 border-green-300",
       shipped: "bg-purple-100 text-purple-800 border-purple-300",
       delivered: "bg-emerald-100 text-emerald-800 border-emerald-300",
@@ -504,13 +504,11 @@ const Orders = () => {
                   <SelectContent>
                     <SelectItem value="all">Tüm Durumlar</SelectItem>
                     <SelectItem value="draft">Taslak</SelectItem>
-                    <SelectItem value="pending">Beklemede</SelectItem>
                     <SelectItem value="confirmed">Onaylandı</SelectItem>
-                    <SelectItem value="planned">Planlanan</SelectItem>
-                    <SelectItem value="in_production">Üretimde</SelectItem>
-                    <SelectItem value="in_progress">Üretimde</SelectItem>
-                    <SelectItem value="quality_check">Kalite Kontrol</SelectItem>
-                    <SelectItem value="on_hold">Beklemede</SelectItem>
+                    <SelectItem value="planned">Planlandı</SelectItem>
+                    <SelectItem value="box_production">Kutu Üretimi</SelectItem>
+                    <SelectItem value="component_production">Komponent Üretimi</SelectItem>
+                    <SelectItem value="assembly">Birleştirme</SelectItem>
                     <SelectItem value="completed">Tamamlandı</SelectItem>
                     <SelectItem value="shipped">Kargoda</SelectItem>
                     <SelectItem value="delivered">Teslim Edildi</SelectItem>

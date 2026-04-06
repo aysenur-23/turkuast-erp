@@ -29,14 +29,14 @@ export const UserMultiSelect = ({ selectedUsers, onSelectionChange, disabled }: 
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    fetchUsers(); 
+    fetchUsers();
   }, []);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
       const userProfiles = await getAllUsers();
-      
+
       const convertedUsers: User[] = userProfiles
         .filter((profile) => profile.id && (profile.fullName || profile.displayName || profile.email)) // Email varsa da kabul et
         .map((profile) => ({
@@ -45,11 +45,11 @@ export const UserMultiSelect = ({ selectedUsers, onSelectionChange, disabled }: 
           email: profile.email || "",
           department_id: profile.departmentId || null,
         }));
-      
+
       setUsers(convertedUsers);
     } catch (error) {
       const errorMessage = (error as Error).message || "Bilinmeyen hata";
-      
+
       // Daha açıklayıcı hata mesajı
       if (errorMessage.includes("permission") || errorMessage.includes("permissions")) {
         const { showPermissionErrorToast } = await import("@/utils/toastHelpers");
@@ -59,7 +59,7 @@ export const UserMultiSelect = ({ selectedUsers, onSelectionChange, disabled }: 
       } else {
         toast.error("Kullanıcılar yüklenirken hata oluştu: " + errorMessage);
       }
-      
+
       setUsers([]);
     } finally {
       setLoading(false);
@@ -108,9 +108,9 @@ export const UserMultiSelect = ({ selectedUsers, onSelectionChange, disabled }: 
     <div className="space-y-2">
       <Popover open={open} onOpenChange={(newOpen) => !disabled && setOpen(newOpen)}>
         <PopoverTrigger asChild>
-          <Button 
-            variant="outline" 
-            className="w-full justify-between h-11 border-2 hover:border-primary/50 transition-colors" 
+          <Button
+            variant="outline"
+            className="w-full justify-between h-11 border-2 hover:border-primary/50 transition-colors"
             disabled={disabled}
           >
             <div className="flex items-center gap-2">
@@ -127,9 +127,9 @@ export const UserMultiSelect = ({ selectedUsers, onSelectionChange, disabled }: 
             )} />
           </Button>
         </PopoverTrigger>
-        <PopoverContent 
-          className="w-[90vw] sm:w-[400px] p-0 shadow-lg border-2" 
-          side="bottom" 
+        <PopoverContent
+          className="w-[90vw] sm:w-[400px] p-0 shadow-lg border-2"
+          side="bottom"
           align="start"
           sideOffset={4}
           onOpenAutoFocus={(e) => e.preventDefault()}
@@ -145,10 +145,10 @@ export const UserMultiSelect = ({ selectedUsers, onSelectionChange, disabled }: 
                 className="border-0 focus:ring-0 bg-transparent"
               />
             </div>
-            <CommandList 
-              className="max-h-[300px] overflow-y-auto overflow-x-hidden scroll-smooth" 
-              style={{ 
-                height: 'var(--cmdk-list-height)', 
+            <CommandList
+              className="max-h-[300px] overflow-y-auto overscroll-contain overflow-x-hidden scroll-smooth"
+              style={{
+                height: 'var(--cmdk-list-height)',
                 maxHeight: '300px',
                 scrollPaddingBlock: '10px'
               }}
@@ -217,9 +217,9 @@ export const UserMultiSelect = ({ selectedUsers, onSelectionChange, disabled }: 
             const user = users.find(u => u.id === userId);
             if (!user) return null;
             return (
-              <Badge 
-                key={userId} 
-                variant="secondary" 
+              <Badge
+                key={userId}
+                variant="secondary"
                 className="gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors"
               >
                 <span className="truncate max-w-[120px] sm:max-w-none">{user.full_name || "İsimsiz Kullanıcı"}</span>

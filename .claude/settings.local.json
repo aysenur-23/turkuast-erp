@@ -10,7 +10,12 @@
       "Bash(npx vite:*)",
       "Bash(firebase --version)",
       "Bash(firebase use:*)",
-      "Bash(firebase projects:list)"
+      "Bash(firebase projects:list)",
+      "Bash(find /c/Users/aslan/Desktop/turkuast-erp -name *Unified* -type f)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Read(//c/Users/aslan/AppData/Local/Temp/claude/C--Users-aslan-Desktop-turkuast-erp/bff47af5-79b6-41f9-888b-6ffa2aae1831/tasks/**)",
+      "Read(//c/Users/aslan/Desktop/turkuast-erp/$TEMP/claude/C--Users-aslan-Desktop-turkuast-erp/bff47af5-79b6-41f9-888b-6ffa2aae1831/tasks/**)"
     ]
   }
 }

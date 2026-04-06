@@ -232,7 +232,7 @@ export const Sidebar = ({ isMobile, open, onOpenChange, isCollapsed = false }: S
   // Diğer menü öğeleri her zaman görünür
   const baseMenuItems = [
     { icon: ShoppingCart, label: "Siparişler", path: "/orders" },
-    { icon: Factory, label: "Üretim Siparişleri", path: "/production" },
+    { icon: Factory, label: "Üretim", path: "/production" },
     { icon: Users, label: "Müşteriler", path: "/customers" },
     { icon: Package, label: "Ürünler", path: "/products" },
     { icon: Building2, label: "Hammaddeler", path: "/raw-materials" },

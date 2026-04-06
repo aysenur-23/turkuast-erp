@@ -111,16 +111,16 @@ export const TeamManagementDialog = ({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="app-dialog-shell !w-[95vw] sm:!w-[550px] !max-h-[90vh] flex flex-col p-0 overflow-hidden">
-                <DialogHeader className="p-4 sm:p-6 border-b bg-white flex-shrink-0">
+                <DialogHeader className="p-4 border-b bg-white flex-shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-primary/10">
-                            <Building2 className="h-5 w-5 text-primary" />
+                            <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                         </div>
                         <div>
-                            <DialogTitle className="text-lg">
+                            <DialogTitle>
                                 {mode === "create" ? "Yeni Ekip Ekle" : "Ekibi Düzenle"}
                             </DialogTitle>
-                            <DialogDescription className="text-xs sm:text-sm mt-1">
+                            <DialogDescription className="text-sm mt-1">
                                 {mode === "create"
                                     ? "Sistemde yeni bir çalışma ekibi oluşturun."
                                     : "Ekip bilgilerini güncelleyin veya sorumlu yöneticiyi değiştirin."}
@@ -166,28 +166,28 @@ export const TeamManagementDialog = ({
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="none">Yönetici Atanmadı</SelectItem>
-                                    {users.filter(u => u.role?.includes("team_leader") || u.role?.includes("admin") || u.role?.includes("main_admin")).map((u) => (
+                                    {users.map((u) => (
                                         <SelectItem key={u.id} value={u.id}>
                                             {u.fullName || u.displayName || u.email}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <p className="text-[11px] text-muted-foreground bg-blue-50/50 p-2 rounded border border-blue-100/50">
-                                Sadece yönetici veya ekip lideri yetkisi olan personeller seçilebilir.
+                            <p className="text-sm text-muted-foreground bg-blue-50/50 p-2 rounded border border-blue-100/50">
+                                Ekip yöneticisi olarak görev alacak personeli seçin.
                             </p>
                         </div>
                     </form>
                 </div>
 
-                <DialogFooter className="p-4 border-t bg-white flex-shrink-0 gap-2 sm:gap-0">
+                <DialogFooter className="p-4 border-t bg-white flex-shrink-0 gap-2">
                     {mode === "edit" && (
                         <Button
                             type="button"
                             variant="ghost"
                             onClick={handleDelete}
                             disabled={loading}
-                            className="mr-auto text-destructive hover:text-destructive hover:bg-destructive/10 h-10 px-4"
+                            className="mr-auto text-destructive hover:text-destructive hover:bg-destructive/10 h-9 px-4"
                         >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Ekibi Sil
@@ -199,7 +199,7 @@ export const TeamManagementDialog = ({
                             variant="outline"
                             onClick={() => onOpenChange(false)}
                             disabled={loading}
-                            className="flex-1 sm:flex-none h-10"
+                            className="flex-1 sm:flex-none h-9"
                         >
                             İptal
                         </Button>
@@ -207,7 +207,7 @@ export const TeamManagementDialog = ({
                             type="submit"
                             form="team-management-form"
                             disabled={loading}
-                            className="flex-1 sm:flex-none h-10 gap-2 px-6"
+                            className="flex-1 sm:flex-none h-9 gap-2 px-6"
                         >
                             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                             {mode === "create" ? "Ekibi Oluştur" : "Değişiklikleri Kaydet"}

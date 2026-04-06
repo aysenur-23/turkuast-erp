@@ -384,9 +384,7 @@ export const CustomerDetailModal = ({ open, onOpenChange, customer, onUpdate, on
                   <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <DialogTitle className="text-[16px] sm:text-[18px] font-semibold text-foreground truncate">
-                    {isEditing ? "Müşteri Düzenle" : customer.name}
-                  </DialogTitle>
+                  <DialogTitle>{isEditing ? "Müşteri Düzenle" : customer.name}</DialogTitle>
                   {!isEditing && customer.company && (
                     <p className="text-[11px] sm:text-xs text-muted-foreground truncate mt-0.5">
                       {customer.company}
@@ -1019,14 +1017,14 @@ export const CustomerDetailModal = ({ open, onOpenChange, customer, onUpdate, on
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-[16px] sm:text-[18px]">Müşteriyi sil?</AlertDialogTitle>
-            <AlertDialogDescription className="text-[11px] sm:text-xs">
+            <AlertDialogTitle>Müşteriyi sil?</AlertDialogTitle>
+            <AlertDialogDescription>
               Bu işlem geri alınamaz. Müşteri kalıcı olarak silinecek.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="text-[11px] sm:text-xs">İptal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="text-[11px] sm:text-xs bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Sil
             </AlertDialogAction>
           </AlertDialogFooter>

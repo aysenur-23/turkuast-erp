@@ -66,8 +66,14 @@ const getGoogleAccessToken = async (): Promise<string> => {
         console.error("Google token alma hatası:", error);
       }
 
-      if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === "auth/popup-closed-by-user") {
-        throw new Error("Google bağlantısı iptal edildi.");
+      if (error && typeof error === 'object' && 'code' in error) {
+        const errorCode = (error as { code: string }).code;
+        if (errorCode === "auth/popup-closed-by-user") {
+          throw new Error("Google bağlantısı iptal edildi.");
+        }
+        if (errorCode === "auth/unauthorized-domain") {
+          throw new Error("Bu domain Google Drive yetkilendirmesi için izinli değil. Firebase Console'da Authentication > Settings > Authorized domains bölümünden domaini ekleyin.");
+        }
       }
 
       throw new Error(error instanceof Error ? error.message : "Google token alınamadı");
@@ -105,8 +111,14 @@ const getGoogleAccessToken = async (): Promise<string> => {
         console.error("Google token alma hatası:", error);
       }
 
-      if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === "auth/popup-closed-by-user") {
-        throw new Error("Google bağlantısı iptal edildi.");
+      if (error && typeof error === 'object' && 'code' in error) {
+        const errorCode = (error as { code: string }).code;
+        if (errorCode === "auth/popup-closed-by-user") {
+          throw new Error("Google bağlantısı iptal edildi.");
+        }
+        if (errorCode === "auth/unauthorized-domain") {
+          throw new Error("Bu domain Google Drive yetkilendirmesi için izinli değil. Firebase Console'da Authentication > Settings > Authorized domains bölümünden domaini ekleyin.");
+        }
       }
 
       throw new Error(error instanceof Error ? error.message : "Google token alınamadı");
@@ -189,8 +201,14 @@ export const authorizeDrive = async (): Promise<boolean> => {
       console.error("Drive authorization error:", error);
     }
 
-    if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === "auth/popup-closed-by-user") {
-      throw new Error("Google bağlantısı iptal edildi.");
+    if (error && typeof error === 'object' && 'code' in error) {
+      const errorCode = (error as { code: string }).code;
+      if (errorCode === "auth/popup-closed-by-user") {
+        throw new Error("Google bağlantısı iptal edildi.");
+      }
+      if (errorCode === "auth/unauthorized-domain") {
+        throw new Error("Bu domain Google Drive yetkilendirmesi için izinli değil. Firebase Console'da Authentication > Settings > Authorized domains bölümünden domaini ekleyin.");
+      }
     }
 
     const errorMsg = error instanceof Error ? error.message : (typeof error === 'string' ? error : (error as { message: string })?.message);
@@ -258,19 +276,39 @@ export const uploadFileToDrive = async (
     };
 
     // Klasör ID'si varsa ekle
+    console.log("[DRIVE DEBUG] Upload options:", { type: options.type, folderId: options.folderId });
+    
+    const DEFAULT_TASKS_FOLDER_ID = "19VARUkhzzg3JSLNFUPA0yoKFcpJuBna7";
+    const DEFAULT_REPORTS_FOLDER_ID = "19VARUkhzzg3JSLNFUPA0yoKFcpJuBna7";
+    
+    const envTaskFolderId = import.meta.env.VITE_GOOGLE_DRIVE_TASKS_FOLDER_ID;
+    const envReportFolderId = import.meta.env.VITE_GOOGLE_DRIVE_REPORTS_FOLDER_ID;
+    
+    console.log("[DRIVE DEBUG] Env variables:", { 
+      envTaskFolderId: envTaskFolderId || "(boş/undefined)",
+      envReportFolderId: envReportFolderId || "(boş/undefined)"
+    });
+    
     if (options.folderId) {
       metadata.parents = [options.folderId];
+      console.log("[DRIVE DEBUG] Using explicit folderId:", options.folderId);
     } else if (options.type === "task") {
-      const taskFolderId = import.meta.env.VITE_GOOGLE_DRIVE_TASKS_FOLDER_ID;
+      const taskFolderId = envTaskFolderId || DEFAULT_TASKS_FOLDER_ID;
+      console.log("[DRIVE DEBUG] Task folder ID (env veya default):", taskFolderId);
       if (taskFolderId) {
         metadata.parents = [taskFolderId];
+        console.log("[DRIVE DEBUG] Set task parents:", metadata.parents);
       }
     } else if (options.type === "report") {
-      const reportFolderId = import.meta.env.VITE_GOOGLE_DRIVE_REPORTS_FOLDER_ID;
+      const reportFolderId = envReportFolderId || DEFAULT_REPORTS_FOLDER_ID;
+      console.log("[DRIVE DEBUG] Report folder ID (env veya default):", reportFolderId);
       if (reportFolderId) {
         metadata.parents = [reportFolderId];
+        console.log("[DRIVE DEBUG] Set report parents:", metadata.parents);
       }
     }
+    
+    console.log("[DRIVE DEBUG] Final metadata:", metadata);
 
     // Metadata properties ekle
     if (options.metadata) {

@@ -1333,8 +1333,8 @@ export const AuditLogs = ({ mode = "admin", userId, selectedTeamFilter }: AuditL
         const orderNum = recordName || (typeof oldDataObj.orderNumber === 'string' ? oldDataObj.orderNumber : null) || (typeof newDataObj.orderNumber === 'string' ? newDataObj.orderNumber : null) || "sipariş";
         changes.push(`"${orderNum}" siparişinin durumunu "${oldValue}"'den "${newValue}"'e değiştirdi`);
       } else if (field === "status" && tableName === "production_orders") {
-        const orderNum = recordName || (typeof oldDataObj.orderNumber === 'string' ? oldDataObj.orderNumber : null) || (typeof newDataObj.orderNumber === 'string' ? newDataObj.orderNumber : null) || "üretim siparişi";
-        changes.push(`"${orderNum}" üretim siparişinin durumunu "${oldValue}"'den "${newValue}"'e değiştirdi`);
+        const orderNum = recordName || (typeof oldDataObj.orderNumber === 'string' ? oldDataObj.orderNumber : null) || (typeof newDataObj.orderNumber === 'string' ? newDataObj.orderNumber : null) || "üretim";
+        changes.push(`"${orderNum}" üretimin durumunu "${oldValue}"'den "${newValue}"'e değiştirdi`);
       } else if (field === "approvalStatus") {
         const taskTitle = recordName || (typeof oldDataObj.title === 'string' ? oldDataObj.title : null) || (typeof newDataObj.title === 'string' ? newDataObj.title : null) || "";
         const prefix = taskTitle ? `"${taskTitle}" görevinin ` : "";

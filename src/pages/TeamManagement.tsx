@@ -54,11 +54,8 @@ const TeamManagement = () => {
   // Hero kısmındaki istatistikler için state (sağdan sola açılır/kapanır, default kapalı)
   const [heroStatsExpanded, setHeroStatsExpanded] = useState(false);
 
-  // Ekip seçimi için state
+  // Ortak Filtreleme State
   const [selectedTeamFilter, setSelectedTeamFilter] = useState<string>("all");
-
-  // Ortak filtreleme state'leri
-  const [departmentFilter, setDepartmentFilter] = useState<string>("all");
 
   // Cache için ref'ler
   const usersCacheRef = useRef<UserProfile[]>([]);
@@ -314,12 +311,12 @@ const TeamManagement = () => {
         {/* Ortak Filtreler */}
         <div className="flex flex-row items-center justify-between gap-2 pb-2 border-b">
           <div className="flex flex-row items-center gap-2">
-            <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+            <Select value={selectedTeamFilter} onValueChange={setSelectedTeamFilter}>
               <SelectTrigger className="w-full sm:w-[200px] h-9 text-[11px] sm:text-xs">
-                <SelectValue placeholder="Ekip Filtrele" />
+                <SelectValue placeholder="Ekip Seçiniz" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tüm Ekipler (Departmanlar)</SelectItem>
+                <SelectItem value="all">Tüm Ekipler</SelectItem>
                 {allDepartments.map((dept) => (
                   <SelectItem key={dept.id} value={dept.id}>
                     {dept.name}
@@ -327,40 +324,23 @@ const TeamManagement = () => {
                 ))}
               </SelectContent>
             </Select>
-            {isMainAdminUser && (
-              <div className="flex items-center gap-2">
-                <Select value={selectedTeamFilter} onValueChange={setSelectedTeamFilter}>
-                  <SelectTrigger className="w-full sm:w-[200px] h-9 text-[11px] sm:text-xs">
-                    <SelectValue placeholder="Ekip seçiniz" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tüm Ekipler</SelectItem>
-                    {allDepartments.map((dept) => (
-                      <SelectItem key={dept.id} value={dept.id}>
-                        {dept.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {selectedTeamFilter !== "all" && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      const dept = allDepartments.find(d => d.id === selectedTeamFilter);
-                      if (dept) {
-                        setSelectedDeptToEdit(dept);
-                        setTeamModalMode("edit");
-                        setTeamModalOpen(true);
-                      }
-                    }}
-                    className="h-9 w-9 text-muted-foreground hover:text-primary transition-colors"
-                    title="Ekibi Düzenle"
-                  >
-                    <Settings2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
+            {isMainAdminUser && selectedTeamFilter !== "all" && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  const dept = allDepartments.find(d => d.id === selectedTeamFilter);
+                  if (dept) {
+                    setSelectedDeptToEdit(dept);
+                    setTeamModalMode("edit");
+                    setTeamModalOpen(true);
+                  }
+                }}
+                className="h-9 w-9 text-muted-foreground hover:text-primary transition-colors border shadow-sm bg-white hover:bg-muted"
+                title="Ekibi Düzenle"
+              >
+                <Settings2 className="h-4 w-4" />
+              </Button>
             )}
           </div>
           {/* Hero İstatistikler Açılma Butonu */}
@@ -514,7 +494,7 @@ const TeamManagement = () => {
           <CardContent className="p-2">
             <Suspense fallback={<div className="flex justify-center p-4"><Loader2 className="animate-spin" /></div>}>
               <TeamMembers
-                departmentFilter={departmentFilter}
+                departmentFilter={selectedTeamFilter}
                 users={allUsers}
                 departments={allDepartments}
                 roles={allRoles}

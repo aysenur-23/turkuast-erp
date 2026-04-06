@@ -149,7 +149,7 @@ export const ProductRecipeDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="app-dialog-shell">
         <DialogHeader className="p-3 sm:p-4 border-b bg-white flex-shrink-0">
-          <DialogTitle className="text-[16px] sm:text-[18px] font-semibold">{product.name} - Reçete Yönetimi</DialogTitle>
+          <DialogTitle>{product.name} - Reçete Yönetimi</DialogTitle>
           <DialogDescription className="sr-only">Ürün reçetesini düzenleyin ve hammaddeleri yönetin</DialogDescription>
         </DialogHeader>
 

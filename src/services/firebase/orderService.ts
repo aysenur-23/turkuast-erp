@@ -129,6 +129,8 @@ export interface Order {
   shipping_notes?: string | null; // Alias
   deliveryNotes?: string | null;
   delivery_notes?: string | null; // Alias
+  trackingNumber?: string | null;
+  tracking_number?: string | null; // Alias
   priority?: number | null;
   deductMaterials?: boolean; // Hammadde düşürme (varsayılan: true)
 }
@@ -424,7 +426,7 @@ export const createOrder = async (
                   materialId: recipe.rawMaterialId,
                   newStock,
                   totalQuantity,
-                  reason: `${isProductionOrder ? 'Üretim siparişi' : 'Sipariş'}: ${orderData.orderNumber || docRef.id} - ${productName} (${quantity} adet)`,
+                  reason: `${isProductionOrder ? 'Üretim' : 'Sipariş'}: ${orderData.orderNumber || docRef.id} - ${productName} (${quantity} adet)`,
                 });
               }
             }

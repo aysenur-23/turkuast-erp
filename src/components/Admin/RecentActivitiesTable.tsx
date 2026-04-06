@@ -123,8 +123,8 @@ const STATUS_LABELS: Record<string, string> = {
 
 // Değişen alanları bul
 const getChangedFields = (
-  oldData?: Record<string, unknown> | null,
-  newData?: Record<string, unknown> | null
+  oldData?: Record<string, any> | null,
+  newData?: Record<string, any> | null
 ): string[] => {
   if (!oldData || !newData) return [];
   return Object.keys(newData).filter((key) => {
@@ -155,7 +155,7 @@ export const RecentActivitiesTable = () => {
         setLogs(data);
         setCustomers(customersData);
         setProducts(productsData);
-        
+
         // Tüm entity ID'lerini topla
         const entityMap: Record<string, Set<string>> = {
           customers: new Set(),
@@ -166,25 +166,26 @@ export const RecentActivitiesTable = () => {
           task_assignments: new Set(),
         };
         const userIds = new Set<string>(); // Atanan kullanıcılar için
-        
+
         data.forEach(log => {
           if (log.recordId && entityMap[log.tableName]) {
             entityMap[log.tableName].add(log.recordId);
           }
           // task_assignments için taskId ve assignedTo'yu al
           if (log.tableName === "task_assignments") {
-            if (log.newData?.taskId) {
-              entityMap.tasks.add(log.newData.taskId);
+            const newData = (log.newData || {}) as any;
+            if (newData.taskId) {
+              entityMap.tasks.add(newData.taskId);
             }
-            if (log.newData?.assignedTo) {
-              userIds.add(log.newData.assignedTo);
+            if (newData.assignedTo) {
+              userIds.add(newData.assignedTo);
             }
           }
         });
-        
+
         // Entity adlarını çek
         const names: Record<string, string> = {};
-        
+
         // Müşteriler
         if (entityMap.customers.size > 0) {
           await Promise.all(
@@ -200,7 +201,7 @@ export const RecentActivitiesTable = () => {
             })
           );
         }
-        
+
         // Siparişler
         if (entityMap.orders.size > 0) {
           await Promise.all(
@@ -218,7 +219,7 @@ export const RecentActivitiesTable = () => {
             })
           );
         }
-        
+
         // Görevler - proje bilgisi ile birlikte
         if (entityMap.tasks.size > 0) {
           const projectIds = new Set<string>();
@@ -255,7 +256,7 @@ export const RecentActivitiesTable = () => {
             );
           }
         }
-        
+
         // Projeler
         if (entityMap.projects.size > 0) {
           await Promise.all(
@@ -271,7 +272,7 @@ export const RecentActivitiesTable = () => {
             })
           );
         }
-        
+
         // Garanti kayıtları
         if (entityMap.warranty.size > 0) {
           await Promise.all(
@@ -310,7 +311,7 @@ export const RecentActivitiesTable = () => {
             })
           );
         }
-        
+
         // Kullanıcı adlarını çek (task_assignments için)
         if (userIds.size > 0) {
           try {
@@ -324,7 +325,7 @@ export const RecentActivitiesTable = () => {
             // Sessizce devam et
           }
         }
-        
+
         setEntityNames(names);
       } catch (error: unknown) {
         if (import.meta.env.DEV) {
@@ -358,8 +359,8 @@ export const RecentActivitiesTable = () => {
   // Detay bilgisi çıkar
   const getActivityDetails = (log: AuditLog, entityNames: Record<string, string>): string | null => {
     try {
-      const newData = log.newData || {};
-      const oldData = log.oldData || {};
+      const newData = (log.newData || {}) as any;
+      const oldData = (log.oldData || {}) as any;
 
       switch (log.tableName) {
         case "tasks":
@@ -386,8 +387,8 @@ export const RecentActivitiesTable = () => {
           if (log.action === "CREATE") {
             return newData.orderNumber ? `Sipariş #${newData.orderNumber}` : null;
           }
-          return newData.orderNumber || oldData.orderNumber 
-            ? `Sipariş #${newData.orderNumber || oldData.orderNumber}` 
+          return newData.orderNumber || oldData.orderNumber
+            ? `Sipariş #${newData.orderNumber || oldData.orderNumber}`
             : null;
 
         case "departments":
@@ -420,7 +421,7 @@ export const RecentActivitiesTable = () => {
             return newData.taskId ? `Görev ID: ${newData.taskId.substring(0, 8)}...` : null;
           }
           return null;
-        
+
         case "orders":
           if (log.action === "CREATE" || log.action === "UPDATE") {
             if (log.recordId && entityNames[`orders_${log.recordId}`]) {
@@ -432,7 +433,7 @@ export const RecentActivitiesTable = () => {
             return entityNames[`orders_${log.recordId}`];
           }
           return null;
-        
+
         case "projects":
           if (log.action === "CREATE" || log.action === "UPDATE") {
             if (log.recordId && entityNames[`projects_${log.recordId}`]) {
@@ -444,7 +445,7 @@ export const RecentActivitiesTable = () => {
             return entityNames[`projects_${log.recordId}`];
           }
           return null;
-        
+
         case "warranty":
           if (log.recordId && entityNames[`warranty_${log.recordId}`]) {
             return entityNames[`warranty_${log.recordId}`];
@@ -471,7 +472,7 @@ export const RecentActivitiesTable = () => {
             const metadata = log.metadata as { action?: string; method?: string };
             const action = metadata.action;
             const method = metadata.method;
-            
+
             if (action === "LOGOUT") {
               return "Sistemden çıkış";
             } else if (action === "LOGIN") {
@@ -519,8 +520,8 @@ export const RecentActivitiesTable = () => {
           } else if (log.action === "UPDATE") {
             return newData.content || newData.note ? `"${(newData.content || newData.note).substring(0, 50)}${(newData.content || newData.note).length > 50 ? '...' : ''}"` : null;
           }
-          return (newData.content || newData.note || oldData.content || oldData.note) 
-            ? `"${((newData.content || newData.note || oldData.content || oldData.note) as string).substring(0, 50)}${((newData.content || newData.note || oldData.content || oldData.note) as string).length > 50 ? '...' : ''}"` 
+          return (newData.content || newData.note || oldData.content || oldData.note)
+            ? `"${((newData.content || newData.note || oldData.content || oldData.note) as string).substring(0, 50)}${((newData.content || newData.note || oldData.content || oldData.note) as string).length > 50 ? '...' : ''}"`
             : null;
 
         default:
@@ -532,13 +533,13 @@ export const RecentActivitiesTable = () => {
   };
 
   // Değeri anlaşılır formata çevir
-  const formatValue = (value: unknown, fieldName?: string, tableName?: string): string => {
+  const formatValue = (value: any, fieldName?: string, tableName?: string): string => {
     if (value === null || value === undefined) return "Yok";
     if (typeof value === "boolean") return value ? "Evet" : "Hayır";
     if (value instanceof Date) {
       return format(value, "dd.MM.yyyy HH:mm", { locale: tr });
     }
-    if (typeof value === "object" && value.toDate) {
+    if (typeof value === "object" && value && 'toDate' in value) {
       // Firebase Timestamp
       return format(value.toDate(), "dd.MM.yyyy HH:mm", { locale: tr });
     }
@@ -562,7 +563,7 @@ export const RecentActivitiesTable = () => {
       }
       return JSON.stringify(value);
     }
-    
+
     // ID kontrolü - eğer değer uzun bir string ise ve entityNames'de varsa isim göster
     const stringValue = String(value);
     if (stringValue.length > 15 && stringValue.length < 30) {
@@ -618,7 +619,7 @@ export const RecentActivitiesTable = () => {
         }
       }
     }
-    
+
     // Durum değerlerini kontrol et
     if (fieldName === "status" && STATUS_LABELS[String(value)]) {
       return STATUS_LABELS[String(value)];
@@ -630,14 +631,14 @@ export const RecentActivitiesTable = () => {
   };
 
   // Kayıt adını al
-  const getRecordDisplayName = (data: unknown, tableName: string, recordId?: string | null): string | null => {
+  const getRecordDisplayName = (data: any, tableName: string, recordId?: string | null): string | null => {
     if (!data && !recordId) return null;
-    
+
     // Önce entityNames'den kontrol et
     if (recordId && entityNames[`${tableName}_${recordId}`]) {
       return entityNames[`${tableName}_${recordId}`];
     }
-    
+
     // Sonra data'dan kontrol et
     if (tableName === "orders" && data?.orderNumber) return `Sipariş #${data.orderNumber}`;
     if (tableName === "tasks" && data?.title) return data.title;
@@ -684,7 +685,7 @@ export const RecentActivitiesTable = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle 
+        <CardTitle
           className={cn(
             "text-base sm:text-lg",
             "cursor-pointer hover:text-primary transition-colors",
@@ -718,26 +719,27 @@ export const RecentActivitiesTable = () => {
                       <p className="text-xs sm:text-sm font-medium truncate">
                         {(() => {
                           const userName = log.userName || log.userEmail || "Sistem";
-                          const actionVerb = log.action === "CREATE" ? "oluşturdu" : 
-                                            log.action === "UPDATE" ? "güncelledi" : 
-                                            log.action === "DELETE" ? "sildi" : "yaptı";
-                          
+                          const actionVerb = log.action === "CREATE" ? "oluşturdu" :
+                            log.action === "UPDATE" ? "güncelledi" :
+                              log.action === "DELETE" ? "sildi" : "yaptı";
+
                           // Giriş logları
                           if (log.tableName === "user_logins") {
                             return `${userName} Giriş yaptı`;
                           }
-                          
+
                           // Görev atama logları - özel format
                           if (log.tableName === "task_assignments" && log.action === "CREATE") {
-                            const taskId = log.newData?.taskId;
-                            const assignedToId = log.newData?.assignedTo;
-                            const taskName = taskId && entityNames[`tasks_${taskId}`] 
-                              ? entityNames[`tasks_${taskId}`] 
-                              : (log.newData?.taskTitle || "görev");
+                            const newData = (log.newData || {}) as any;
+                            const taskId = newData.taskId;
+                            const assignedToId = newData.assignedTo;
+                            const taskName = taskId && entityNames[`tasks_${taskId}`]
+                              ? entityNames[`tasks_${taskId}`]
+                              : (newData.taskTitle || "görev");
                             const assignedUserName = assignedToId && entityNames[`users_${assignedToId}`]
                               ? entityNames[`users_${assignedToId}`]
                               : "bir kişiyi";
-                            
+
                             // Proje bilgisini kontrol et - taskId'den projectId'yi bul
                             if (taskId && entityNames[`task_project_${taskId}`]) {
                               const projectId = entityNames[`task_project_${taskId}`];
@@ -746,129 +748,129 @@ export const RecentActivitiesTable = () => {
                                 return `${userName} "${projectName}" projesindeki "${taskName}" görevini oluşturdu ve ${assignedUserName} kişisini göreve atadı`;
                               }
                             }
-                            
+
                             return `${userName} "${taskName}" görevini oluşturdu ve ${assignedUserName} kişisini göreve atadı`;
                           }
-                          
+
                           // Görev logları - proje bilgisi ile
                           if (log.tableName === "tasks" && log.recordId) {
-                            const taskName = entityNames[`tasks_${log.recordId}`] || 
-                                            log.newData?.title || 
-                                            log.oldData?.title || 
-                                            "görev";
-                            
+                            const taskName = entityNames[`tasks_${log.recordId}`] ||
+                              (log.newData as any)?.title ||
+                              (log.oldData as any)?.title ||
+                              "görev";
+
                             // Proje bilgisini kontrol et
-                            const projectId = log.newData?.projectId || log.oldData?.projectId;
-                            const projectPrefix = projectId && entityNames[`projects_${projectId}`] 
+                            const projectId = (log.newData as any)?.projectId || (log.oldData as any)?.projectId;
+                            const projectPrefix = projectId && entityNames[`projects_${projectId}`]
                               ? `"${entityNames[`projects_${projectId}`]}" projesindeki `
                               : "";
-                            
+
                             if (log.action === "UPDATE" && log.oldData && log.newData) {
-                              const changedFields = getChangedFields(log.oldData, log.newData);
+                              const changedFields = getChangedFields(log.oldData as any, log.newData as any);
                               if (changedFields.length > 0) {
                                 const fieldLabels = changedFields.map(field => FIELD_LABELS[field] || field).slice(0, 3);
-                                const fieldsText = fieldLabels.length === 1 
+                                const fieldsText = fieldLabels.length === 1
                                   ? `'${fieldLabels[0]}' alanını`
                                   : fieldLabels.length === 2
-                                  ? `'${fieldLabels[0]}' ve '${fieldLabels[1]}' alanlarını`
-                                  : `'${fieldLabels.join("', '")}'${changedFields.length > 3 ? ` ve ${changedFields.length - 3} alan daha` : ''} alanlarını`;
+                                    ? `'${fieldLabels[0]}' ve '${fieldLabels[1]}' alanlarını`
+                                    : `'${fieldLabels.join("', '")}'${changedFields.length > 3 ? ` ve ${changedFields.length - 3} alan daha` : ''} alanlarını`;
                                 return `${userName} ${projectPrefix}"${taskName}" görevinin ${fieldsText} ${actionVerb}`;
                               }
                             }
                             return `${userName} ${projectPrefix}"${taskName}" görevini ${actionVerb}`;
                           }
-                          
+
                           // Müşteri logları
                           if (log.tableName === "customers" && log.recordId) {
-                            const customerName = entityNames[`customers_${log.recordId}`] || 
-                                               log.newData?.name || 
-                                               log.oldData?.name || 
-                                               "müşteri";
+                            const customerName = entityNames[`customers_${log.recordId}`] ||
+                              (log.newData as any)?.name ||
+                              (log.oldData as any)?.name ||
+                              "müşteri";
                             if (log.action === "UPDATE" && log.oldData && log.newData) {
-                              const changedFields = getChangedFields(log.oldData, log.newData);
+                              const changedFields = getChangedFields(log.oldData as any, log.newData as any);
                               if (changedFields.length > 0) {
                                 const fieldLabels = changedFields.map(field => FIELD_LABELS[field] || field).slice(0, 3);
-                                const fieldsText = fieldLabels.length === 1 
+                                const fieldsText = fieldLabels.length === 1
                                   ? `'${fieldLabels[0]}' alanını`
                                   : fieldLabels.length === 2
-                                  ? `'${fieldLabels[0]}' ve '${fieldLabels[1]}' alanlarını`
-                                  : `'${fieldLabels.join("', '")}'${changedFields.length > 3 ? ` ve ${changedFields.length - 3} alan daha` : ''} alanlarını`;
+                                    ? `'${fieldLabels[0]}' ve '${fieldLabels[1]}' alanlarını`
+                                    : `'${fieldLabels.join("', '")}'${changedFields.length > 3 ? ` ve ${changedFields.length - 3} alan daha` : ''} alanlarını`;
                                 return `${userName} "${customerName}" müşterisinin ${fieldsText} ${actionVerb}`;
                               }
                             }
                             return `${userName} "${customerName}" müşterisini ${actionVerb}`;
                           }
-                          
+
                           // Sipariş logları
                           if (log.tableName === "orders" && log.recordId) {
-                            const orderName = entityNames[`orders_${log.recordId}`] || 
-                                             (log.newData?.orderNumber ? `Sipariş #${log.newData.orderNumber}` : null) ||
-                                             (log.oldData?.orderNumber ? `Sipariş #${log.oldData.orderNumber}` : null) ||
-                                             "sipariş";
+                            const orderName = entityNames[`orders_${log.recordId}`] ||
+                              ((log.newData as any)?.orderNumber ? `Sipariş #${(log.newData as any).orderNumber}` : null) ||
+                              ((log.oldData as any)?.orderNumber ? `Sipariş #${(log.oldData as any).orderNumber}` : null) ||
+                              "sipariş";
                             if (log.action === "UPDATE" && log.oldData && log.newData) {
-                              const changedFields = getChangedFields(log.oldData, log.newData);
+                              const changedFields = getChangedFields(log.oldData as any, log.newData as any);
                               if (changedFields.length > 0) {
                                 const fieldLabels = changedFields.map(field => FIELD_LABELS[field] || field).slice(0, 3);
-                                const fieldsText = fieldLabels.length === 1 
+                                const fieldsText = fieldLabels.length === 1
                                   ? `'${fieldLabels[0]}' alanını`
                                   : fieldLabels.length === 2
-                                  ? `'${fieldLabels[0]}' ve '${fieldLabels[1]}' alanlarını`
-                                  : `'${fieldLabels.join("', '")}'${changedFields.length > 3 ? ` ve ${changedFields.length - 3} alan daha` : ''} alanlarını`;
+                                    ? `'${fieldLabels[0]}' ve '${fieldLabels[1]}' alanlarını`
+                                    : `'${fieldLabels.join("', '")}'${changedFields.length > 3 ? ` ve ${changedFields.length - 3} alan daha` : ''} alanlarını`;
                                 return `${userName} "${orderName}" siparişinin ${fieldsText} ${actionVerb}`;
                               }
                             }
                             return `${userName} "${orderName}" siparişini ${actionVerb}`;
                           }
-                          
+
                           // Ürün logları
                           if (log.tableName === "products" && log.recordId) {
-                            const productName = entityNames[`products_${log.recordId}`] || 
-                                               log.newData?.name || 
-                                               log.oldData?.name || 
-                                               "ürün";
+                            const productName = entityNames[`products_${log.recordId}`] ||
+                              (log.newData as any)?.name ||
+                              (log.oldData as any)?.name ||
+                              "ürün";
                             if (log.action === "UPDATE" && log.oldData && log.newData) {
-                              const changedFields = getChangedFields(log.oldData, log.newData);
+                              const changedFields = getChangedFields(log.oldData as any, log.newData as any);
                               if (changedFields.length > 0) {
                                 const fieldLabels = changedFields.map(field => FIELD_LABELS[field] || field).slice(0, 3);
-                                const fieldsText = fieldLabels.length === 1 
+                                const fieldsText = fieldLabels.length === 1
                                   ? `'${fieldLabels[0]}' alanını`
                                   : fieldLabels.length === 2
-                                  ? `'${fieldLabels[0]}' ve '${fieldLabels[1]}' alanlarını`
-                                  : `'${fieldLabels.join("', '")}'${changedFields.length > 3 ? ` ve ${changedFields.length - 3} alan daha` : ''} alanlarını`;
+                                    ? `'${fieldLabels[0]}' ve '${fieldLabels[1]}' alanlarını`
+                                    : `'${fieldLabels.join("', '")}'${changedFields.length > 3 ? ` ve ${changedFields.length - 3} alan daha` : ''} alanlarını`;
                                 return `${userName} "${productName}" ürününün ${fieldsText} ${actionVerb}`;
                               }
                             }
                             return `${userName} "${productName}" ürününü ${actionVerb}`;
                           }
-                          
+
                           // Proje logları
                           if (log.tableName === "projects" && log.recordId) {
-                            const projectName = entityNames[`projects_${log.recordId}`] || 
-                                              log.newData?.name || 
-                                              log.oldData?.name || 
-                                              "proje";
+                            const projectName = entityNames[`projects_${log.recordId}`] ||
+                              (log.newData as any)?.name ||
+                              (log.oldData as any)?.name ||
+                              "proje";
                             if (log.action === "UPDATE" && log.oldData && log.newData) {
-                              const changedFields = getChangedFields(log.oldData, log.newData);
+                              const changedFields = getChangedFields(log.oldData as any, log.newData as any);
                               if (changedFields.length > 0) {
                                 const fieldLabels = changedFields.map(field => FIELD_LABELS[field] || field).slice(0, 3);
-                                const fieldsText = fieldLabels.length === 1 
+                                const fieldsText = fieldLabels.length === 1
                                   ? `'${fieldLabels[0]}' alanını`
                                   : fieldLabels.length === 2
-                                  ? `'${fieldLabels[0]}' ve '${fieldLabels[1]}' alanlarını`
-                                  : `'${fieldLabels.join("', '")}'${changedFields.length > 3 ? ` ve ${changedFields.length - 3} alan daha` : ''} alanlarını`;
+                                    ? `'${fieldLabels[0]}' ve '${fieldLabels[1]}' alanlarını`
+                                    : `'${fieldLabels.join("', '")}'${changedFields.length > 3 ? ` ve ${changedFields.length - 3} alan daha` : ''} alanlarını`;
                                 return `${userName} "${projectName}" projesinin ${fieldsText} ${actionVerb}`;
                               }
                             }
                             return `${userName} "${projectName}" projesini ${actionVerb}`;
                           }
-                          
+
                           // Diğer loglar - entity adı ile
                           if (log.recordId && entityNames[`${log.tableName}_${log.recordId}`]) {
                             const entityName = entityNames[`${log.tableName}_${log.recordId}`];
                             const tableLabel = TABLE_LABELS[log.tableName] || log.tableName;
                             return `${userName} "${entityName}" ${tableLabel.toLowerCase()} kaydını ${actionVerb}`;
                           }
-                          
+
                           // Fallback
                           const actionLabel = ACTION_LABELS[log.action] || "İşlem";
                           return `${userName} ${actionLabel} yaptı`;
@@ -891,7 +893,7 @@ export const RecentActivitiesTable = () => {
 
       {/* Detay Dialog */}
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto overscroll-contain">
           <DialogHeader>
             <DialogTitle>Aktivite Detayları</DialogTitle>
             <DialogDescription>
@@ -902,7 +904,7 @@ export const RecentActivitiesTable = () => {
               )}
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedLog && (
             <div className="space-y-4">
               {/* Genel Bilgiler */}
@@ -932,7 +934,7 @@ export const RecentActivitiesTable = () => {
                       <span className="text-xs text-muted-foreground">{TABLE_LABELS[selectedLog.tableName] || selectedLog.tableName}</span>
                       {(() => {
                         const recordName = getRecordDisplayName(selectedLog.newData || selectedLog.oldData, selectedLog.tableName, selectedLog.recordId) ||
-                                          getRecordDisplayName(selectedLog.oldData, selectedLog.tableName, selectedLog.recordId);
+                          getRecordDisplayName(selectedLog.oldData, selectedLog.tableName, selectedLog.recordId);
                         if (recordName) {
                           return <span className="font-semibold text-sm mt-1">{recordName}</span>;
                         }

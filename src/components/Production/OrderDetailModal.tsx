@@ -29,6 +29,8 @@ import {
   Save,
   Loader2,
   Truck,
+  Factory,
+  Layers,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -125,13 +127,13 @@ type StatusItem = {
   color: string;
 };
 
-// Üretim siparişlerine özgü durum workflow'u
+// Üretim siparişlerine özgü durum workflow'u - Üretim odaklı akış
 const productionStatusWorkflow: StatusItem[] = [
   { value: "planned", label: "Planlanan", icon: ClipboardList, color: "text-muted-foreground" },
-  { value: "in_production", label: "Üretimde", icon: Package, color: "text-blue-500" },
-  { value: "quality_check", label: "Kalite Kontrol", icon: CheckCircle2, color: "text-cyan-500" },
+  { value: "box_production", label: "Kutu Üretimi", icon: Package, color: "text-orange-500" },
+  { value: "component_production", label: "Komponent Üretimi", icon: Factory, color: "text-amber-500" },
+  { value: "assembly", label: "Birleştirme", icon: Layers, color: "text-blue-600" },
   { value: "completed", label: "Tamamlandı", icon: Check, color: "text-emerald-600" },
-  { value: "on_hold", label: "Beklemede", icon: Clock, color: "text-amber-500" },
 ];
 
 const normalizeStatusValue = (status?: string) => {
@@ -192,7 +194,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
     invoice_url: "",
   });
 
-  // Personel kontrolü - Personel üretim siparişi detayını görebilir ama düzenleyemez
+  // Personel kontrolü - Personel üretim detayını görebilir ama düzenleyemez
   // Bu değişkeni en üste taşıyoruz çünkü diğer değişkenlerde kullanılıyor
   const isPersonnel = Boolean(user?.roles?.includes("personnel"));
   const isManager = Boolean(user?.roles?.includes('manager')) || isAdmin;
@@ -412,10 +414,10 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       planned: "Planlanan",
-      in_production: "Üretimde",
-      quality_check: "Kalite Kontrol",
+      box_production: "Kutu Üretimi",
+      component_production: "Komponent Üretimi",
+      assembly: "Birleştirme",
       completed: "Tamamlandı",
-      on_hold: "Beklemede",
     };
     return labels[status] || status;
   };
@@ -424,13 +426,13 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
     switch (status) {
       case "completed":
         return "default";
-      case "in_production":
+      case "box_production":
         return "secondary";
-      case "quality_check":
+      case "component_production":
+        return "secondary";
+      case "assembly":
         return "secondary";
       case "planned":
-        return "outline";
-      case "on_hold":
         return "outline";
       default:
         return "secondary";
@@ -447,10 +449,6 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
     return () => {
       const currentIndex = getCurrentStatusIndex();
       if (currentIndex === -1 || currentIndex >= productionStatusWorkflow.length - 1) {
-        return null;
-      }
-      // on_hold durumundan sonraki duruma geçiş yok, sadece geri dönüş var
-      if (currentStatus === "on_hold") {
         return null;
       }
       // completed durumundan sonra geçiş yok, sipariş tamamlandı
@@ -648,24 +646,24 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="app-dialog-shell">
         <DialogTitle className="sr-only">
-          Üretim Siparişi - {orderNumber}
+          Üretim - {orderNumber}
         </DialogTitle>
         <DialogDescription className="sr-only">
-          {firstItem?.productName ? `${firstItem.productName} - Üretim siparişi detayları` : "Üretim siparişi detayları"}
+          {firstItem?.productName ? `${firstItem.productName} - Üretim detayları` : "Üretim detayları"}
         </DialogDescription>
 
-        <DialogHeader className="p-2 sm:p-3 md:p-4 border-b bg-white flex-shrink-0 relative">
+        <DialogHeader className="p-4 border-b bg-white flex-shrink-0 relative">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 w-full sm:w-auto">
-              <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 flex-shrink-0">
-                <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 flex-shrink-0">
+                <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="text-[13px] sm:text-[15px] md:text-[16px] font-semibold text-foreground truncate">
+                <h2 className="text-lg sm:text-xl font-semibold text-foreground truncate">
                   Sipariş - {orderNumber}
                 </h2>
                 {firstItem?.productName && (
-                  <p className="text-[9px] sm:text-[10px] md:text-[11px] text-muted-foreground truncate mt-0">
+                  <p className="text-sm text-muted-foreground truncate mt-0">
                     {firstItem.productName}
                   </p>
                 )}
@@ -682,7 +680,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                       variant="outline"
                       size="sm"
                       onClick={() => setIsEditing(true)}
-                      className="text-[11px] sm:text-xs h-10 sm:h-8 min-h-[44px] sm:min-h-0 w-full sm:w-auto"
+                      className="h-9 px-4"
                     >
                       <Edit className="h-4 w-4 mr-2" />
                       Düzenle
@@ -693,7 +691,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                       variant="outline"
                       size="sm"
                       onClick={onDelete}
-                      className="text-[11px] sm:text-xs h-10 sm:h-8 min-h-[44px] sm:min-h-0 text-destructive hover:text-destructive w-full sm:w-auto"
+                      className="h-9 px-4 text-destructive hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Sil
@@ -744,7 +742,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                       }
                     }}
                     disabled={saving}
-                    className="text-[11px] sm:text-xs h-10 sm:h-8 min-h-[44px] sm:min-h-0 w-full sm:w-auto"
+                    className="h-9 px-4"
                   >
                     <X className="h-4 w-4 mr-2" />
                     İptal
@@ -761,7 +759,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                       }
                     }}
                     disabled={saving}
-                    className="text-[11px] sm:text-xs h-10 sm:h-8 min-h-[44px] sm:min-h-0 w-full sm:w-auto"
+                    className="h-9 px-4"
                   >
                     {saving ? (
                       <>
@@ -781,7 +779,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden bg-gray-50/50 p-2 sm:p-3 md:p-4 min-h-0">
+        <div className="flex-1 overflow-hidden bg-gray-50/50 p-4 sm:p-6 min-h-0">
           <div className="max-w-full mx-auto h-full app-dialog-scroll">
             {loading ? (
               <div className="flex items-center justify-center py-8">
@@ -817,11 +815,10 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                               const validTransitions = getValidStatusTransitions(currentStatus);
                               const statusLabels: Record<string, string> = {
                                 planned: "Planlanan",
-                                in_production: "Üretimde",
-                                quality_check: "Kalite Kontrol",
+                                box_production: "Kutu Üretimi",
+                                component_production: "Komponent Üretimi",
+                                assembly: "Birleştirme",
                                 completed: "Tamamlandı",
-                                on_hold: "Beklemede",
-                                pending: "Beklemede",
                                 cancelled: "İptal Edildi",
                               };
 

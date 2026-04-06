@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UserMultiSelect } from "@/components/Tasks/UserMultiSelect";
-import { canCreateTask, canCreateProject, canUpdateResource, isMainAdmin, canAddChecklist } from "@/utils/permissions";
+import { canCreateTask, canCreateProject, canUpdateResource, isMainAdmin, canViewTeamManagement } from "@/utils/permissions";
 import { getDepartments } from "@/services/firebase/departmentService";
 import { onPermissionCacheChange } from "@/services/firebase/rolePermissionsService";
 import { UserProfile } from "@/services/firebase/authService";
@@ -139,13 +139,46 @@ export const TaskInlineForm = ({
     checkPermissions();
   }, [user]);
 
-  // Görev oluşturma modunda personnel/izleyici için erişim yok
-  const isPersonnelOrViewer = useMemo(() => {
-    if (!user?.roles) return false;
-    return user.roles.includes("personnel") || user.roles.includes("viewer");
-  }, [user?.roles]);
+  // Görev oluşturma yetkisi - Sidebar'daki Ekip Yönetimi kontrolüyle aynı (canViewTeamManagement)
+  const [canCreateTaskPermission, setCanCreateTaskPermission] = useState(false);
+  const [permissionsLoading, setPermissionsLoading] = useState(true);
 
-  if (!isEdit && isPersonnelOrViewer) {
+  // Sidebar'daki Ekip Yönetimi kontrolüyle aynı yetki kontrolü
+  useEffect(() => {
+    const checkCreatePermission = async () => {
+      if (!user) {
+        setCanCreateTaskPermission(false);
+        setPermissionsLoading(false);
+        return;
+      }
+      try {
+        const departments = await getDepartments();
+        const userProfile: UserProfile = {
+          id: user.id,
+          email: user.email,
+          emailVerified: user.emailVerified,
+          fullName: user.fullName,
+          displayName: user.fullName,
+          phone: null,
+          dateOfBirth: null,
+          role: user.roles || [],
+          createdAt: null,
+          updatedAt: null,
+        };
+        // Sidebar'daki Ekip Yönetimi kontrolüyle aynı
+        const hasPermission = await canViewTeamManagement(userProfile, departments);
+        setCanCreateTaskPermission(hasPermission);
+      } catch (error) {
+        setCanCreateTaskPermission(false);
+      } finally {
+        setPermissionsLoading(false);
+      }
+    };
+    checkCreatePermission();
+  }, [user]);
+
+  // Görev oluşturma yetkisi yoksa erişim engelle (sidebar'daki Ekip Yönetimi kontrolüyle aynı)
+  if (!isEdit && !permissionsLoading && !canCreateTaskPermission) {
     return (
       <Card className={className}>
         <Card className="p-4 border-destructive/50 bg-destructive/5">
@@ -1043,8 +1076,8 @@ export const TaskInlineForm = ({
         return;
       }
 
-      // Yetki kontrolü: Sadece personnel ve viewer görev oluşturamaz
-      if (isPersonnelOrViewer) {
+      // Yetki kontrolü: Görev oluşturma yetkisi yoksa engelle
+      if (!canCreateTaskPermission) {
         toast.error("Görev oluşturma yetkiniz yok.");
         setSaving(false);
         return;
@@ -1386,8 +1419,8 @@ export const TaskInlineForm = ({
                 </div>
               )}
 
-              {/* Gizlilik Ayarı - Personel göremez */}
-              {!onlyInMyTasks && !isPersonnelOrViewer && (
+              {/* Gizlilik Ayarı - Yetki yoksa gösterme */}
+              {!onlyInMyTasks && canCreateTaskPermission && (
                 <div className="flex items-center space-x-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox

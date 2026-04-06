@@ -3514,7 +3514,7 @@ const Tasks = () => {
           <DialogContent className="!max-w-[100vw] sm:!max-w-[95vw] md:!max-w-[85vw] !w-[100vw] sm:!w-[95vw] md:!w-[85vw] !h-[100vh] sm:!h-[90vh] md:!h-[80vh] !max-h-[100vh] sm:!max-h-[90vh] md:!max-h-[80vh] !left-0 sm:!left-[2.5vw] md:!left-[7.5vw] !top-0 sm:!top-[5vh] md:!top-[10vh] !right-0 sm:!right-auto !bottom-0 sm:!bottom-auto !translate-x-0 !translate-y-0 overflow-hidden !p-0 gap-0 bg-white flex flex-col !m-0 !rounded-none sm:!rounded-lg !border-0 sm:!border">
             <div className="flex flex-col h-full min-h-0">
               <DialogHeader className="p-3 sm:p-4 border-b bg-white flex-shrink-0">
-                <DialogTitle className="text-sm sm:text-base md:text-lg font-semibold text-foreground">
+                <DialogTitle>
                   {inlineFormMode === "edit" ? "Görevi Düzenle" : "Yeni Görev"}
                 </DialogTitle>
                 <DialogDescription className="sr-only">

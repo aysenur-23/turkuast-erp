@@ -663,7 +663,7 @@ const Warranty = () => {
                     <ShieldCheck className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <DialogTitle className="text-lg">{selectedRecord ? getProductName(selectedRecord.productId) : "Garanti Kaydı Detayı"}</DialogTitle>
+                    <DialogTitle>{selectedRecord ? getProductName(selectedRecord.productId) : "Garanti Kaydı Detayı"}</DialogTitle>
                     <DialogDescription>Garanti kaydı detayları</DialogDescription>
                   </div>
                 </div>
@@ -904,8 +904,8 @@ const Warranty = () => {
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-[16px] sm:text-[18px]">Garanti Kaydını Sil</AlertDialogTitle>
-              <AlertDialogDescription className="text-[11px] sm:text-xs">
+              <AlertDialogTitle>Garanti Kaydını Sil</AlertDialogTitle>
+              <AlertDialogDescription>
                 {selectedRecord && (
                   <>
                     Bu garanti kaydını silmek istediğinizden emin misiniz?
@@ -915,8 +915,8 @@ const Warranty = () => {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="text-[11px] sm:text-xs">İptal</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="text-[11px] sm:text-xs bg-destructive text-destructive-foreground">
+              <AlertDialogCancel>İptal</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
                 Sil
               </AlertDialogAction>
             </AlertDialogFooter>

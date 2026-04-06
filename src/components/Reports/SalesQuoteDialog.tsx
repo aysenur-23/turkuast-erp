@@ -299,7 +299,7 @@ export const SalesQuoteDialog = ({ open, onOpenChange }: SalesQuoteDialogProps) 
                           Satır Ekle
                         </Button>
                       </div>
-                      <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                      <div className="space-y-3 max-h-64 overflow-y-auto overscroll-contain pr-1">
                         {(Array.isArray(quote.items) ? quote.items : []).map((item, index) => (
                           <Card key={index} className="p-3">
                             <div className="flex justify-between gap-2">

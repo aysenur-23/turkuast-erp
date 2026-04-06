@@ -122,10 +122,10 @@ const PageLoader = () => (
       className="w-[120px] h-auto mb-[36px] drop-shadow-[0_10px_15px_rgba(37,99,235,0.15)]"
       loading="eager"
     />
-    <div className="w-[50px] h-[50px] border-[3px] border-[#2563eb1a] border-t-[#2563eb] rounded-full animate-spin mb-[24px]" />
-    <div className="text-[#475569] font-medium text-base tracking-[0.5px] mt-[10px]">
+    <div className="text-[#475569] font-medium text-base tracking-[0.5px] mb-[24px]">
       Turkuast ERP Yükleniyor...
     </div>
+    <div className="w-[50px] h-[50px] border-[3px] border-[#2563eb1a] border-t-[#2563eb] rounded-full animate-spin" />
   </div>
 );
 

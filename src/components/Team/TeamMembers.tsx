@@ -497,7 +497,7 @@ export const TeamMembers = ({
                     <FileText className="h-4 w-4" />
                     Son Görevler
                   </h4>
-                  <div className="border rounded-md divide-y max-h-[300px] overflow-y-auto">
+                  <div className="border rounded-md divide-y max-h-[300px] overflow-y-auto overscroll-contain">
                     {previewData.stats.assignments.length > 0 ? (
                       previewData.stats.assignments.sort((a, b) => new Date(b.assignedAt).getTime() - new Date(a.assignedAt).getTime()).slice(0, 10).map((task, idx) => (
                         <div key={idx} className="p-3 flex items-center justify-between hover:bg-muted/50 transition-colors">

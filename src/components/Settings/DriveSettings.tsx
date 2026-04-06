@@ -98,10 +98,11 @@ export const DriveSettings = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
           <Cloud className="h-5 w-5" />
-          Google Drive Ayarları
+          Google Drive Entegrasyonu (Opsiyonel)
         </CardTitle>
         <CardDescription className="text-xs sm:text-sm">
-          Google Drive entegrasyonunu yönetin. Dosya yüklemek için Drive yetkilendirmesi gereklidir.
+          Google Drive birincil depolama alanı olarak kullanılır. Drive yetkilendirmesi olmadan 
+          dosyalar Firebase Storage'a yedeklenir.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -112,19 +113,19 @@ export const DriveSettings = () => {
               <>
                 <CheckCircle2 className="h-5 w-5 text-green-600" />
                 <div>
-                  <p className="font-medium">Google Drive Yetkilendirildi</p>
+                  <p className="font-medium">Google Drive Aktif (Birincil)</p>
                   <p className="text-sm text-muted-foreground">
-                    Dosya yükleme ve silme işlemleri yapabilirsiniz
+                    Dosyalar önce Google Drive'a, sonra Firebase Storage'a yükleniyor
                   </p>
                 </div>
               </>
             ) : (
               <>
-                <XCircle className="h-5 w-5 text-red-600" />
+                <XCircle className="h-5 w-5 text-amber-500" />
                 <div>
-                  <p className="font-medium">Google Drive Yetkilendirilmedi</p>
+                  <p className="font-medium">Google Drive Pasif (Fallback Modu)</p>
                   <p className="text-sm text-muted-foreground">
-                    Dosya yüklemek için Drive yetkilendirmesi yapmalısınız
+                    Dosyalar sadece Firebase Storage'a yükleniyor (Drive yetkilendirmesi önerilir)
                   </p>
                 </div>
               </>
@@ -137,8 +138,8 @@ export const DriveSettings = () => {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Google Drive yetkilendirmesi yapılmadan dosya yükleme işlemleri çalışmayacaktır.
-              Lütfen "Google ile Giriş Yap" butonuna tıklayarak Google hesabınızla giriş yapın.
+              Google Drive birincil depolama alanıdır. Yetkilendirme olmadan dosyalar 
+              Firebase Storage'a yüklenir ancak Drive entegrasyonu önerilir.
               {!user && " Önce sistemde giriş yapmanız gerekiyor."}
             </AlertDescription>
           </Alert>
@@ -197,11 +198,11 @@ export const DriveSettings = () => {
         <div className="text-sm text-muted-foreground space-y-2 pt-2 border-t">
           <p className="font-medium">Bilgi:</p>
           <ul className="list-disc list-inside space-y-1 ml-2">
-            <li>Google ile giriş yaptığınızda Drive erişimi otomatik olarak sağlanır</li>
-            <li>Token'lar sadece sizin tarayıcınızda saklanır</li>
-            <li>Token'lar otomatik olarak yenilenir</li>
-            <li>Yetkilendirmeyi istediğiniz zaman kaldırabilirsiniz</li>
-            <li>Drive yetkilendirmesi olmadan dosya yükleme yapılamaz</li>
+            <li>Google Drive birincil depolama alanıdır (öncelikli)</li>
+            <li>Firebase Storage fallback/yedek depolama alanıdır</li>
+            <li>Drive yetkilendirmesi olmadan dosyalar Firebase'e yüklenir</li>
+            <li>Drive aktif olduğunda dosyalar her iki yere yüklenir</li>
+            <li>Token'lar sadece sizin tarayıcınızda saklanır ve otomatik yenilenir</li>
           </ul>
         </div>
       </CardContent>
