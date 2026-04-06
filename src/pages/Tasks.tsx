@@ -3491,7 +3491,7 @@ const Tasks = () => {
                   </div>
 
                   {/* Yeni Görev Butonu - Personel göremez */}
-                  {canCreate && !(user?.roles?.includes("personnel")) && (
+                  {user && !(user?.roles?.includes("personnel")) && (
                     <Button
                       size="sm"
                       className="h-7 text-xs px-2.5 gap-1.5 font-medium shadow-sm hover:shadow transition-all"
