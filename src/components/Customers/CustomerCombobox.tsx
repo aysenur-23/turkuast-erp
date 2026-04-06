@@ -178,7 +178,7 @@ export const CustomerCombobox = memo(({ value, onChange, placeholder = "Müşter
                       className="gap-2 min-h-[44px] sm:min-h-0"
                       onClick={() => {
                         setOpen(false);
-                        setTimeout(() => setCreateDialogOpen(true), 50);
+                        setTimeout(() => setCreateDialogOpen(true), 100);
                       }}
                     >
                       <Plus className="h-4 w-4" />
@@ -194,7 +194,7 @@ export const CustomerCombobox = memo(({ value, onChange, placeholder = "Müşter
                       className="gap-2 min-h-[44px] sm:min-h-0"
                       onClick={() => {
                         setOpen(false);
-                        setTimeout(() => setCreateDialogOpen(true), 50);
+                        setTimeout(() => setCreateDialogOpen(true), 100);
                       }}
                     >
                       <Plus className="h-4 w-4" />
@@ -208,7 +208,7 @@ export const CustomerCombobox = memo(({ value, onChange, placeholder = "Müşter
                   <CommandItem
                     onSelect={() => {
                       setOpen(false);
-                      setCreateDialogOpen(true);
+                      setTimeout(() => setCreateDialogOpen(true), 100);
                     }}
                     className="flex items-center gap-2 text-primary cursor-pointer min-h-[44px] sm:min-h-0 hover:bg-primary/5"
                   >
