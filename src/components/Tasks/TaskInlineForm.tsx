@@ -102,7 +102,7 @@ export const TaskInlineForm = ({
   const { user } = useAuth();
   const [canUpdate, setCanUpdate] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  
+
   // Permission state'lerini Firestore'dan kontrol et
   useEffect(() => {
     const checkPermissions = async () => {
@@ -138,13 +138,13 @@ export const TaskInlineForm = ({
     };
     checkPermissions();
   }, [user]);
-  
+
   // Görev oluşturma modunda personnel/izleyici için erişim yok
   const isPersonnelOrViewer = useMemo(() => {
     if (!user?.roles) return false;
     return user.roles.includes("personnel") || user.roles.includes("viewer");
   }, [user?.roles]);
-  
+
   if (!isEdit && isPersonnelOrViewer) {
     return (
       <Card className={className}>
@@ -297,11 +297,11 @@ export const TaskInlineForm = ({
       setSelectedProjectId(task.projectId || null);
       setIsPrivate(task.isPrivate || false);
       // Status'ü normalize et (column_ prefix'ini kaldır)
-      const normalizedStatus = task.status?.startsWith("column_") 
-        ? "pending" 
+      const normalizedStatus = task.status?.startsWith("column_")
+        ? "pending"
         : (task.status as "pending" | "in_progress" | "completed" || "pending");
       setTaskStatus(normalizedStatus);
-      
+
       const activeAssignments = assignments.filter((a) => a.status !== "rejected");
       setSelectedMembers(activeAssignments.map((a) => a.assignedTo));
       setExistingAssignments(assignments);
@@ -350,170 +350,170 @@ export const TaskInlineForm = ({
 
   // Projeleri yükle fonksiyonu
   const loadProjects = useCallback(async () => {
-      try {
-        const { getProjects, getProjectById } = await import("@/services/firebase/projectService");
-        
-        // Düzenleme modunda tüm projeleri göster, yeni görev oluştururken ve projectId varsa sadece o projeyi göster
-        if (projectId && !isEdit) {
-          try {
-            const currentProject = await getProjectById(projectId);
-            // Proje bulunamadıysa boş liste göster
-            if (!currentProject) {
-              setProjects([]);
-              return;
-            }
-            // Gizli proje kontrolü: Eğer gizli projeyse ve kullanıcı yetkili değilse, boş liste göster
-            // Ekip lideri sadece kendi oluşturduğu gizli projeleri görebilir
-            if (currentProject.isPrivate) {
-              if (isSuperAdmin) {
-                setProjects([currentProject]);
-                return;
-              }
-              if (user?.id && currentProject.createdBy === user.id) {
-                setProjects([currentProject]);
-                return;
-              }
-              // Ekip lideri için projede görevi olan kullanıcılar kontrolü yapılmaz (sadece kendi oluşturduğu gizli projeleri görebilir)
-              // Team Leader kontrolü - Firestore'dan (canUpdate projects)
-              if (canUpdate && !isSuperAdmin) {
-                // Ekip lideri sadece kendi oluşturduğu gizli projeleri görebilir (yukarıda kontrol edildi)
-                setProjects([]);
-                return;
-              }
-              // Projede görevi olan kullanıcılar görebilir (ekip lideri hariç)
-              if (user?.id) {
-                try {
-                  const { getTasks, getTaskAssignments } = await import("@/services/firebase/taskService");
-                  const projectTasks = await getTasks({ projectId: projectId });
-                  
-                  for (const task of projectTasks) {
-                    if (task.createdBy === user.id) {
-                      setProjects([currentProject]);
-                      return;
-                    }
-                    if (task.assignedUsers && task.assignedUsers.includes(user.id)) {
-                      setProjects([currentProject]);
-                      return;
-                    }
-                    const assignments = await getTaskAssignments(task.id);
-                    const isAssigned = assignments.some(
-                      (a) => a.assignedTo === user.id && (a.status === "accepted" || a.status === "pending")
-                    );
-                    if (isAssigned) {
-                      setProjects([currentProject]);
-                      return;
-                    }
-                  }
-                } catch (error: unknown) {
-                  // Hata durumunda sessizce devam et
-                }
-              }
-              // Yetkisiz kullanıcı - boş liste
-              setProjects([]);
-              return;
-            } else {
-              // Gizli olmayan proje - göster
-              setProjects([currentProject]);
-              return;
-            }
-          } catch (error: unknown) {
+    try {
+      const { getProjects, getProjectById } = await import("@/services/firebase/projectService");
+
+      // Düzenleme modunda tüm projeleri göster, yeni görev oluştururken ve projectId varsa sadece o projeyi göster
+      if (projectId && !isEdit) {
+        try {
+          const currentProject = await getProjectById(projectId);
+          // Proje bulunamadıysa boş liste göster
+          if (!currentProject) {
             setProjects([]);
             return;
           }
-        }
-        
-        // Normal durum: Tüm görünür projeleri yükle
-        const allProjects = await getProjects({ status: "active" });
-
-        // Eğer bir gizli projeye görev ekleniyorsa (projectId prop'u ile ve yeni görev oluştururken), sadece o proje gösterilmeli
-        // Diğer gizli projeler gösterilmemeli
-        if (projectId && !isEdit) {
-          const currentProject = allProjects.find(p => p.id === projectId);
-          if (currentProject?.isPrivate) {
-            // Gizli projeye görev ekleniyorsa, sadece o proje gösterilmeli
-            // Yukarıdaki kontrol zaten yapıldı, buraya gelmemeli ama yine de kontrol edelim
-            setProjects([currentProject]);
-            return;
-          }
-        }
-
-        // Gizli projeleri filtrele: Sadece yönetici, oluşturan ve projede görevi olanlar görebilir
-        // ÖNEMLİ: Eğer bir gizli projeye görev ekleniyorsa (ve yeni görev oluştururken), diğer gizli projeler gösterilmemeli
-        const visibleProjects = await Promise.all(
-          allProjects.map(async (project) => {
-            // Eğer bir gizli projeye görev ekleniyorsa (ve yeni görev oluştururken), diğer gizli projeler gösterilmemeli
-            if (projectId && !isEdit) {
-              const currentProject = allProjects.find(p => p.id === projectId);
-              if (currentProject?.isPrivate && project.isPrivate && project.id !== projectId) {
-                // Başka bir gizli proje, gösterilmemeli
-                return null;
-              }
+          // Gizli proje kontrolü: Eğer gizli projeyse ve kullanıcı yetkili değilse, boş liste göster
+          // Ekip lideri sadece kendi oluşturduğu gizli projeleri görebilir
+          if (currentProject.isPrivate) {
+            if (isSuperAdmin) {
+              setProjects([currentProject]);
+              return;
             }
-            
-            if (!project.isPrivate) return project; // Gizli olmayan projeler herkes görebilir
-            
-            // Gizli projeler için yetki kontrolü
-            if (isSuperAdmin) return project; // Super Admin tüm projeleri görebilir
-            if (user?.id && project.createdBy === user.id) return project; // Oluşturan görebilir
-            
+            if (user?.id && currentProject.createdBy === user.id) {
+              setProjects([currentProject]);
+              return;
+            }
             // Ekip lideri için projede görevi olan kullanıcılar kontrolü yapılmaz (sadece kendi oluşturduğu gizli projeleri görebilir)
             // Team Leader kontrolü - Firestore'dan (canUpdate projects)
             if (canUpdate && !isSuperAdmin) {
-              return null; // Ekip lideri sadece kendi oluşturduğu gizli projeleri görebilir (yukarıda kontrol edildi)
+              // Ekip lideri sadece kendi oluşturduğu gizli projeleri görebilir (yukarıda kontrol edildi)
+              setProjects([]);
+              return;
             }
-            
             // Projede görevi olan kullanıcılar görebilir (ekip lideri hariç)
             if (user?.id) {
               try {
-                // Projedeki görevleri kontrol etmeden önce, kullanıcının bu projeye atanmış olup olmadığını kontrol et
-                // (Eğer proje üyeleri özelliği varsa)
-                
                 const { getTasks, getTaskAssignments } = await import("@/services/firebase/taskService");
-                const projectTasks = await getTasks({ projectId: project.id });
-                
-                // Kullanıcının bu projede görevi var mı kontrol et
+                const projectTasks = await getTasks({ projectId: projectId });
+
                 for (const task of projectTasks) {
-                  // Görevi oluşturan kişi
-                  if (task.createdBy === user.id) return project;
-                  
-                  // Atanan kullanıcılar
-                  if (task.assignedUsers && task.assignedUsers.includes(user.id)) return project;
-                  
-                  // Assignments kontrolü
+                  if (task.createdBy === user.id) {
+                    setProjects([currentProject]);
+                    return;
+                  }
+                  if (task.assignedUsers && task.assignedUsers.includes(user.id)) {
+                    setProjects([currentProject]);
+                    return;
+                  }
                   const assignments = await getTaskAssignments(task.id);
                   const isAssigned = assignments.some(
                     (a) => a.assignedTo === user.id && (a.status === "accepted" || a.status === "pending")
                   );
-                  if (isAssigned) return project;
+                  if (isAssigned) {
+                    setProjects([currentProject]);
+                    return;
+                  }
                 }
-              } catch (error) {
+              } catch (error: unknown) {
                 // Hata durumunda sessizce devam et
               }
             }
-            
-            return null; // Diğer kullanıcılar gizli projeleri göremez
-          })
-        );
-
-        // Null değerleri filtrele ve aynı projeyi tekrarlamamak için filtrele (Genel Görevler artık gösterilecek)
-        const uniqueProjects = Array.from(
-          new Map(
-            visibleProjects
-              .filter((project) => project !== null && project !== undefined && project.id)
-              .map((project) => [project.id, project])
-          ).values()
-        );
-
-        setProjects(uniqueProjects);
-      } catch (error: unknown) {
-        // Hata durumunda sessizce devam et
+            // Yetkisiz kullanıcı - boş liste
+            setProjects([]);
+            return;
+          } else {
+            // Gizli olmayan proje - göster
+            setProjects([currentProject]);
+            return;
+          }
+        } catch (error: unknown) {
+          setProjects([]);
+          return;
+        }
       }
+
+      // Normal durum: Tüm görünür projeleri yükle
+      const allProjects = await getProjects({ status: "active" });
+
+      // Eğer bir gizli projeye görev ekleniyorsa (projectId prop'u ile ve yeni görev oluştururken), sadece o proje gösterilmeli
+      // Diğer gizli projeler gösterilmemeli
+      if (projectId && !isEdit) {
+        const currentProject = allProjects.find(p => p.id === projectId);
+        if (currentProject?.isPrivate) {
+          // Gizli projeye görev ekleniyorsa, sadece o proje gösterilmeli
+          // Yukarıdaki kontrol zaten yapıldı, buraya gelmemeli ama yine de kontrol edelim
+          setProjects([currentProject]);
+          return;
+        }
+      }
+
+      // Gizli projeleri filtrele: Sadece yönetici, oluşturan ve projede görevi olanlar görebilir
+      // ÖNEMLİ: Eğer bir gizli projeye görev ekleniyorsa (ve yeni görev oluştururken), diğer gizli projeler gösterilmemeli
+      const visibleProjects = await Promise.all(
+        allProjects.map(async (project) => {
+          // Eğer bir gizli projeye görev ekleniyorsa (ve yeni görev oluştururken), diğer gizli projeler gösterilmemeli
+          if (projectId && !isEdit) {
+            const currentProject = allProjects.find(p => p.id === projectId);
+            if (currentProject?.isPrivate && project.isPrivate && project.id !== projectId) {
+              // Başka bir gizli proje, gösterilmemeli
+              return null;
+            }
+          }
+
+          if (!project.isPrivate) return project; // Gizli olmayan projeler herkes görebilir
+
+          // Gizli projeler için yetki kontrolü
+          if (isSuperAdmin) return project; // Super Admin tüm projeleri görebilir
+          if (user?.id && project.createdBy === user.id) return project; // Oluşturan görebilir
+
+          // Ekip lideri için projede görevi olan kullanıcılar kontrolü yapılmaz (sadece kendi oluşturduğu gizli projeleri görebilir)
+          // Team Leader kontrolü - Firestore'dan (canUpdate projects)
+          if (canUpdate && !isSuperAdmin) {
+            return null; // Ekip lideri sadece kendi oluşturduğu gizli projeleri görebilir (yukarıda kontrol edildi)
+          }
+
+          // Projede görevi olan kullanıcılar görebilir (ekip lideri hariç)
+          if (user?.id) {
+            try {
+              // Projedeki görevleri kontrol etmeden önce, kullanıcının bu projeye atanmış olup olmadığını kontrol et
+              // (Eğer proje üyeleri özelliği varsa)
+
+              const { getTasks, getTaskAssignments } = await import("@/services/firebase/taskService");
+              const projectTasks = await getTasks({ projectId: project.id });
+
+              // Kullanıcının bu projede görevi var mı kontrol et
+              for (const task of projectTasks) {
+                // Görevi oluşturan kişi
+                if (task.createdBy === user.id) return project;
+
+                // Atanan kullanıcılar
+                if (task.assignedUsers && task.assignedUsers.includes(user.id)) return project;
+
+                // Assignments kontrolü
+                const assignments = await getTaskAssignments(task.id);
+                const isAssigned = assignments.some(
+                  (a) => a.assignedTo === user.id && (a.status === "accepted" || a.status === "pending")
+                );
+                if (isAssigned) return project;
+              }
+            } catch (error) {
+              // Hata durumunda sessizce devam et
+            }
+          }
+
+          return null; // Diğer kullanıcılar gizli projeleri göremez
+        })
+      );
+
+      // Null değerleri filtrele ve aynı projeyi tekrarlamamak için filtrele (Genel Görevler artık gösterilecek)
+      const uniqueProjects = Array.from(
+        new Map(
+          visibleProjects
+            .filter((project) => project !== null && project !== undefined && project.id)
+            .map((project) => [project.id, project])
+        ).values()
+      );
+
+      setProjects(uniqueProjects);
+    } catch (error: unknown) {
+      // Hata durumunda sessizce devam et
+    }
   }, [isEdit, isSuperAdmin, canUpdate, user, projectId]);
-  
+
   useEffect(() => {
     loadProjects();
   }, [loadProjects]);
-  
+
   // selectedProjectId değiştiğinde projeleri yeniden yükle (gizli proje seçildiyse)
   useEffect(() => {
     if (selectedProjectId) {
@@ -540,7 +540,7 @@ export const TaskInlineForm = ({
 
   const handleAddChecklistItem = async () => {
     if (!newChecklistText.trim()) return;
-    
+
     // Yetki kontrolü: Düzenleme modunda sadece atanan kullanıcılar ve adminler checklist öğesi ekleyebilir
     if (isEdit && taskId) {
       const canInteract = isSuperAdmin || canUpdate || (user?.id && selectedMembers.includes(user.id));
@@ -550,7 +550,7 @@ export const TaskInlineForm = ({
         return;
       }
     }
-    
+
     const newItem = {
       id: `${Date.now()}`,
       text: newChecklistText.trim(),
@@ -606,7 +606,7 @@ export const TaskInlineForm = ({
         return;
       }
     }
-    
+
     if (isEdit && taskId && activeChecklistId) {
       try {
         await deleteChecklistItem(taskId, activeChecklistId, id);
@@ -692,7 +692,7 @@ export const TaskInlineForm = ({
     try {
       // 1. Upload to Storage
       const uploadResult = await uploadTaskAttachment(file, taskId);
-      
+
       // 2. Add metadata to Firestore
       const attachment = await addTaskAttachment(taskId, {
         name: file.name,
@@ -718,7 +718,7 @@ export const TaskInlineForm = ({
           driveFileId: attachment.driveFileId,
         },
       ]);
-      
+
       toast.success("Dosya başarıyla yüklendi", { id: toastId });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Dosya yüklenemedi";
@@ -891,12 +891,12 @@ export const TaskInlineForm = ({
       // Proje detay sayfasındayken (projectId prop'u varsa), otomatik olarak o projeyi kullan
       // Eğer kullanıcı başka bir proje seçmişse, onu kullan
       let finalProjectId = selectedProjectId || projectId || null;
-      
+
       // Proje detay sayfasındayken ve proje seçilmemişse, otomatik olarak projectId prop'unu kullan
       if (projectId && !selectedProjectId && !onlyInMyTasks) {
         finalProjectId = projectId;
       }
-      
+
       // Gizli projelere gizli olmayan görevlerin atanmasını engelle
       // Eğer proje gizliyse, otomatik olarak görevi de gizli yap
       let finalIsPrivate = isPrivate;
@@ -910,7 +910,7 @@ export const TaskInlineForm = ({
           }
         }
       }
-      
+
       // Gizli görevler için proje seçimi zorunlu ve sadece gizli projelere atanabilir
       if (finalIsPrivate) {
         if (!finalProjectId) {
@@ -1043,27 +1043,11 @@ export const TaskInlineForm = ({
         return;
       }
 
-      // Yetki kontrolü: Görev oluşturma yetkisi var mı?
-      if (!canCreate && !isSuperAdmin) {
-        const departments = await getDepartments();
-        const userProfile: UserProfile = {
-          id: user.id,
-          email: user.email,
-          emailVerified: user.emailVerified,
-          fullName: user.fullName,
-          displayName: user.fullName,
-          phone: user.phone,
-          dateOfBirth: user.dateOfBirth,
-          role: user.roles,
-          createdAt: null,
-          updatedAt: null,
-        };
-        const canCreateResult = await canCreateTask(userProfile, departments);
-        if (!canCreateResult) {
-          toast.error("Görev oluşturma yetkiniz yok. Sadece yöneticiler ve ekip liderleri görev oluşturabilir.");
-          setSaving(false);
-          return;
-        }
+      // Yetki kontrolü: Sadece personnel ve viewer görev oluşturamaz
+      if (isPersonnelOrViewer) {
+        toast.error("Görev oluşturma yetkiniz yok.");
+        setSaving(false);
+        return;
       }
 
       const task = await createTask({
@@ -1242,9 +1226,9 @@ export const TaskInlineForm = ({
               </SelectTrigger>
               <SelectContent className="min-w-[var(--radix-select-trigger-width)] max-h-[300px] sm:max-h-[200px] p-1 sm:p-1">
                 {PRIORITY_OPTIONS.map((option) => (
-                  <SelectItem 
-                    key={option.value} 
-                    value={option.value.toString()} 
+                  <SelectItem
+                    key={option.value}
+                    value={option.value.toString()}
                     className="text-[14px] sm:text-sm min-h-[44px] sm:min-h-[36px] flex items-center py-2.5 sm:py-1.5 px-3 sm:px-2 cursor-pointer"
                   >
                     {option.label} ({option.value})
@@ -1291,14 +1275,14 @@ export const TaskInlineForm = ({
                   // Eğer gizli görev seçildiyse veya gizli proje seçildiyse, sadece gizli projeleri göster
                   const selectedProject = selectedProjectId ? projects.find(p => p.id === selectedProjectId) : null;
                   let filteredProjects = projects;
-                  
+
                   if (isPrivate) {
                     // Gizli görev seçildiyse, sadece gizli projeleri göster
                     // ANCAK: Mevcut seçili proje gizli değilse bile, kullanıcının erişebildiği tüm gizli projeleri göstermeliyiz
                     // projects listesi zaten kullanıcının yetkisine göre filtrelenmiş olarak geliyor (loadProjects fonksiyonunda)
                     // Bu yüzden projects içindeki isPrivate olanları filtrelemek yeterli
                     filteredProjects = projects.filter(p => p.isPrivate);
-                    
+
                     // Eğer liste boşsa ve mevcut seçili proje varsa onu ekle (listede görünmesi için)
                     if (filteredProjects.length === 0 && selectedProject?.isPrivate) {
                       filteredProjects = [selectedProject];
@@ -1307,22 +1291,22 @@ export const TaskInlineForm = ({
                     // Gizli proje seçildiyse, sadece gizli projeleri göster
                     filteredProjects = projects.filter(p => p.isPrivate);
                   }
-                  
+
                   return (
-                    <div className="max-h-[300px] overflow-y-auto overflow-x-hidden scroll-smooth" 
-                         style={{ 
-                           height: 'auto', 
-                           maxHeight: '300px',
-                           scrollPaddingBlock: '10px'
-                         }}>
+                    <div className="max-h-[300px] overflow-y-auto overscroll-contain overflow-x-hidden scroll-smooth"
+                      style={{
+                        height: 'auto',
+                        maxHeight: '300px',
+                        scrollPaddingBlock: '10px'
+                      }}>
                       {filteredProjects.map((p) => (
                         <SelectItem key={p.id} value={p.id}>
                           {p.name}
                         </SelectItem>
                       ))}
                       <div className="border-t border-border mt-1 pt-1">
-                        <SelectItem 
-                          value="__create_project__" 
+                        <SelectItem
+                          value="__create_project__"
                           className="text-primary font-medium cursor-pointer"
                         >
                           <Plus className="h-4 w-4 mr-2 inline" />
@@ -1370,8 +1354,8 @@ export const TaskInlineForm = ({
             <div className="flex flex-col gap-2 pt-2">
               {!isEdit && (
                 <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="pool-mode" 
+                  <Checkbox
+                    id="pool-mode"
                     checked={isTaskInPool}
                     onCheckedChange={(checked) => setIsTaskInPool(checked as boolean)}
                   />
@@ -1380,7 +1364,7 @@ export const TaskInlineForm = ({
                   </Label>
                 </div>
               )}
-              
+
               {/* Sadece Benim Görevlerim Sayfasında Göster */}
               {showOnlyInMyTasks && !isEdit && (
                 <div className="flex items-center space-x-2">
@@ -1401,7 +1385,7 @@ export const TaskInlineForm = ({
                   </Label>
                 </div>
               )}
-              
+
               {/* Gizlilik Ayarı - Personel göremez */}
               {!onlyInMyTasks && !isPersonnelOrViewer && (
                 <div className="flex items-center space-x-2">
@@ -1414,14 +1398,14 @@ export const TaskInlineForm = ({
                         // Gizli projede görev oluştururken checkbox disabled olduğu için bu fonksiyon çalışmayacak
                         // Ama yine de güvenlik için kontrol ekliyoruz
                         const selectedProject = selectedProjectId ? projects.find(p => p.id === selectedProjectId) : null;
-                        
+
                         // Eğer proje gizli ise, checkbox zaten disabled olduğu için buraya gelmemeli
                         if (selectedProject?.isPrivate) {
                           return; // Gizli projede değişiklik yapılamaz
                         }
-                        
+
                         setIsPrivate(checked as boolean);
-                        
+
                         // Gizlilik seçildiğinde, eğer seçili proje gizli değilse proje seçimini sıfırla
                         if (checked && selectedProjectId && !selectedProject?.isPrivate) {
                           setSelectedProjectId(null);
@@ -1430,12 +1414,12 @@ export const TaskInlineForm = ({
                         }
                       }}
                     />
-                    <Label 
-                      htmlFor="private-task-inline" 
+                    <Label
+                      htmlFor="private-task-inline"
                       className={cn(
                         "text-[11px] sm:text-xs font-normal text-muted-foreground flex items-center gap-1",
-                        selectedProjectId && projects.find(p => p.id === selectedProjectId)?.isPrivate 
-                          ? "cursor-default" 
+                        selectedProjectId && projects.find(p => p.id === selectedProjectId)?.isPrivate
+                          ? "cursor-default"
                           : "cursor-pointer"
                       )}
                     >
@@ -1505,7 +1489,7 @@ export const TaskInlineForm = ({
               <Paperclip className="h-4 w-4" />
               Ekler (Dosya & Link)
             </Label>
-            
+
             {/* Link Ekleme Alanı */}
             <div className="grid gap-2 sm:grid-cols-3">
               <Input
@@ -1532,7 +1516,7 @@ export const TaskInlineForm = ({
                 <LinkIcon className="h-4 w-4 mr-1" />
                 Link Ekle
               </Button>
-              
+
               {/* Dosya Yükleme Butonu (Sadece Edit modunda) */}
               {isEdit && (
                 <div className="relative">
@@ -1542,10 +1526,10 @@ export const TaskInlineForm = ({
                     className="hidden"
                     onChange={handleFileUpload}
                   />
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => fileInputRef.current?.click()}
                     className="min-h-[44px] sm:min-h-0 flex-1 sm:flex-initial"
                   >
@@ -1578,10 +1562,10 @@ export const TaskInlineForm = ({
                         <LinkIcon className="h-3 w-3 mr-2 text-muted-foreground" />
                       )}
                       <span className="font-medium">{att.label}</span>
-                      <a 
-                        href={att.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
+                      <a
+                        href={att.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="text-muted-foreground ml-2 truncate inline-block max-w-[220px] align-middle hover:text-primary hover:underline"
                       >
                         {att.type === "file" ? "Dosyayı Aç" : att.url}

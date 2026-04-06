@@ -900,11 +900,6 @@ export const TaskBoard = ({ tasks, onTaskClick, onStatusChange, showProjectFilte
   // Liste ekleme/düzenleme/arşivleme/silme özellikleri kaldırıldı - sabit 4 kolon kullanılıyor
 
   const handleAddTask = async (columnId: string, quickAdd: boolean = false) => {
-    // Firestore'dan yetki kontrolü
-    if (!canCreate) {
-      toast.error("Görev ekleme yetkiniz yok. Sadece yönetici veya ekip lideri ekleyebilir.");
-      return;
-    }
 
     // Artık direkt görev oluşturmak yerine TaskInlineForm'u açıyoruz
     // initialStatus olarak columnId'yi kullanıyoruz

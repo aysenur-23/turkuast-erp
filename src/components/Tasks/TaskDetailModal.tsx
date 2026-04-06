@@ -2324,27 +2324,11 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange, onUpdate, initialS
         }
       }
 
-      // Yetki kontrolü: Görev oluşturma yetkisi var mı?
-      if (!canCreate && !isSuperAdmin) {
-        const departments = await getDepartments();
-        const userProfile: UserProfile = {
-          id: user.id,
-          email: user.email,
-          emailVerified: user.emailVerified,
-          fullName: user.fullName,
-          displayName: user.fullName,
-          phone: null,
-          dateOfBirth: null,
-          role: user.roles || [],
-          createdAt: null,
-          updatedAt: null,
-        };
-        const canCreateResult = await canCreateTask(userProfile, departments);
-        if (!canCreateResult) {
-          toast.error("Görev oluşturma yetkiniz yok. Sadece yöneticiler ve ekip liderleri görev oluşturabilir.");
-          setCreatingTask(false);
-          return;
-        }
+      // Yetki kontrolü: Sadece personnel ve viewer görev oluşturamaz
+      if (isPersonnelOrViewer) {
+        toast.error("Görev oluşturma yetkiniz yok.");
+        setCreatingTask(false);
+        return;
       }
 
       const labelNames = newTaskLabels.map((label) => label.name);
