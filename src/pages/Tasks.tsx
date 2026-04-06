@@ -171,7 +171,7 @@ const taskStatusWorkflow: StatusItem[] = [
 ];
 
 const Tasks = () => {
-  const { user } = useAuth();
+  const { user, isAdmin, isTeamLeader } = useAuth();
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [canUpdate, setCanUpdate] = useState(false);
 
@@ -2777,7 +2777,7 @@ const Tasks = () => {
           </h1>
           <div className="flex items-center gap-2">
             {/* Görev Ekle Butonu */}
-            {canCreate && !(user?.roles?.includes("personnel")) && (
+            {(canCreate || isAdmin || isTeamLeader) && !(user?.roles?.includes("personnel")) && (
               <Button
                 size="sm"
                 className="h-7 text-xs px-2.5 gap-1.5 font-medium shadow-sm hover:shadow transition-all"
@@ -4470,7 +4470,7 @@ const Tasks = () => {
 
         {/* Advanced Search Dialog */}
         <Dialog open={advancedSearchOpen} onOpenChange={setAdvancedSearchOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto overscroll-contain">
             <DialogHeader>
               <DialogTitle>Gelişmiş Arama</DialogTitle>
               <DialogDescription>
