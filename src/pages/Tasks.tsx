@@ -2777,7 +2777,7 @@ const Tasks = () => {
           </h1>
           <div className="flex items-center gap-2">
             {/* Görev Ekle Butonu */}
-            {(canCreate || isAdmin || isTeamLeader) && !(user?.roles?.includes("personnel")) && (
+            {user && !(user?.roles?.includes("personnel")) && (
               <Button
                 size="sm"
                 className="h-7 text-xs px-2.5 gap-1.5 font-medium shadow-sm hover:shadow transition-all"
