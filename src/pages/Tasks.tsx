@@ -3495,34 +3495,8 @@ const Tasks = () => {
                     <Button
                       size="sm"
                       className="h-7 text-xs px-2.5 gap-1.5 font-medium shadow-sm hover:shadow transition-all"
-                      onClick={async () => {
-                        if (!user) return;
-                        try {
-                          const departments = await getDepartments();
-                          const userProfile: UserProfile = {
-                            id: user.id,
-                            email: user.email,
-                            emailVerified: user.emailVerified,
-                            fullName: user.fullName,
-                            displayName: user.fullName,
-                            phone: user.phone,
-                            dateOfBirth: user.dateOfBirth,
-                            role: user.roles,
-                            createdAt: Timestamp.now(),
-                            updatedAt: Timestamp.now(),
-                          };
-                          const hasPermission = await canCreateTask(userProfile, departments);
-                          if (!hasPermission) {
-                            toast.error("Görev oluşturma yetkiniz yok");
-                            return;
-                          }
-                          openInlineForm("create");
-                        } catch (error: unknown) {
-                          if (import.meta.env.DEV) {
-                            console.error("Permission check error:", error);
-                          }
-                          toast.error("Yetki kontrolü yapılamadı");
-                        }
+                      onClick={() => {
+                        openInlineForm("create");
                       }}
                     >
                       <Plus className="h-3.5 w-3.5" />
