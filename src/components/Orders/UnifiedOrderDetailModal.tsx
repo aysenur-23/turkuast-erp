@@ -670,19 +670,10 @@ export const UnifiedOrderDetailModal = ({
                             <div className={cn("space-y-4", isProductionOrder ? "lg:col-span-12" : "lg:col-span-8")}>
                                 {/* Status Timeline */}
                                 <Card>
-                                    <CardHeader className="py-3 px-4 flex flex-row items-center justify-between border-b bg-slate-50/50">
-                                        <CardTitle className="text-sm font-bold flex items-center gap-2">
-                                            <Activity className="h-4 w-4 text-primary" />
-                                            Süreç Takibi
-                                        </CardTitle>
-                                        <span className="text-[10px] text-slate-500">
-                                            Sıradaki: {currentWorkflow[getCurrentStatusIndex() + 1]?.label || "Tamamlandı"}
-                                        </span>
-                                    </CardHeader>
-                                    <CardContent className="p-4 sm:p-6">
-                                        <div className="overflow-x-auto pb-4 px-4 sm:px-6 hide-scrollbar">
-                                            <div className="flex items-center justify-between relative min-w-[600px] px-4">
-                                                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-100 -translate-y-1/2 z-0" />
+                                    <CardContent className="p-5 sm:p-6">
+                                        <div className="overflow-x-auto pb-4 hide-scrollbar">
+                                            <div className="flex items-center justify-between relative min-w-[500px]">
+                                                <div className="absolute top-4 left-0 right-0 h-0.5 bg-slate-100 z-0" />
                                                 {currentWorkflow.map((step, idx) => {
                                                     const currentIndex = getCurrentStatusIndex();
                                                     const isDone = idx < currentIndex;
@@ -694,7 +685,7 @@ export const UnifiedOrderDetailModal = ({
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
                                                                     <button
-                                                                        disabled={!canUpdateStatus || isEditing || updatingStatus}
+                                                                        disabled={isEditing || updatingStatus}
                                                                         onClick={() => handleStatusChange(step.value)}
                                                                         className={cn(
                                                                             "h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all",
@@ -709,7 +700,7 @@ export const UnifiedOrderDetailModal = ({
                                                                 <TooltipContent>{step.label}</TooltipContent>
                                                             </Tooltip>
                                                             <span className={cn(
-                                                                "text-[9px] font-bold uppercase",
+                                                                "text-[9px] font-bold uppercase text-center",
                                                                 isCurrent ? "text-primary" : "text-slate-400"
                                                             )}>
                                                                 {step.label}
