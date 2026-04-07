@@ -199,7 +199,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
   const isPersonnel = Boolean(user?.roles?.includes("personnel"));
   const isManager = Boolean(user?.roles?.includes('manager')) || isAdmin;
   const isCreator = user?.id === order?.createdBy;
-  const canUpdateStatus = !isPersonnel && (isManager || isAdmin || isTeamLeader || isCreator);
+  const canUpdateStatus = true; // Tüm giriş yapmış kullanıcılar durum güncelleyebilir
 
   const orderNumber = order?.order_number || order?.orderNumber || order?.id || "-";
   const dueDateValue = resolveDateValue(order?.due_date || order?.dueDate);
@@ -486,7 +486,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
   };
 
   const handleRevertStatus = async (targetStatus: string) => {
-    if (!order?.id || !user?.id || !canUpdateStatus) {
+    if (!order?.id || !user?.id) {
       return;
     }
 
@@ -601,7 +601,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
         console.warn("Order items güncellenemedi:", itemsError);
       }
 
-      toast.success("Sipariş başarıyla güncellendi");
+      toast.success("Üretim başarıyla güncellendi");
       setIsEditing(false);
       setCurrentStatus(formData.status);
       onUpdate?.();
@@ -610,7 +610,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
     } catch (error: unknown) {
       if (import.meta.env.DEV) console.error("Update production order error:", error);
       const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata";
-      toast.error(errorMessage || "Sipariş güncellenirken hata oluştu");
+      toast.error(errorMessage || "Üretim güncellenirken hata oluştu");
     } finally {
       setSaving(false);
     }
@@ -618,16 +618,16 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
 
   // Quick meta chips için veri
   const quickMetaChips = [
-    orderNumber && { label: "Sipariş No", value: orderNumber },
+    orderNumber && { label: "Üretim No", value: orderNumber },
     createdAtValue && { label: "Oluşturulma", value: formatDateSafe(createdAtValue as Date | string | Timestamp | null) },
     dueDateValue && { label: "Termin", value: formatDateSafe(dueDateValue as Date | string | Timestamp | null) },
     order.priority !== undefined && { label: "Öncelik", value: `${order.priority || 0} / 5` },
   ].filter(Boolean) as { label: string; value: string }[];
 
-  // Sipariş özeti satırları
+  // Üretim özeti satırları
   const firstItem = orderItems[0];
   const orderSummaryRows = [
-    { label: "Sipariş No", value: orderNumber },
+    { label: "Üretim No", value: orderNumber },
     { label: "Ürün", value: firstItem?.productName || "-" },
     { label: "Miktar", value: `${firstItem?.quantity || 0} Adet` },
     { label: "Termin Tarihi", value: formatDateSafe(dueDateValue as Date | string | Timestamp | null) },
@@ -660,7 +660,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
               </div>
               <div className="flex-1 min-w-0">
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground truncate">
-                  Sipariş - {orderNumber}
+                  Üretim - {orderNumber}
                 </h2>
                 {firstItem?.productName && (
                   <p className="text-sm text-muted-foreground truncate mt-0">
@@ -789,12 +789,12 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
               <form id="production-order-edit-form" onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-[14px] sm:text-[15px] font-semibold">Sipariş Bilgileri</CardTitle>
+                    <CardTitle className="text-[14px] sm:text-[15px] font-semibold">Üretim Bilgileri</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3 sm:space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div className="space-y-1.5 sm:space-y-2">
-                        <Label htmlFor="order_number" showRequired className="text-[11px] sm:text-xs">Sipariş No</Label>
+                        <Label htmlFor="order_number" showRequired className="text-[11px] sm:text-xs">Üretim No</Label>
                         <Input
                           id="order_number"
                           value={formData.order_number}
@@ -957,7 +957,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                         rows={3}
                         className="text-[11px] sm:text-xs min-h-[80px] sm:min-h-0"
-                        placeholder="Sipariş ile ilgili notlar..."
+                        placeholder="Üretim ile ilgili notlar..."
                       />
                     </div>
 
@@ -985,169 +985,6 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                             placeholder="Teslimat ile ilgili notlar..."
                           />
                         </div>
-                      </div>
-                    </div>
-
-                    <Separator className="my-4" />
-                    <div className="space-y-4">
-                      <h3 className="text-[14px] sm:text-[15px] font-semibold flex items-center gap-2">
-                        <Banknote className="h-4 w-4 text-primary" />
-                        Finansal Bilgiler ve Fatura
-                      </h3>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <div className="space-y-1.5 sm:space-y-2">
-                          <Label htmlFor="total_amount" className="text-[11px] sm:text-xs text-muted-foreground">Toplam Tutar (₺)</Label>
-                          <Input
-                            id="total_amount"
-                            type="number"
-                            value={formData.total_amount}
-                            onChange={(e) => setFormData({ ...formData, total_amount: e.target.value })}
-                            placeholder="0.00"
-                            className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0"
-                          />
-                        </div>
-                        <div className="space-y-1.5 sm:space-y-2">
-                          <Label htmlFor="payment_method" className="text-[11px] sm:text-xs text-muted-foreground">Ödeme Yöntemi</Label>
-                          <Select
-                            value={formData.payment_method}
-                            onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
-                          >
-                            <SelectTrigger id="payment_method" className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0">
-                              <SelectValue placeholder="Seçiniz..." />
-                            </SelectTrigger>
-                            <SelectContent className="text-[11px] sm:text-xs">
-                              <SelectItem value="Kredi Kartı">Kredi Kartı</SelectItem>
-                              <SelectItem value="Havale/EFT">Havale/EFT</SelectItem>
-                              <SelectItem value="Nakit">Nakit</SelectItem>
-                              <SelectItem value="Çek">Çek</SelectItem>
-                              <SelectItem value="Diğer">Diğer</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <div className="space-y-1.5 sm:space-y-2">
-                          <Label htmlFor="paid_amount" className="text-[11px] sm:text-xs text-muted-foreground">Ödenen Tutar (₺)</Label>
-                          <Input
-                            id="paid_amount"
-                            type="number"
-                            value={formData.paid_amount}
-                            onChange={(e) => setFormData({ ...formData, paid_amount: e.target.value })}
-                            placeholder="0.00"
-                            className="text-[11px] sm:text-xs h-10 sm:h-10 min-h-[44px] sm:min-h-0"
-                          />
-                        </div>
-                        <div className="space-y-1.5 sm:space-y-2">
-                          <Label className="text-[11px] sm:text-xs text-muted-foreground">Kalan Tutar</Label>
-                          <div className="h-10 sm:h-10 flex items-center px-3 rounded-md bg-muted/50 border text-[11px] sm:text-xs font-semibold text-primary">
-                            {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Number(formData.total_amount) - Number(formData.paid_amount))}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div className="space-y-2">
-                          <Label htmlFor="payment_status" className="text-[11px] sm:text-xs">Ödeme Durumu</Label>
-                          <Select
-                            value={formData.payment_status}
-                            onValueChange={(value) => setFormData({ ...formData, payment_status: value as any })}
-                          >
-                            <SelectTrigger id="payment_status" className="text-[11px] sm:text-xs h-10 min-h-[44px] sm:min-h-0">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="unpaid">Ödenmedi</SelectItem>
-                              <SelectItem value="partially_paid">Kısmi Ödendi</SelectItem>
-                              <SelectItem value="paid">Ödendi</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="invoice_status" className="text-[11px] sm:text-xs">Fatura Durumu</Label>
-                          <Select
-                            value={formData.invoice_status}
-                            onValueChange={(value) => setFormData({ ...formData, invoice_status: value as any })}
-                          >
-                            <SelectTrigger id="invoice_status" className="text-[11px] sm:text-xs h-10 min-h-[44px] sm:min-h-0">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="not_invoiced">Kesilmedi</SelectItem>
-                              <SelectItem value="invoiced">Kesildi</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="flex items-center justify-between pt-6">
-                          <Label htmlFor="has_maturity" className="text-[11px] sm:text-xs">Vade Var mı?</Label>
-                          <Switch
-                            id="has_maturity"
-                            checked={formData.has_maturity}
-                            onCheckedChange={(checked) => setFormData({ ...formData, has_maturity: checked })}
-                          />
-                        </div>
-                      </div>
-
-                      {formData.has_maturity && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-primary/5 rounded-lg border border-primary/10">
-                          <div className="space-y-1.5">
-                            <Label htmlFor="maturity_months" className="text-[10px] uppercase text-muted-foreground">Vade Ayı</Label>
-                            <Input
-                              id="maturity_months"
-                              type="number"
-                              value={formData.maturity_months}
-                              onChange={(e) => setFormData({ ...formData, maturity_months: e.target.value })}
-                              className="h-8 text-xs"
-                            />
-                          </div>
-                          <div className="space-y-1.5">
-                            <Label htmlFor="maturity_date" className="text-[10px] uppercase text-muted-foreground">Vade Tarihi</Label>
-                            <Input
-                              id="maturity_date"
-                              type="date"
-                              value={formData.maturity_date}
-                              onChange={(e) => setFormData({ ...formData, maturity_date: e.target.value })}
-                              className="h-8 text-xs"
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="space-y-2">
-                        <Label className="text-[11px] sm:text-xs text-muted-foreground">Fatura Dosyası</Label>
-                        <div className="flex items-center gap-3">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="flex-1 h-10 gap-2 border-dashed"
-                            onClick={() => document.getElementById('invoice-upload')?.click()}
-                          >
-                            <FileUp className="h-4 w-4" />
-                            {formData.invoice_url ? "Dosyayı Değiştir" : "Fatura Yükle"}
-                          </Button>
-                          {formData.invoice_url && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-10 w-10 text-primary"
-                              asChild
-                            >
-                              <a href={formData.invoice_url} target="_blank" rel="noopener noreferrer">
-                                <FileDown className="h-4 w-4" />
-                              </a>
-                            </Button>
-                          )}
-                          <input
-                            id="invoice-upload"
-                            type="file"
-                            className="hidden"
-                            accept=".pdf,image/*"
-                            onChange={handleFileUpload}
-                          />
-                        </div>
-                        <p className="text-[10px] text-muted-foreground">PDF veya resim dosyası (Maks. 10MB)</p>
                       </div>
                     </div>
                   </CardContent>
@@ -1227,7 +1064,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                   <CardHeader className="space-y-1">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <CardTitle className="text-base sm:text-lg font-semibold">Sipariş Durumu</CardTitle>
+                        <CardTitle className="text-base sm:text-lg font-semibold">Üretim Durumu</CardTitle>
                         <p className="text-[10px] sm:text-[11px] text-muted-foreground">
                           {getNextStatus()
                             ? `${getStatusLabel(currentStatus)} aşamasındasınız. Sıradaki adım: ${getNextStatus()!.label}`
@@ -1319,7 +1156,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                                   const NextIcon = getNextStatus()!.icon;
                                   return <NextIcon className="h-4 w-4" />;
                                 })()}
-                                {getNextStatus()!.label} Durumuna Geç
+                                İlerle
                               </>
                             )}
                           </Button>
@@ -1329,12 +1166,12 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                   </CardContent>
                 </Card>
 
-                {/* Sipariş Kalemleri (Eklemler) */}
+                {/* Üretim Kalemleri (Eklemler) */}
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
                       <Package className="h-4 w-4 text-primary" />
-                      Sipariş Kalemleri ({orderItems.length})
+                      Üretim Kalemleri ({orderItems.length})
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -1443,7 +1280,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                   {/* Sipariş Bilgileri */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg sm:text-xl font-semibold">Sipariş Bilgileri</CardTitle>
+                      <CardTitle className="text-lg sm:text-xl font-semibold">Üretim Bilgileri</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3 sm:space-y-4">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -1461,111 +1298,6 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                             İç Not
                           </p>
                           <p className="text-[11px] sm:text-xs leading-relaxed">{order.notes}</p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Finansal Bilgiler ve Fatura */}
-                  <Card className="lg:col-span-2 bg-gradient-to-br from-slate-50 to-white">
-                    <CardHeader>
-                      <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                        <Banknote className="h-5 w-5 text-primary" />
-                        Finansal Bilgiler ve Fatura
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                        <div className="p-2 sm:p-3 rounded-lg border bg-white shadow-sm flex flex-col justify-center">
-                          <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase mb-1">Toplam</p>
-                          <p className="text-xs sm:text-sm font-bold text-foreground">
-                            {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Number(formData.total_amount))}
-                          </p>
-                        </div>
-                        <div className="p-2 sm:p-3 rounded-lg border bg-emerald-50/50 shadow-sm flex flex-col justify-center">
-                          <p className="text-[9px] sm:text-[10px] text-emerald-600 uppercase mb-1">Ödenen</p>
-                          <p className="text-xs sm:text-sm font-bold text-emerald-700">
-                            {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Number(formData.paid_amount))}
-                          </p>
-                        </div>
-                        <div className="p-2 sm:p-3 rounded-lg border bg-amber-50/50 shadow-sm flex flex-col justify-center">
-                          <p className="text-[9px] sm:text-[10px] text-amber-600 uppercase mb-1">Kalan</p>
-                          <p className="text-xs sm:text-sm font-bold text-amber-700">
-                            {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Math.max(0, Number(formData.total_amount) - Number(formData.paid_amount)))}
-                          </p>
-                        </div>
-                        <div className="p-2 sm:p-3 rounded-lg border bg-white shadow-sm flex flex-col justify-center">
-                          <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase mb-1">Ödeme Durumu</p>
-                          <Badge
-                            variant={formData.payment_status === "paid" ? "default" : formData.payment_status === "partially_paid" ? "secondary" : "outline"}
-                            className={cn(
-                              "text-[9px] h-5 w-fit",
-                              formData.payment_status === "paid" ? "bg-emerald-500 hover:bg-emerald-600" :
-                                formData.payment_status === "partially_paid" ? "bg-amber-500 hover:bg-amber-600 text-white" : ""
-                            )}
-                          >
-                            {formData.payment_status === "paid" ? "ÖDENDİ" : formData.payment_status === "partially_paid" ? "KISMİ" : "BEKLEMEDE"}
-                          </Badge>
-                        </div>
-                        <div className="p-2 sm:p-3 rounded-lg border bg-white shadow-sm flex flex-col justify-center">
-                          <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase mb-1">Yöntem</p>
-                          <div className="flex items-center gap-1.5">
-                            <CreditCard className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-[11px] font-medium">{formData.payment_method || "-"}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {(formData.has_maturity || formData.invoice_status === "invoiced") && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                          {formData.has_maturity && (
-                            <div className="p-2 sm:p-3 rounded-lg border border-dashed bg-primary/5 flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Clock className="h-3.5 w-3.5 text-primary" />
-                                <div>
-                                  <p className="text-[10px] font-medium">Vade Bilgisi</p>
-                                  <p className="text-[10px] text-muted-foreground">{formData.maturity_months} Ay - {formatDateSafe(formData.maturity_date)}</p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          <div className={cn(
-                            "p-2 sm:p-3 rounded-lg border border-dashed flex items-center justify-between",
-                            formData.invoice_status === "invoiced" ? "bg-blue-50/50 border-blue-200" : "bg-muted/30"
-                          )}>
-                            <div className="flex items-center gap-2">
-                              <Receipt className="h-3.5 w-3.5 text-blue-600" />
-                              <div>
-                                <p className="text-[10px] font-medium">Fatura</p>
-                                <p className="text-[10px] text-muted-foreground">
-                                  {formData.invoice_status === "invoiced" ? "Fatura Kesildi" : "Fatura Kesilmedi"}
-                                </p>
-                              </div>
-                            </div>
-                            {formData.invoice_status === "invoiced" && !formData.invoice_url && (
-                              <Badge variant="outline" className="text-[9px] h-4">Dosya Yok</Badge>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {formData.invoice_url && (
-                        <div className="mt-4 p-3 rounded-lg border border-dashed bg-primary/5 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                              <Receipt className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                              <p className="text-[11px] sm:text-xs font-medium">Sipariş Faturası</p>
-                              <p className="text-[10px] text-muted-foreground">Yüklendi: {formatDateSafe(order.updatedAt || order.updated_at)}</p>
-                            </div>
-                          </div>
-                          <Button variant="outline" size="sm" asChild className="h-8 gap-2 bg-white">
-                            <a href={formData.invoice_url} target="_blank" rel="noopener noreferrer">
-                              <FileDown className="h-4 w-4" />
-                              Faturayı Görüntüle
-                            </a>
-                          </Button>
                         </div>
                       )}
                     </CardContent>
@@ -1591,7 +1323,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order, onEdit, onDelete, 
                         <p className="text-[11px] sm:text-xs text-muted-foreground">Görevler yükleniyor...</p>
                       )}
                       {!tasksLoading && tasks.length === 0 && (
-                        <p className="text-[11px] sm:text-xs text-muted-foreground">Bu siparişe bağlı görev bulunmuyor.</p>
+                        <p className="text-[11px] sm:text-xs text-muted-foreground">Bu üretime bağlı görev bulunmuyor.</p>
                       )}
                       {!tasksLoading &&
                         tasks.map((task) => {
