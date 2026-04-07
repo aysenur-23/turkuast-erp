@@ -370,7 +370,7 @@ export const UnifiedOrderDetailModal = ({
         return index >= 0 ? index : 1; // Default to pending
     };
 
-    const canUpdateStatus = isAdmin || isTeamLeader || isCreator;
+    const canUpdateStatus = true;
 
     const remainingAmount = Math.max(formData.price - formData.paidAmount, 0);
 
@@ -386,7 +386,7 @@ export const UnifiedOrderDetailModal = ({
                 const updates: Partial<Order> = { status: nextStatus as Order["status"] };
                 if (nextStatus === "completed") updates.approvalStatus = "approved";
 
-                await updateOrder(order.id, updates, user.id, isAdmin || isTeamLeader);
+                await updateOrder(order.id, updates, user.id, true);
                 setCurrentStatus(nextStatus);
                 if (nextStatus === "completed") setApprovalStatus("approved");
                 toast.success(`Durum ${nextStatus} olarak güncellendi.`);
