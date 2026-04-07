@@ -220,7 +220,7 @@ export const UnifiedOrderDetailModal = ({
     const [canApprove, setCanApprove] = useState(false);
     const [payments, setPayments] = useState<Payment[]>([]);
     const [fetchingPayments, setFetchingPayments] = useState(false);
-    const [showAddPayment, setShowAddPayment] = useState(false);
+    const [showAddPayment, setShowAddPayment] = useState(true);
     const [newPayment, setNewPayment] = useState({
         amount: 0,
         method: "bank_transfer",
@@ -569,21 +569,21 @@ export const UnifiedOrderDetailModal = ({
             <DialogContent className="app-dialog-shell max-w-5xl">
                 {/* Erişilebilirlik için DialogTitle ve DialogDescription DialogContent'in direkt child'ı olmalı */}
                 <DialogTitle className="sr-only">
-                    Sipariş {formData.orderNumber}
+                    {isProductionOrder ? "Üretim" : "Sipariş"} {formData.orderNumber}
                 </DialogTitle>
                 <DialogDescription className="sr-only">
-                    Sipariş bilgileri, ürünler ve finansal takip.
+                    {isProductionOrder ? "Üretim bilgileri ve süreç takibi." : "Sipariş bilgileri, ürünler ve finansal takip."}
                 </DialogDescription>
 
                 <DialogHeader className="p-3 sm:p-4 border-b bg-white flex-shrink-0 relative">
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                                <ShoppingCart className="h-5 w-5 text-primary" />
+                                {isProductionOrder ? <Package className="h-5 w-5 text-primary" /> : <ShoppingCart className="h-5 w-5 text-primary" />}
                             </div>
                             <div>
                                 <h2 className="text-lg sm:text-xl font-bold text-foreground">
-                                    Sipariş {formData.orderNumber}
+                                    {isProductionOrder ? "Üretim" : "Sipariş"} {formData.orderNumber}
                                 </h2>
                                 <div className="flex items-center gap-2 mt-0.5">
                                     <Badge variant={getStatusVariant(currentStatus)} className="text-[10px] px-2 py-0.5">
@@ -631,7 +631,8 @@ export const UnifiedOrderDetailModal = ({
 
                 <div className="flex-1 overflow-hidden bg-slate-50/30 p-2 sm:p-4 min-h-0">
                     <div className="max-w-full mx-auto h-full app-dialog-scroll space-y-4">
-                        {/* Financial Summary Header */}
+                        {/* Financial Summary Header - Only for non-production orders */}
+                        {!isProductionOrder && (
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             <Card className="bg-white/50 backdrop-blur-sm border-slate-200">
                                 <CardContent className="p-3">
@@ -661,11 +662,12 @@ export const UnifiedOrderDetailModal = ({
                                 </CardContent>
                             </Card>
                         </div>
+                        )}
 
                         {/* Main Content Area */}
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                             {/* Left Column: Details & Items */}
-                            <div className="lg:col-span-8 space-y-4">
+                            <div className={cn("space-y-4", isProductionOrder ? "lg:col-span-12" : "lg:col-span-8")}>
                                 {/* Status Timeline */}
                                 <Card>
                                     <CardHeader className="py-3 px-4 flex flex-row items-center justify-between border-b bg-slate-50/50">
@@ -677,7 +679,7 @@ export const UnifiedOrderDetailModal = ({
                                             Sıradaki: {currentWorkflow[getCurrentStatusIndex() + 1]?.label || "Tamamlandı"}
                                         </span>
                                     </CardHeader>
-                                    <CardContent className="p-4 sm:p-6 overflow-hidden">
+                                    <CardContent className="p-4 sm:p-6">
                                         <div className="overflow-x-auto pb-4 px-4 sm:px-6 hide-scrollbar">
                                             <div className="flex items-center justify-between relative min-w-[600px] px-4">
                                                 <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-100 -translate-y-1/2 z-0" />
@@ -757,10 +759,12 @@ export const UnifiedOrderDetailModal = ({
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
+                                                {!isProductionOrder && (
                                                 <div className="space-y-2">
                                                     <Label>Kargo Takip No</Label>
                                                     <Input value={formData.trackingNumber} onChange={e => setFormData(p => ({ ...p, trackingNumber: e.target.value }))} placeholder="Kargo firması / takip no" />
                                                 </div>
+                                                )}
                                                 <div className="md:col-span-2 space-y-2">
                                                     <Label>Durum</Label>
                                                     <Select value={formData.status} onValueChange={v => setFormData(p => ({ ...p, status: v as Order["status"] }))}>
@@ -793,7 +797,7 @@ export const UnifiedOrderDetailModal = ({
                                                     <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Teslimat Adresi</p>
                                                     <p className="text-sm text-slate-600 leading-relaxed">{formData.deliveryAddress || "-"}</p>
                                                 </div>
-                                                {formData.trackingNumber && (
+                                                {!isProductionOrder && formData.trackingNumber && (
                                                     <div className="col-span-full bg-blue-50/50 p-3 rounded-lg border border-blue-100">
                                                         <p className="text-[10px] text-blue-600 font-bold uppercase mb-1">Kargo Takip No</p>
                                                         <p className="text-sm font-bold text-blue-900">{formData.trackingNumber}</p>
@@ -841,7 +845,8 @@ export const UnifiedOrderDetailModal = ({
 
                             {/* Right Column: Financials & Activity */}
                             <div className="lg:col-span-4 space-y-4">
-                                {/* Financial Editor / Display */}
+                                {/* Financial Editor / Display - Only for non-production orders */}
+                                {!isProductionOrder && (
                                 <Card className="border-primary/20 shadow-sm overflow-hidden">
                                     <CardHeader className="bg-primary/5 py-3 px-4 border-b border-primary/10">
                                         <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -850,32 +855,33 @@ export const UnifiedOrderDetailModal = ({
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="p-4 space-y-4">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                                                <Label className="text-[10px] text-slate-500 font-bold uppercase block mb-1">Toplam Tutar</Label>
-                                                <div className="text-lg font-bold text-slate-900">
-                                                    {(formData.price || formData.totalAmount || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} <span className="text-sm">{formData.currency}</span>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="bg-white p-4 rounded-xl border-2 border-slate-200 shadow-sm">
+                                                <Label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1.5">Toplam Tutar</Label>
+                                                <div className="text-xl font-black text-slate-900">
+                                                    {(formData.price || formData.totalAmount || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} <span className="text-sm font-semibold text-slate-500">{formData.currency}</span>
                                                 </div>
                                             </div>
-                                            <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-                                                <Label className="text-[10px] text-emerald-600 font-bold uppercase block mb-1">Ödenen</Label>
-                                                <div className="text-lg font-bold text-emerald-700">
-                                                    {(formData.paidAmount || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} <span className="text-sm">{formData.currency}</span>
+                                            <div className="bg-emerald-50 p-4 rounded-xl border-2 border-emerald-200 shadow-sm">
+                                                <Label className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider block mb-1.5">Ödenen</Label>
+                                                <div className="text-xl font-black text-emerald-700">
+                                                    {(formData.paidAmount || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} <span className="text-sm font-semibold text-emerald-500">{formData.currency}</span>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center justify-between p-3 rounded-lg bg-orange-50 border border-orange-100">
+                                        <div className="flex items-center justify-between p-4 rounded-xl border-2 border-orange-200 bg-orange-50 shadow-sm">
                                             <div>
-                                                <Label className="text-[10px] text-orange-600 font-bold uppercase block">Kalan Bakiye</Label>
-                                                <div className="text-xl font-black text-orange-700">
-                                                    {Math.max(0, (formData.price || formData.totalAmount || 0) - (formData.paidAmount || 0)).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} <span className="text-sm">{formData.currency}</span>
+                                                <Label className="text-[10px] text-orange-600 font-bold uppercase tracking-wider block mb-1">Kalan Bakiye</Label>
+                                                <div className="text-2xl font-black text-orange-700">
+                                                    {Math.max(0, (formData.price || formData.totalAmount || 0) - (formData.paidAmount || 0)).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} <span className="text-sm font-semibold text-orange-500">{formData.currency}</span>
                                                 </div>
                                             </div>
-                                            <Badge className={
-                                                formData.paymentStatus === 'paid' ? 'bg-emerald-500' :
-                                                    formData.paymentStatus === 'partially_paid' ? 'bg-orange-500' : 'bg-slate-400'
-                                            }>
+                                            <Badge className={cn(
+                                                "text-sm px-3 py-1.5 font-bold rounded-lg",
+                                                formData.paymentStatus === 'paid' ? 'bg-emerald-500 hover:bg-emerald-500' :
+                                                    formData.paymentStatus === 'partially_paid' ? 'bg-orange-500 hover:bg-orange-500' : 'bg-slate-400 hover:bg-slate-400'
+                                            )}>
                                                 {formData.paymentStatus === 'paid' ? 'Ödendi' :
                                                     formData.paymentStatus === 'partially_paid' ? 'Kısmi Ödeme' : 'Ödenmedi'}
                                             </Badge>
@@ -886,43 +892,43 @@ export const UnifiedOrderDetailModal = ({
                                         {/* Payment History */}
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between">
-                                                <Label className="text-xs font-bold text-slate-700">Ödeme Geçmişi</Label>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-7 text-[10px] font-bold text-primary hover:text-primary hover:bg-primary/5"
+                                                <Label className="text-sm font-bold text-slate-800">Ödeme Geçmişi</Label>
+                                                <button
+                                                    type="button"
+                                                    className="text-xs font-semibold text-primary hover:text-primary/80 hover:underline transition-colors"
                                                     onClick={() => setShowAddPayment(!showAddPayment)}
                                                 >
                                                     {showAddPayment ? "Kapat" : "Ödeme Ekle"}
-                                                </Button>
+                                                </button>
                                             </div>
 
                                             {showAddPayment && (
-                                                <div className="p-3 border rounded-lg bg-slate-50 space-y-3 anim-fade-in">
-                                                    <div className="grid grid-cols-2 gap-2">
-                                                        <div className="space-y-1">
-                                                            <Label className="text-[10px]">Tutar</Label>
+                                                <div className="p-4 border-2 rounded-xl bg-white space-y-4 anim-fade-in shadow-sm">
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div className="space-y-1.5">
+                                                            <Label className="text-xs font-semibold text-slate-700">Tutar</Label>
                                                             <Input
                                                                 type="number"
                                                                 value={newPayment.amount}
                                                                 onChange={e => setNewPayment(p => ({ ...p, amount: Number(e.target.value) }))}
-                                                                className="h-8 text-xs"
+                                                                className="h-10 text-sm border-2 focus:border-primary"
+                                                                placeholder="0"
                                                             />
                                                         </div>
-                                                        <div className="space-y-1">
-                                                            <Label className="text-[10px]">Tarih</Label>
+                                                        <div className="space-y-1.5">
+                                                            <Label className="text-xs font-semibold text-slate-700">Tarih</Label>
                                                             <Input
                                                                 type="date"
                                                                 value={newPayment.date}
                                                                 onChange={e => setNewPayment(p => ({ ...p, date: e.target.value }))}
-                                                                className="h-8 text-xs"
+                                                                className="h-10 text-sm border-2 focus:border-primary"
                                                             />
                                                         </div>
                                                     </div>
-                                                    <div className="space-y-1">
-                                                        <Label className="text-[10px]">Yöntem</Label>
+                                                    <div className="space-y-1.5">
+                                                        <Label className="text-xs font-semibold text-slate-700">Yöntem</Label>
                                                         <Select value={newPayment.method} onValueChange={v => setNewPayment(p => ({ ...p, method: v }))}>
-                                                            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                                                            <SelectTrigger className="h-10 text-sm border-2"><SelectValue /></SelectTrigger>
                                                             <SelectContent>
                                                                 <SelectItem value="cash">Nakit</SelectItem>
                                                                 <SelectItem value="credit_card">Kredi Kartı</SelectItem>
@@ -931,21 +937,21 @@ export const UnifiedOrderDetailModal = ({
                                                             </SelectContent>
                                                         </Select>
                                                     </div>
-                                                    <div className="space-y-1">
-                                                        <Label className="text-[10px]">Not (Opsiyonel)</Label>
+                                                    <div className="space-y-1.5">
+                                                        <Label className="text-xs font-semibold text-slate-700">Not (Opsiyonel)</Label>
                                                         <Input
                                                             value={newPayment.notes}
                                                             onChange={e => setNewPayment(p => ({ ...p, notes: e.target.value }))}
-                                                            className="h-8 text-xs"
+                                                            className="h-10 text-sm border-2 focus:border-primary"
                                                             placeholder="Örn: Dekont no..."
                                                         />
                                                     </div>
                                                     <Button
-                                                        className="w-full h-8 text-xs"
+                                                        className="w-full h-10 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 rounded-lg"
                                                         disabled={saving || newPayment.amount <= 0}
                                                         onClick={handleAddPayment}
                                                     >
-                                                        {saving ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : "Ödemeyi Kaydet"}
+                                                        {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : "Ödemeyi Kaydet"}
                                                     </Button>
                                                 </div>
                                             )}
@@ -1050,6 +1056,7 @@ export const UnifiedOrderDetailModal = ({
                                         )}
                                     </CardContent>
                                 </Card>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -1060,7 +1067,7 @@ export const UnifiedOrderDetailModal = ({
                     <div className="p-3 bg-amber-50 border-t border-amber-200 flex items-center justify-between animate-in slide-in-from-bottom-2">
                         <div className="flex items-center gap-2 text-amber-800">
                             <Clock className="h-5 w-5" />
-                            <span className="text-sm font-bold">Bu sipariş tamamlanma onayı bekliyor.</span>
+                            <span className="text-sm font-bold">{isProductionOrder ? "Bu üretim tamamlanma onayı bekliyor." : "Bu sipariş tamamlanma onayı bekliyor."}</span>
                         </div>
                         <div className="flex gap-2">
                             <Button size="sm" variant="outline" className="border-amber-200 text-amber-800 hover:bg-amber-100" onClick={() => handleApproval(false)}>Reddet</Button>
