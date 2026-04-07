@@ -18,17 +18,13 @@ import {
   Clock3,
   X,
   MoreVertical,
+  Check,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { ResponsiveTable, ResponsiveTableColumn } from "@/components/shared/ResponsiveTable";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { getOrders, deleteOrder, updateOrder, Order, subscribeToOrders, getOrderItems } from "@/services/firebase/orderService";
-import { Timestamp } from "firebase/firestore";
 import { useAuth } from "@/contexts/AuthContext";
-import { canCreateResource, canUpdateResource, canDeleteResource } from "@/utils/permissions";
-import { UserProfile } from "@/services/firebase/authService";
-import { CURRENCY_SYMBOLS, Currency } from "@/utils/currency";
-import { getPriorityMeta } from "@/utils/priority";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
@@ -44,6 +40,13 @@ import {
 import { CreateProductionOrderDialog } from "@/components/Production/CreateProductionOrderDialog";
 import { UnifiedOrderDetailModal } from "@/components/Orders/UnifiedOrderDetailModal";
 import { LoadingState } from "@/components/ui/loading-state";
+import { ResponsiveTable } from "@/components/shared/ResponsiveTable";
+import { getOrders, deleteOrder, updateOrder, Order, subscribeToOrders, getOrderItems } from "@/services/firebase/orderService";
+import { subscribeToRawMaterials, RawMaterial } from "@/services/firebase/materialService";
+import { Timestamp } from "firebase/firestore";
+import { UserProfile } from "@/services/firebase/authService";
+import { canCreateResource, canUpdateResource, canDeleteResource } from "@/utils/permissions";
+import { getPriorityMeta } from "@/utils/priority";
 
 interface ProductionOrder {
   id: string;
@@ -62,9 +65,14 @@ interface ProductionOrder {
   priority?: number;
   created_at?: string;
   createdAt?: Date | Timestamp;
-  totalAmount?: number;
-  total_amount?: number;
-  currency?: string;
+  rawMaterials?: Array<{
+    materialId: string;
+    material_id: string;
+    materialName: string;
+    material_name: string;
+    quantity: number;
+    unit: string;
+  }>;
 }
 
 type SortKey = "order_number" | "customer_name" | "due_date" | "status" | "priority" | "created_at";
@@ -81,6 +89,10 @@ const statusOptions: Array<{ value: ProductionOrder["status"]; label: string }> 
 const Production = () => {
   const { isAdmin, isTeamLeader, user } = useAuth();
   const [orders, setOrders] = useState<ProductionOrder[]>([]);
+  const [rawMaterials, setRawMaterials] = useState<RawMaterial[]>([]);
+  const [selectedRawMaterials, setSelectedRawMaterials] = useState<Map<string, { material: RawMaterial; quantity: number }>>(new Map());
+  const [rawMaterialDialogOpen, setRawMaterialDialogOpen] = useState(false);
+  const [currentOrderForMaterials, setCurrentOrderForMaterials] = useState<ProductionOrder | null>(null);
   const [loading, setLoading] = useState(false); // Başlangıçta false - placeholder data ile hızlı render
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -156,7 +168,15 @@ const Production = () => {
     checkPermissions();
   }, [user]);
 
-  // Gerçek zamanlı sipariş güncellemeleri için subscribe
+  // Hammadde verilerini çek
+  useEffect(() => {
+    const unsubscribe = subscribeToRawMaterials({}, (materials) => {
+      setRawMaterials(materials);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Gerçek zamanlı üretim güncellemeleri için subscribe
   useEffect(() => {
     // Defer subscription: İlk render'dan 100ms sonra başlat (non-blocking)
     const timer = setTimeout(() => {
@@ -180,6 +200,12 @@ const Production = () => {
 
           // Search ve sort işlemleri frontend'de yapılacak
           let filtered = firebaseOrders;
+
+          // Sadece üretim siparişlerini (PROD- ile başlayanlar) göster
+          filtered = filtered.filter((order: Order) => {
+            const orderNum = order.order_number || order.orderNumber || '';
+            return orderNum.startsWith('PROD-');
+          });
 
           if (searchQuery) {
             const query = searchQuery.toLocaleLowerCase('tr-TR');
@@ -345,27 +371,6 @@ const Production = () => {
   };
 
 
-  const formatCurrency = (value?: number, currency?: Currency | string) => {
-    if (value === undefined || value === null) {
-      const symbol = currency ? (CURRENCY_SYMBOLS[currency as Currency] || "₺") : "₺";
-      return `${symbol}0,00`;
-    }
-
-    const orderCurrency = (currency || "TRY") as Currency;
-    const currencyCode = orderCurrency === "TRY" ? "TRY" : orderCurrency;
-    const locale = orderCurrency === "TRY" ? "tr-TR" : "en-US";
-    const symbol = CURRENCY_SYMBOLS[orderCurrency] || "₺";
-
-    try {
-      return new Intl.NumberFormat(locale, {
-        style: "currency",
-        currency: currencyCode,
-        minimumFractionDigits: 2,
-      }).format(value);
-    } catch {
-      return `${symbol}${value.toFixed(2)}`;
-    }
-  };
   const priorityOptions = [
     { value: 0, label: "0 - Düşük" },
     { value: 1, label: "1" },
@@ -380,7 +385,7 @@ const Production = () => {
 
     try {
       await deleteOrder(selectedOrder.id);
-      toast.success("Sipariş silindi");
+      toast.success("Üretim silindi");
       // Subscription otomatik güncelleyecek
       setDeleteDialogOpen(false);
       setSelectedOrder(null);
@@ -388,7 +393,7 @@ const Production = () => {
       if (import.meta.env.DEV) {
         console.error("Delete production order error:", error);
       }
-      toast.error(error instanceof Error ? error.message : "Sipariş silinirken hata oluştu");
+      toast.error(error instanceof Error ? error.message : "Üretim silinirken hata oluştu");
     }
   };
 
@@ -397,20 +402,20 @@ const Production = () => {
     try {
       // Yetki kontrolü
       if (!canUpdate && !isAdmin && !isTeamLeader) {
-        toast.error("Sipariş güncelleme yetkiniz yok.");
+        toast.error("Üretim güncelleme yetkiniz yok.");
         setUpdatingOrderId(null);
         return;
       }
       // Üst yöneticiler için durum geçiş validasyonunu atla
       const skipValidation = isAdmin === true || isTeamLeader || canUpdate;
       await updateOrder(orderId, payload as Partial<Order>, user?.id, skipValidation);
-      toast.success("Sipariş güncellendi");
+      toast.success("Üretim güncellendi");
       // Subscription otomatik güncelleyecek
     } catch (error: unknown) {
       if (import.meta.env.DEV) {
         console.error("Update order error:", error);
       }
-      toast.error(error instanceof Error ? error.message : "Sipariş güncellenemedi");
+      toast.error(error instanceof Error ? error.message : "Üretim güncellenemedi");
     } finally {
       setUpdatingOrderId(null);
     }
@@ -509,10 +514,10 @@ const Production = () => {
                 columns={[
                   {
                     key: "order_number",
-                    header: "Sipariş No",
+                    header: "Üretim No",
                     accessor: (order) => (
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-xs font-medium">{order.order_number || order.orderNumber || "-"}</span>
+                        <span className="text-xs font-medium whitespace-nowrap">{order.order_number || order.orderNumber || "-"}</span>
                         <span className="md:hidden text-xs text-muted-foreground">
                           {order.customer_name || order.customerName || "-"}
                         </span>
@@ -523,7 +528,7 @@ const Production = () => {
                     ),
                     priority: "high",
                     sticky: true,
-                    minWidth: 120,
+                    minWidth: 160,
                     headerClassName: "text-left",
                     cellClassName: "text-left",
                   },
@@ -586,15 +591,23 @@ const Production = () => {
                     cellClassName: "text-left",
                   },
                   {
-                    key: "total",
-                    header: "Tutar",
+                    key: "raw_materials",
+                    header: "Hammaddeler",
                     accessor: (order) => (
-                      <span className="text-xs font-semibold whitespace-nowrap">
-                        {formatCurrency(order.totalAmount || order.total_amount || 0, order.currency)}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        {order.rawMaterials && order.rawMaterials.length > 0 ? (
+                          order.rawMaterials.map((material, idx) => (
+                            <span key={idx} className="text-xs text-muted-foreground">
+                              {material.materialName}: {material.quantity} {material.unit}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-muted-foreground italic">Hammadde eklenmemiş</span>
+                        )}
+                      </div>
                     ),
-                    priority: "high",
-                    minWidth: 120,
+                    priority: "medium",
+                    minWidth: 150,
                     headerClassName: "text-left",
                     cellClassName: "text-left",
                   },
@@ -644,11 +657,19 @@ const Production = () => {
                               {priorityMeta.label}
                             </Badge>
                           </div>
-                          <div className="flex items-center justify-between text-xs sm:text-sm">
-                            <span className="text-muted-foreground">Tutar:</span>
-                            <span className="font-semibold">
-                              {formatCurrency(order.totalAmount || order.total_amount || 0, order.currency)}
-                            </span>
+                          <div className="flex items-start flex-col gap-1 text-xs sm:text-sm">
+                            <span className="text-muted-foreground">Hammaddeler:</span>
+                            <div className="flex flex-col gap-1">
+                              {order.rawMaterials && order.rawMaterials.length > 0 ? (
+                                order.rawMaterials.map((material, idx) => (
+                                  <span key={idx} className="text-xs text-muted-foreground">
+                                    {material.materialName}: {material.quantity} {material.unit}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-xs text-muted-foreground italic">Hammadde eklenmemiş</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </CardContent>
@@ -659,14 +680,14 @@ const Production = () => {
             </div>
             {totalPages > 1 && (
               <div className="flex flex-col gap-2 p-2 border-t md:flex-row md:items-center md:justify-between">
-                <div className="text-[11px] sm:text-xs text-muted-foreground text-center md:text-left">
+                <div className="text-xs sm:text-sm text-muted-foreground text-center md:text-left">
                   Sayfa {page} / {totalPages}
                 </div>
                 <div className="flex gap-2 justify-center md:justify-end">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 sm:h-9 text-[11px] sm:text-xs"
+                    className="h-8 sm:h-9 text-xs sm:text-sm"
                     onClick={() => setPage(p => Math.max(1, p - 1))}
                     disabled={page === 1 || loading}
                   >
@@ -675,7 +696,7 @@ const Production = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 sm:h-9 text-[11px] sm:text-xs"
+                    className="h-8 sm:h-9 text-xs sm:text-sm"
                     onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages || loading}
                   >
@@ -709,7 +730,6 @@ const Production = () => {
           onOpenChange={setDetailModalOpen}
           order={selectedOrder as unknown as Order}
           onEdit={() => {
-            // Düzenleme dialog'unu aç (selectedOrder zaten set edilmiş)
             setDetailModalOpen(false);
             setCreateDialogOpen(true);
           }}
@@ -717,9 +737,7 @@ const Production = () => {
             setDetailModalOpen(false);
             setDeleteDialogOpen(true);
           }}
-          onUpdate={() => {
-            // Subscription otomatik güncelleyecek
-          }}
+          onUpdate={() => {}}
         />
       )}
 
@@ -737,6 +755,154 @@ const Production = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Hammadde Seçim Dialogu */}
+      <Dialog open={rawMaterialDialogOpen} onOpenChange={setRawMaterialDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">
+              Hammadde Seçimi
+              {currentOrderForMaterials && (
+                <span className="text-muted-foreground text-sm font-normal block mt-1">
+                  {currentOrderForMaterials.order_number || currentOrderForMaterials.orderNumber}
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Seçili Hammaddeler */}
+            {selectedRawMaterials.size > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium">Seçili Hammaddeler</h4>
+                <div className="flex flex-wrap gap-2">
+                  {Array.from(selectedRawMaterials.entries()).map(([materialId, { material, quantity }]) => (
+                    <div key={materialId} className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-md text-sm">
+                      <span>{material.name}</span>
+                      <Input
+                        type="number"
+                        value={quantity}
+                        onChange={(e) => {
+                          const newQuantity = parseFloat(e.target.value) || 0;
+                          setSelectedRawMaterials(prev => {
+                            const newMap = new Map(prev);
+                            const current = newMap.get(materialId);
+                            if (current) {
+                              newMap.set(materialId, { ...current, quantity: newQuantity });
+                            }
+                            return newMap;
+                          });
+                        }}
+                        className="w-20 h-7 text-xs"
+                        min={0}
+                        step={0.01}
+                      />
+                      <span className="text-muted-foreground text-xs">{material.unit}</span>
+                      <button
+                        onClick={() => {
+                          setSelectedRawMaterials(prev => {
+                            const newMap = new Map(prev);
+                            newMap.delete(materialId);
+                            return newMap;
+                          });
+                        }}
+                        className="text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Mevcut Hammaddeler Listesi */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">Mevcut Hammaddeler</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
+                {rawMaterials.map((material) => {
+                  const isSelected = selectedRawMaterials.has(material.id);
+                  return (
+                    <div
+                      key={material.id}
+                      className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                        isSelected
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50 hover:bg-muted/50"
+                      }`}
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedRawMaterials(prev => {
+                            const newMap = new Map(prev);
+                            newMap.delete(material.id);
+                            return newMap;
+                          });
+                        } else {
+                          setSelectedRawMaterials(prev => {
+                            const newMap = new Map(prev);
+                            newMap.set(material.id, { material, quantity: 1 });
+                            return newMap;
+                          });
+                        }
+                      }}
+                    >
+                      <Checkbox checked={isSelected} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{material.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Stok: {material.currentStock || 0} {material.unit}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {rawMaterials.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Henüz hammadde tanımlanmamış. Hammadde sayfasından hammadde ekleyebilirsiniz.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRawMaterialDialogOpen(false);
+                setCurrentOrderForMaterials(null);
+                setSelectedRawMaterials(new Map());
+              }}
+              className="w-full sm:w-auto"
+            >
+              İptal
+            </Button>
+            <Button
+              onClick={() => {
+                if (currentOrderForMaterials) {
+                  const materials = Array.from(selectedRawMaterials.values()).map(({ material, quantity }) => ({
+                    materialId: material.id,
+                    material_id: material.id,
+                    materialName: material.name,
+                    material_name: material.name,
+                    quantity,
+                    unit: material.unit,
+                  }));
+                  handleUpdateOrder(currentOrderForMaterials.id, { rawMaterials: materials });
+                }
+                setRawMaterialDialogOpen(false);
+                setCurrentOrderForMaterials(null);
+                setSelectedRawMaterials(new Map());
+              }}
+              className="w-full sm:w-auto"
+              disabled={selectedRawMaterials.size === 0}
+            >
+              <Check className="h-4 w-4 mr-2" />
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };
