@@ -258,10 +258,8 @@ export const UnifiedOrderDetailModal = ({
     const isCreator = user?.id === order?.createdBy;
     
     // Üretim siparişi kontrolü - PROD- ile başlayan siparişler üretim siparişidir
-    const isProductionOrder = order?.orderNumber?.startsWith("PROD-") || order?.order_number?.startsWith("PROD-");
-    
-    // Sipariş tipine göre doğru workflow'u seç
-    const currentWorkflow = isProductionOrder ? unifiedStatusWorkflow : nonProductionWorkflow;
+    const isProductionOrder = false; // Tüm siparişler unified akışta
+    const currentWorkflow = unifiedStatusWorkflow;
 
     // Initialize form when order changes
     useEffect(() => {
@@ -569,21 +567,21 @@ export const UnifiedOrderDetailModal = ({
             <DialogContent className="app-dialog-shell max-w-5xl">
                 {/* Erişilebilirlik için DialogTitle ve DialogDescription DialogContent'in direkt child'ı olmalı */}
                 <DialogTitle className="sr-only">
-                    {isProductionOrder ? "Üretim" : "Sipariş"} {formData.orderNumber}
+                    Sipariş {formData.orderNumber}
                 </DialogTitle>
                 <DialogDescription className="sr-only">
-                    {isProductionOrder ? "Üretim bilgileri ve süreç takibi." : "Sipariş bilgileri, ürünler ve finansal takip."}
+                    Sipariş bilgileri, ürünler ve finansal takip.
                 </DialogDescription>
 
                 <DialogHeader className="p-3 sm:p-4 border-b bg-white flex-shrink-0 relative">
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                                {isProductionOrder ? <Package className="h-5 w-5 text-primary" /> : <ShoppingCart className="h-5 w-5 text-primary" />}
+                                <ShoppingCart className="h-5 w-5 text-primary" />
                             </div>
                             <div>
                                 <h2 className="text-lg sm:text-xl font-bold text-foreground">
-                                    {isProductionOrder ? "Üretim" : "Sipariş"} {formData.orderNumber}
+                                    Sipariş {formData.orderNumber}
                                 </h2>
                                 <div className="flex items-center gap-2 mt-0.5">
                                     <Badge variant={getStatusVariant(currentStatus)} className="text-[10px] px-2 py-0.5">
@@ -749,18 +747,16 @@ export const UnifiedOrderDetailModal = ({
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
-                                                {!isProductionOrder && (
                                                 <div className="space-y-2">
                                                     <Label>Kargo Takip No</Label>
                                                     <Input value={formData.trackingNumber} onChange={e => setFormData(p => ({ ...p, trackingNumber: e.target.value }))} placeholder="Kargo firması / takip no" />
                                                 </div>
-                                                )}
                                                 <div className="md:col-span-2 space-y-2">
                                                     <Label>Durum</Label>
                                                     <Select value={formData.status} onValueChange={v => setFormData(p => ({ ...p, status: v as Order["status"] }))}>
                                                         <SelectTrigger><SelectValue /></SelectTrigger>
                                                         <SelectContent>
-                                                            {isProductionOrder ? unifiedStatusWorkflow.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>) : nonProductionWorkflow.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                                                            {unifiedStatusWorkflow.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
@@ -787,7 +783,7 @@ export const UnifiedOrderDetailModal = ({
                                                     <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Teslimat Adresi</p>
                                                     <p className="text-sm text-slate-600 leading-relaxed">{formData.deliveryAddress || "-"}</p>
                                                 </div>
-                                                {!isProductionOrder && formData.trackingNumber && (
+                                                {formData.trackingNumber && (
                                                     <div className="col-span-full bg-blue-50/50 p-3 rounded-lg border border-blue-100">
                                                         <p className="text-[10px] text-blue-600 font-bold uppercase mb-1">Kargo Takip No</p>
                                                         <p className="text-sm font-bold text-blue-900">{formData.trackingNumber}</p>
@@ -1055,7 +1051,7 @@ export const UnifiedOrderDetailModal = ({
                     <div className="p-3 bg-amber-50 border-t border-amber-200 flex items-center justify-between animate-in slide-in-from-bottom-2">
                         <div className="flex items-center gap-2 text-amber-800">
                             <Clock className="h-5 w-5" />
-                            <span className="text-sm font-bold">{isProductionOrder ? "Bu üretim tamamlanma onayı bekliyor." : "Bu sipariş tamamlanma onayı bekliyor."}</span>
+                            <span className="text-sm font-bold">Bu sipariş tamamlanma onayı bekliyor.</span>
                         </div>
                         <div className="flex gap-2">
                             <Button size="sm" variant="outline" className="border-amber-200 text-amber-800 hover:bg-amber-100" onClick={() => handleApproval(false)}>Reddet</Button>
