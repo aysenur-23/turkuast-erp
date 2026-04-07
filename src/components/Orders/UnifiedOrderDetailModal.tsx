@@ -631,8 +631,7 @@ export const UnifiedOrderDetailModal = ({
 
                 <div className="flex-1 overflow-hidden bg-slate-50/30 p-2 sm:p-4 min-h-0">
                     <div className="max-w-full mx-auto h-full app-dialog-scroll space-y-4">
-                        {/* Financial Summary Header - Only for non-production orders */}
-                        {!isProductionOrder && (
+                        {/* Financial Summary Header */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             <Card className="bg-white/50 backdrop-blur-sm border-slate-200">
                                 <CardContent className="p-3">
@@ -662,12 +661,11 @@ export const UnifiedOrderDetailModal = ({
                                 </CardContent>
                             </Card>
                         </div>
-                        )}
 
                         {/* Main Content Area */}
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                             {/* Left Column: Details & Items */}
-                            <div className={cn("space-y-4", isProductionOrder ? "lg:col-span-12" : "lg:col-span-8")}>
+                            <div className="space-y-4 lg:col-span-8">
                                 {/* Status Timeline */}
                                 <Card>
                                     <CardContent className="p-5 sm:p-6">
@@ -837,8 +835,7 @@ export const UnifiedOrderDetailModal = ({
 
                             {/* Right Column: Financials & Activity */}
                             <div className="lg:col-span-4 space-y-4">
-                                {/* Financial Editor / Display - Only for non-production orders */}
-                                {!isProductionOrder && (
+                                {/* Financial Editor / Display */}
                                 <Card className="border-primary/20 shadow-sm overflow-hidden">
                                     <CardHeader className="bg-primary/5 py-3 px-4 border-b border-primary/10">
                                         <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -1048,7 +1045,6 @@ export const UnifiedOrderDetailModal = ({
                                         )}
                                     </CardContent>
                                 </Card>
-                                )}
                             </div>
                         </div>
                     </div>
