@@ -719,14 +719,15 @@ export const UnifiedOrderDetailModal = ({
                                                 })}
                                             </div>
                                         </div>
-                                        {canUpdateStatus && getCurrentStatusIndex() < currentWorkflow.length - 1 && (
+                                        {getCurrentStatusIndex() < currentWorkflow.length - 1 && (
                                             <div className="mt-6 flex justify-end">
                                                 <Button
-                                                    size="sm"
-                                                    disabled={!canUpdateStatus || isEditing || updatingStatus}
+                                                    size="default"
+                                                    disabled={isEditing || updatingStatus}
                                                     onClick={() => handleStatusChange(currentWorkflow[getCurrentStatusIndex() + 1].value)}
-                                                    className="gap-2 bg-slate-900 text-white hover:bg-slate-800"
+                                                    className="gap-2 bg-slate-900 text-white hover:bg-slate-800 px-6 h-10 text-sm font-bold rounded-lg shadow-md"
                                                 >
+                                                    {updatingStatus ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                                                     Sonraki Adıma Geç
                                                 </Button>
                                             </div>
