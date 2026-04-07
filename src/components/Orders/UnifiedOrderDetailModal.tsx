@@ -629,43 +629,21 @@ export const UnifiedOrderDetailModal = ({
 
                 <div className="flex-1 overflow-hidden bg-slate-50/30 p-2 sm:p-4 min-h-0">
                     <div className="max-w-full mx-auto h-full app-dialog-scroll space-y-4">
-                        {/* Financial Summary Header */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <Card className="bg-white/50 backdrop-blur-sm border-slate-200">
-                                <CardContent className="p-3">
-                                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Toplam Tutar</p>
-                                    <p className="text-lg font-bold text-slate-900">{formatCurrency(formData.price, formData.currency)}</p>
-                                </CardContent>
-                            </Card>
-                            <Card className="bg-emerald-50/50 backdrop-blur-sm border-emerald-100">
-                                <CardContent className="p-3">
-                                    <p className="text-[10px] uppercase tracking-wider text-emerald-600 font-bold">Ödenen</p>
-                                    <p className="text-lg font-bold text-emerald-700">{formatCurrency(formData.paidAmount, formData.currency)}</p>
-                                </CardContent>
-                            </Card>
-                            <Card className={cn(
-                                "backdrop-blur-sm border-slate-200",
-                                remainingAmount > 0 ? "bg-amber-50/50 border-amber-100" : "bg-slate-50/50"
-                            )}>
-                                <CardContent className="p-3">
-                                    <p className={cn("text-[10px] uppercase tracking-wider font-bold", remainingAmount > 0 ? "text-amber-600" : "text-slate-500")}>Kalan</p>
-                                    <p className={cn("text-lg font-bold", remainingAmount > 0 ? "text-amber-700" : "text-slate-900")}>{formatCurrency(remainingAmount, formData.currency)}</p>
-                                </CardContent>
-                            </Card>
-                            <Card className="bg-white/50 backdrop-blur-sm border-slate-200">
-                                <CardContent className="p-3">
-                                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Vade</p>
-                                    <p className="text-lg font-bold text-slate-900">{formData.hasMaturity ? `${formData.maturityMonths} Ay` : "Yok"}</p>
-                                </CardContent>
-                            </Card>
-                        </div>
-
                         {/* Main Content Area */}
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                             {/* Left Column: Details & Items */}
                             <div className="space-y-4 lg:col-span-8">
                                 {/* Status Timeline */}
                                 <Card>
+                                    <CardHeader className="py-3 px-4 flex flex-row items-center justify-between border-b bg-slate-50/50">
+                                        <CardTitle className="text-sm font-bold flex items-center gap-2">
+                                            <Activity className="h-4 w-4 text-primary" />
+                                            Süreç Takibi
+                                        </CardTitle>
+                                        <span className="text-[10px] text-slate-500">
+                                            Sıradaki: {currentWorkflow[getCurrentStatusIndex() + 1]?.label || "Tamamlandı"}
+                                        </span>
+                                    </CardHeader>
                                     <CardContent className="p-5 sm:p-6">
                                         <div className="overflow-x-auto pb-4 hide-scrollbar">
                                             <div className="flex items-center justify-between relative min-w-[500px]">
